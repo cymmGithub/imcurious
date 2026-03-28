@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 
 interface TaskBlockProps {
   id: string
@@ -9,11 +9,22 @@ interface TaskBlockProps {
   isExecuting?: boolean
 }
 
+const ICON_BY_TYPE: Record<string, string> = {
+  setTimeout: '⏱',
+  fetch: '↗',
+}
+
 export function TaskBlock({ id, label, color, isExecuting }: TaskBlockProps) {
+  const prefersReducedMotion = useReducedMotion()
+  // Derive icon from label text
+  const icon = label.startsWith('setTimeout') ? ICON_BY_TYPE.setTimeout
+    : label.startsWith('fetch') ? ICON_BY_TYPE.fetch
+    : ''
+
   return (
     <motion.div
       layoutId={`task-${id}`}
-      initial={{ opacity: 0, scale: 0.5 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.5 }}
       animate={{
         opacity: 1,
         scale: 1,
@@ -21,8 +32,8 @@ export function TaskBlock({ id, label, color, isExecuting }: TaskBlockProps) {
           ? `0 0 20px ${color}, 0 0 40px ${color}40`
           : `0 0 8px ${color}60`,
       }}
-      exit={{ opacity: 0, scale: 0.5, y: -10 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.5, y: -10 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 25 }}
       className="px-2 py-1 rounded text-xs font-space-mono font-bold whitespace-nowrap"
       style={{
         backgroundColor: `${color}20`,
@@ -30,7 +41,7 @@ export function TaskBlock({ id, label, color, isExecuting }: TaskBlockProps) {
         color: color,
       }}
     >
-      {label}
+      {icon && <span aria-hidden="true">{icon} </span>}{label}
     </motion.div>
   )
 }

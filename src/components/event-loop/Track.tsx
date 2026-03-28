@@ -1,6 +1,7 @@
 'use client'
 
 import { forwardRef } from 'react'
+import { useReducedMotion } from 'framer-motion'
 import { TRACK_D, VIEWBOX } from '@/lib/trackPath'
 
 interface TrackProps {
@@ -9,11 +10,15 @@ interface TrackProps {
 
 export const Track = forwardRef<SVGPathElement, TrackProps>(
   function Track({ className }, ref) {
+    const prefersReducedMotion = useReducedMotion()
+
     return (
       <svg
         viewBox={`0 0 ${VIEWBOX.width} ${VIEWBOX.height}`}
         className={className}
         style={{ width: '100%', height: '100%' }}
+        role="img"
+        aria-label="Figure-eight race track representing the JavaScript event loop with pit stops for microtask queue, task queue, and rendering"
       >
         <defs>
           {/* Neon glow filter */}
@@ -29,8 +34,8 @@ export const Track = forwardRef<SVGPathElement, TrackProps>(
           <pattern id="checker" width="10" height="10" patternUnits="userSpaceOnUse">
             <rect width="5" height="5" fill="white" />
             <rect x="5" y="5" width="5" height="5" fill="white" />
-            <rect x="5" width="5" height="5" fill="#333" />
-            <rect y="5" width="5" height="5" fill="#333" />
+            <rect x="5" width="5" height="5" fill="var(--color-surface-muted)" />
+            <rect y="5" width="5" height="5" fill="var(--color-surface-muted)" />
           </pattern>
 
           {/* Kerb stripe pattern */}
@@ -91,20 +96,22 @@ export const Track = forwardRef<SVGPathElement, TrackProps>(
         />
 
         {/* Animated pulse on track edge */}
-        <path
-          d={TRACK_D}
-          fill="none"
-          stroke="var(--color-neon-cyan)"
-          strokeWidth={1}
-          opacity={0.3}
-        >
-          <animate
-            attributeName="opacity"
-            values="0.1;0.3;0.1"
-            dur="3s"
-            repeatCount="indefinite"
-          />
-        </path>
+        {!prefersReducedMotion && (
+          <path
+            d={TRACK_D}
+            fill="none"
+            stroke="var(--color-neon-cyan)"
+            strokeWidth={1}
+            opacity={0.3}
+          >
+            <animate
+              attributeName="opacity"
+              values="0.1;0.3;0.1"
+              dur="3s"
+              repeatCount="indefinite"
+            />
+          </path>
+        )}
       </svg>
     )
   },

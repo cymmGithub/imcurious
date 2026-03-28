@@ -10,6 +10,9 @@
   --color-neon-green: #06d6a0;
   --color-track-surface: #1a1a2e;
   --color-track-line: #4a4a6a;
+  --color-surface-dark: #0a0a1a;
+  --color-surface-muted: #333;
+  --color-surface-muted-hover: #555;
 }
 
 body {
@@ -31,25 +34,39 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-muted) var(--color-surface-dark);
+}
+
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a1a;
+  background: var(--color-surface-dark);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--color-surface-muted);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--color-surface-muted-hover);
 }
 
 /* Selection color */
 ::selection {
-  background: #00f5ff30;
+  background: color-mix(in srgb, var(--color-neon-cyan) 19%, transparent);
   color: white;
+}
+
+/* Reduced motion: disable decorative animations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

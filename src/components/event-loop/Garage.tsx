@@ -1,7 +1,8 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import type { PendingWebAPI } from '@/lib/simulation'
+import { VIEWBOX } from '@/lib/trackPath'
 
 interface GarageProps {
   pendingAPIs: PendingWebAPI[]
@@ -10,19 +11,27 @@ interface GarageProps {
 }
 
 export function Garage({ pendingAPIs, position, visibility }: GarageProps) {
+  const prefersReducedMotion = useReducedMotion()
+
   if (visibility <= 0) return null
+
+  // Convert SVG coordinates to percentages for responsive positioning
+  const leftPct = (position.x / VIEWBOX.width) * 100
+  const topPct = (position.y / VIEWBOX.height) * 100
 
   return (
     <motion.div
       className="absolute pointer-events-none"
       style={{
-        left: position.x,
-        top: position.y,
+        left: `${leftPct}%`,
+        top: `${topPct}%`,
         transform: 'translate(-50%, -50%)',
       }}
-      initial={{ opacity: 0, scale: 0.8 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.8 }}
       animate={{ opacity: visibility, scale: 0.8 + visibility * 0.2 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
+      role="region"
+      aria-label="Web APIs garage"
     >
       <div
         className="font-orbitron text-xs font-bold tracking-wider uppercase text-center mb-2"
@@ -46,9 +55,9 @@ export function Garage({ pendingAPIs, position, visibility }: GarageProps) {
             {pendingAPIs.map((api) => (
               <motion.div
                 key={api.id}
-                initial={{ opacity: 0, x: -20 }}
+                initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 20 }}
                 className="flex items-center gap-2 px-2 py-1 rounded text-xs font-space-mono"
                 style={{
                   backgroundColor: `${api.color}15`,
@@ -64,7 +73,7 @@ export function Garage({ pendingAPIs, position, visibility }: GarageProps) {
             ))}
           </AnimatePresence>
           {pendingAPIs.length === 0 && (
-            <span className="text-[10px] text-gray-600 text-center">idle</span>
+            <span className="text-[10px] text-gray-400 text-center">idle</span>
           )}
         </div>
       </div>

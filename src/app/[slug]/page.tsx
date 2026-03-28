@@ -29,10 +29,12 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   const { default: Post } = await loader()
 
   return (
-    <article className="mx-auto">
-      <MDXProvider>
-        <Post />
-      </MDXProvider>
-    </article>
+    <main>
+      <article className="mx-auto">
+        <MDXProvider>
+          <Post />
+        </MDXProvider>
+      </article>
+    </main>
   )
 }

@@ -14,6 +14,16 @@ interface EventLoopVizProps {
   getStageVisibility: (stage: number) => number
 }
 
+const CAR_STATE_LABELS: Record<string, string> = {
+  DRIVING: 'Car is driving around the track',
+  STOPPED_AT_MICROTASK_QUEUE: 'Car stopped at microtask queue',
+  EXECUTING_MICROTASK: 'Executing microtask',
+  STOPPED_AT_TASK_QUEUE: 'Car stopped at task queue',
+  EXECUTING_TASK: 'Executing task',
+  STOPPED_AT_RENDER: 'Car stopped at render step',
+  RENDERING: 'Rendering in progress',
+}
+
 export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
   const pathRef = useRef<SVGPathElement>(null)
   const { state, togglePause, addTask, reset } = useEventLoopSimulation()
@@ -38,8 +48,16 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
       ? 1 - state.executionTimer / EXECUTION_DURATION
       : 0
 
+  const statusLabel = CAR_STATE_LABELS[state.carState] ?? 'Simulation running'
+  const taskDetail = state.currentTask ? `: ${state.currentTask.label}` : ''
+
   return (
-    <div className="relative w-full h-full flex flex-col">
+    <div className="relative w-full h-full flex flex-col" role="application" aria-label="Event loop visualization">
+      {/* Screen-reader live region for state changes */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {statusLabel}{taskDetail}
+      </div>
+
       {/* Track area */}
       <div className="relative flex-1 min-h-0">
         <Track ref={pathRef} className="w-full h-full" />

@@ -29,6 +29,7 @@ export type SimulationState = {
   isPaused: boolean
   currentTask: Task | null
   executionTimer: number
+  nextId: number
 }
 
 export const PIT_STOPS = { microtask: 0.25, task: 0.50, render: 0.75 } as const
@@ -43,8 +44,6 @@ const COLOR_MAP: Record<TaskType, string> = {
   fetch: '#06d6a0',
 }
 
-let nextId = 0
-
 export function createInitialState(): SimulationState {
   return {
     carPosition: 0,
@@ -56,6 +55,7 @@ export function createInitialState(): SimulationState {
     isPaused: false,
     currentTask: null,
     executionTimer: 0,
+    nextId: 0,
   }
 }
 
@@ -83,7 +83,7 @@ export function addTask(
 
   const label = type === 'setTimeout' ? `setTimeout(${resolvedDelay}ms)` : 'fetch()'
   const task: PendingWebAPI = {
-    id: String(nextId++),
+    id: String(state.nextId),
     type,
     label,
     delay: resolvedDelay,
@@ -95,6 +95,7 @@ export function addTask(
     ...state,
     pendingWebAPIs: [...state.pendingWebAPIs, task],
     renderNeeded: true,
+    nextId: state.nextId + 1,
   }
 }
 

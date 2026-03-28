@@ -43,7 +43,7 @@ export function useEventLoopSimulation() {
   }, [])
 
   const reset = useCallback(() => {
-    setState(createInitialState())
+    setState(createInitialState)
     lastTimeRef.current = 0
   }, [])
 

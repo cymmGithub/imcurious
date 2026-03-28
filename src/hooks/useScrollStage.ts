@@ -15,9 +15,8 @@ export interface ScrollStageResult {
 
 export function useScrollStage(): ScrollStageResult {
   const contentRef = useRef<HTMLDivElement>(null)
-  const [activeStage, setActiveStage] = useState(1)
-  const [stageProgress, setStageProgress] = useState(0)
-  const [scrollProgress, setScrollProgress] = useState(0)
+  const scrollProgressRef = useRef(0)
+  const [stageInfo, setStageInfo] = useState({ activeStage: 1, stageProgress: 0 })
 
   const { scrollYProgress } = useScroll({
     target: contentRef,
@@ -25,18 +24,21 @@ export function useScrollStage(): ScrollStageResult {
   })
 
   useMotionValueEvent(scrollYProgress, 'change', (latest) => {
-    setScrollProgress(latest)
+    scrollProgressRef.current = latest
 
     const stageFloat = latest * (TOTAL_STAGES - 1) + 1
     const currentStage = Math.min(Math.floor(stageFloat), TOTAL_STAGES)
     const progress = stageFloat - Math.floor(stageFloat)
 
-    setActiveStage(Math.max(1, currentStage))
-    setStageProgress(progress)
+    setStageInfo({
+      activeStage: Math.max(1, currentStage),
+      stageProgress: progress,
+    })
   })
 
   const getStageVisibility = useCallback(
     (stage: number): number => {
+      const scrollProgress = scrollProgressRef.current
       const stageStart = (stage - 1) / (TOTAL_STAGES - 1)
       const transitionWidth = 0.5 / (TOTAL_STAGES - 1)
 
@@ -46,13 +48,13 @@ export function useScrollStage(): ScrollStageResult {
       }
       return 0
     },
-    [scrollProgress],
+    [],
   )
 
   return {
     contentRef,
-    activeStage,
-    stageProgress,
+    activeStage: stageInfo.activeStage,
+    stageProgress: stageInfo.stageProgress,
     getStageVisibility,
     scrollYProgress,
   }

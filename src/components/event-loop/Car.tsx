@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useEffect } from 'react'
+import { useReducedMotion } from 'framer-motion'
 
 interface CarProps {
   pathRef: React.RefObject<SVGPathElement | null>
@@ -10,34 +11,54 @@ interface CarProps {
 
 export function Car({ pathRef, position, isExecuting }: CarProps) {
   const carRef = useRef<HTMLDivElement>(null)
+  const layoutCache = useRef<{ scaleX: number; scaleY: number; totalLength: number } | null>(null)
+  const prefersReducedMotion = useReducedMotion()
+
+  // Cache SVG layout metrics; recalculate only on resize
+  useEffect(() => {
+    const path = pathRef.current
+    if (!path) return
+
+    function updateCache() {
+      const p = pathRef.current
+      if (!p) return
+      const svg = p.ownerSVGElement
+      if (!svg) return
+      const svgRect = svg.getBoundingClientRect()
+      const viewBox = svg.viewBox.baseVal
+      layoutCache.current = {
+        scaleX: svgRect.width / viewBox.width,
+        scaleY: svgRect.height / viewBox.height,
+        totalLength: p.getTotalLength(),
+      }
+    }
+
+    updateCache()
+
+    const observer = new ResizeObserver(updateCache)
+    const svg = path.ownerSVGElement
+    if (svg) observer.observe(svg)
+
+    return () => observer.disconnect()
+  }, [pathRef])
 
   useEffect(() => {
     const path = pathRef.current
     const car = carRef.current
-    if (!path || !car) return
+    const cache = layoutCache.current
+    if (!path || !car || !cache) return
 
-    const totalLength = path.getTotalLength()
-    const point = path.getPointAtLength(position * totalLength)
+    const point = path.getPointAtLength(position * cache.totalLength)
 
     // Get next point for rotation
     const epsilon = 0.001
     const nextPos = Math.min(position + epsilon, 0.999)
-    const nextPoint = path.getPointAtLength(nextPos * totalLength)
+    const nextPoint = path.getPointAtLength(nextPos * cache.totalLength)
     const angle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x)
     const degrees = (angle * 180) / Math.PI
 
-    // Convert SVG coords to screen coords
-    const svg = path.ownerSVGElement
-    if (!svg) return
-
-    const svgRect = svg.getBoundingClientRect()
-    const viewBox = svg.viewBox.baseVal
-
-    const scaleX = svgRect.width / viewBox.width
-    const scaleY = svgRect.height / viewBox.height
-
-    const screenX = point.x * scaleX
-    const screenY = point.y * scaleY
+    const screenX = point.x * cache.scaleX
+    const screenY = point.y * cache.scaleY
 
     car.style.transform = `translate(${screenX}px, ${screenY}px) rotate(${degrees}deg)`
   }, [pathRef, position])
@@ -54,6 +75,8 @@ export function Car({ pathRef, position, isExecuting }: CarProps) {
         height="16"
         viewBox="0 0 32 16"
         className="block -translate-x-1/2 -translate-y-1/2"
+        role="img"
+        aria-label="F1 car on track"
       >
         {/* Car body */}
         <rect x="4" y="4" width="24" height="8" rx="2" fill="var(--color-neon-cyan)" />
@@ -62,13 +85,13 @@ export function Car({ pathRef, position, isExecuting }: CarProps) {
         {/* Rear wing */}
         <rect x="2" y="2" width="3" height="12" rx="1" fill="var(--color-neon-cyan)" opacity="0.8" />
         {/* Wheels */}
-        <rect x="8" y="2" width="4" height="3" rx="1" fill="#333" />
-        <rect x="8" y="11" width="4" height="3" rx="1" fill="#333" />
-        <rect x="22" y="2" width="4" height="3" rx="1" fill="#333" />
-        <rect x="22" y="11" width="4" height="3" rx="1" fill="#333" />
+        <rect x="8" y="2" width="4" height="3" rx="1" fill="var(--color-surface-muted)" />
+        <rect x="8" y="11" width="4" height="3" rx="1" fill="var(--color-surface-muted)" />
+        <rect x="22" y="2" width="4" height="3" rx="1" fill="var(--color-surface-muted)" />
+        <rect x="22" y="11" width="4" height="3" rx="1" fill="var(--color-surface-muted)" />
 
         {/* Glow effect when executing */}
-        {isExecuting && (
+        {isExecuting && !prefersReducedMotion && (
           <rect
             x="4" y="4" width="24" height="8" rx="2"
             fill="none"
