@@ -26,7 +26,11 @@ export function Controls({
 
   return (
     <motion.div
-      className="flex flex-wrap items-center gap-2 p-3 bg-gray-900/80 backdrop-blur-sm rounded-lg border border-gray-800"
+      className="flex flex-wrap items-center gap-2 p-3 bg-gray-900/80 backdrop-blur-sm rounded-lg"
+      style={{
+        border: '1px solid rgba(0, 245, 255, 0.1)',
+        boxShadow: '0 -1px 12px rgba(0, 245, 255, 0.06)',
+      }}
       initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
       animate={{ opacity: visibility, y: 0 }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
