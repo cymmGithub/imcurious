@@ -92,7 +92,9 @@ Here is what actually happens:
 
 This is the key insight Will Sentance drives home: `setTimeout` is not a JavaScript function in any meaningful sense. It is a label, a facade, for browser functionality that lives entirely outside the JavaScript engine. Same with `fetch` (network requests), `document` (the DOM), and even `console` (dev tools).
 
+<Callout>
 The JavaScript engine is just the car. The browser is the entire racing organization: the garage, the pit wall, the tire warmers, the telemetry. JavaScript gets to use all of it through these facade functions, but the work happens elsewhere.
+</Callout>
 
 So when the timer finishes, where does the callback go? It cannot just jump onto the call stack. That would break our "one car, one track" rule. It needs to wait its turn.
 
@@ -123,7 +125,9 @@ Even with a delay of 0 milliseconds, those callbacks do not run immediately. Her
 5. The event loop checks: "Call stack empty? All global code done? Anything in the queue?" Yes! It grabs `A` and puts it on the stack
 6. `A` finishes. The event loop goes around the loop again, then picks up `B`
 
-This is the rule that trips everyone up: **the callback queue does not run until all global code has finished**. You could have a million `console.log` statements after `setTimeout(fn, 0)`, and every single one would execute before that callback gets its chance. The event loop is strict. Predictable. No exceptions.
+<Callout>
+The callback queue does not run until all global code has finished. You could have a million console.log statements after setTimeout(fn, 0), and every single one would execute before that callback gets its chance. The event loop is strict. Predictable. No exceptions.
+</Callout>
 
 As Will Sentance puts it: "You could have a million console logs, and still, everything would be left until after." That is not a bug. That is the design. Predictability over speed, every time.
 
@@ -159,7 +163,9 @@ Even though `setTimeout` was called first, the Promise callback wins. Every time
 6. Microtask queue is empty. Now the event loop checks the task queue
 7. "Task" prints
 
-This is what Jake Archibald emphasizes: microtasks run whenever the JavaScript stack empties. Not just between tasks — after every task, after every callback, after every event handler. The engine clears the entire microtask queue before moving on.
+<Callout>
+Microtasks run whenever the JavaScript stack empties. Not just between tasks — after every task, after every callback, after every event handler. The engine clears the entire microtask queue before moving on.
+</Callout>
 
 And here is the dangerous part: if a microtask queues another microtask, that one runs too, before any task or rendering gets a chance. Microtasks can **starve everything else**:
 
@@ -199,7 +205,9 @@ for (let i = 0; i < 2_000_000_000; i++) {
 }
 ```
 
-Jake Archibald makes an important point here: `requestAnimationFrame` is synchronized with the display's refresh rate, while `setTimeout` is not. A `setTimeout` loop might fire too often (wasting CPU) or not often enough (causing visual stutters). For animations, always use `requestAnimationFrame` — it is the browser telling you "now is a good time to update visuals."
+<Callout>
+requestAnimationFrame is synchronized with the display's refresh rate, while setTimeout is not. A setTimeout loop might fire too often (wasting CPU) or not often enough (causing visual stutters). For animations, always use requestAnimationFrame — it is the browser telling you "now is a good time to update visuals."
+</Callout>
 
 The rendering step is the final piece of the lap. After it completes (or gets skipped), the event loop starts a brand new lap: check the task queue, drain microtasks, maybe render. Around and around, forever, until you close the tab.
 
