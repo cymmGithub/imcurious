@@ -89,6 +89,22 @@ export const Track = forwardRef<SVGPathElement, TrackProps>(
           opacity={0.04}
           filter="url(#neon-glow)"
         />
+
+        {/* Animated pulse on track edge */}
+        <path
+          d={TRACK_D}
+          fill="none"
+          stroke="var(--color-neon-cyan)"
+          strokeWidth={1}
+          opacity={0.3}
+        >
+          <animate
+            attributeName="opacity"
+            values="0.1;0.3;0.1"
+            dur="3s"
+            repeatCount="indefinite"
+          />
+        </path>
       </svg>
     )
   },

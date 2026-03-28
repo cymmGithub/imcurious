@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
-:root {
+@theme {
+  --font-orbitron: var(--font-orbitron), sans-serif;
+  --font-space-mono: var(--font-space-mono), monospace;
+
   --color-neon-cyan: #00f5ff;
   --color-neon-pink: #ff006e;
   --color-neon-yellow: #ffbe0b;
@@ -15,4 +18,38 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-orbitron), sans-serif;
+}
+
+/* Noise texture overlay */
+.noise-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Selection color */
+::selection {
+  background: #00f5ff30;
+  color: white;
 }
