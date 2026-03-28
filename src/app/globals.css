@@ -62,6 +62,24 @@ h1, h2, h3, h4, h5, h6 {
   color: white;
 }
 
+/* Beacon ring pulse for active pit stops */
+@keyframes beacon-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.8);
+    opacity: 0;
+  }
+}
+
+/* Exhaust trail particle pulse */
+@keyframes trail-pulse {
+  0%, 100% { opacity: var(--trail-opacity); }
+  50% { opacity: calc(var(--trail-opacity) * 0.5); }
+}
+
 /* Reduced motion: disable decorative animations */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
