@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+:root {
+  --color-neon-cyan: #00f5ff;
+  --color-neon-pink: #ff006e;
+  --color-neon-yellow: #ffbe0b;
+  --color-neon-green: #06d6a0;
+  --color-track-surface: #1a1a2e;
+  --color-track-line: #4a4a6a;
+}
+
+body {
+  font-family: var(--font-space-mono), monospace;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-orbitron), sans-serif;
+}
