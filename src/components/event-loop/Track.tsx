@@ -76,10 +76,10 @@ export const Track = forwardRef<SVGPathElement, TrackProps>(
           opacity={0.15}
         />
 
-        {/* Start/finish checkered line at center crossing */}
+        {/* Start/finish checkered line at top center */}
         <rect
           x={395}
-          y={270}
+          y={150}
           width={10}
           height={60}
           fill="url(#checker)"

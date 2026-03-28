@@ -55,7 +55,7 @@ export function Car({ pathRef, position, isExecuting, positionHistory }: CarProp
     const nextPos = Math.min(position + epsilon, 0.999)
     const nextPoint = path.getPointAtLength(nextPos * cache.totalLength)
     const angle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x)
-    const degrees = (angle * 180) / Math.PI
+    const degrees = (angle * 180) / Math.PI + 180 // +180 because PNG points left
 
     const screenX = point.x * cache.scaleX
     const screenY = point.y * cache.scaleY
@@ -111,47 +111,20 @@ export function Car({ pathRef, position, isExecuting, positionHistory }: CarProp
         className="absolute top-0 left-0 pointer-events-none"
         style={{ willChange: 'transform' }}
       >
-        <svg
-          width="32"
-          height="16"
-          viewBox="0 0 32 16"
+        <img
+          src="/f1-car.png"
+          alt="F1 car on track"
           className="block -translate-x-1/2 -translate-y-1/2"
-          role="img"
-          aria-label="Car on track"
-        >
-          {/* Shadow */}
-          <ellipse cx="16" cy="14" rx="14" ry="3" fill="rgba(0,0,0,0.25)" />
-
-          {/* Car body */}
-          <rect x="4" y="4" width="24" height="8" rx="2" fill="var(--color-chalk)" />
-          {/* Nose */}
-          <polygon points="28,6 32,8 28,10" fill="var(--color-chalk)" />
-          {/* Rear wing */}
-          <rect x="2" y="2" width="3" height="12" rx="1" fill="var(--color-chalk)" opacity="0.8" />
-          {/* Wheels */}
-          <rect x="8" y="2" width="4" height="3" rx="1" fill="var(--color-chalk-faint)" />
-          <rect x="8" y="11" width="4" height="3" rx="1" fill="var(--color-chalk-faint)" />
-          <rect x="22" y="2" width="4" height="3" rx="1" fill="var(--color-chalk-faint)" />
-          <rect x="22" y="11" width="4" height="3" rx="1" fill="var(--color-chalk-faint)" />
-
-          {/* Highlight when executing */}
-          {isExecuting && !prefersReducedMotion && (
-            <rect
-              x="4" y="4" width="24" height="8" rx="2"
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-              opacity="0.6"
-            >
-              <animate
-                attributeName="opacity"
-                values="0.4;0.8;0.4"
-                dur="0.8s"
-                repeatCount="indefinite"
-              />
-            </rect>
-          )}
-        </svg>
+          style={{
+            width: 40,
+            height: 'auto',
+            filter: isExecuting && !prefersReducedMotion
+              ? 'drop-shadow(0 0 4px rgba(255,255,255,0.6))'
+              : 'none',
+            transition: 'filter 0.2s',
+          }}
+          draggable={false}
+        />
       </div>
     </>
   )

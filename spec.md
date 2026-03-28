@@ -1,10 +1,10 @@
-# Spec: imcurious.how/the-event-loop-works
+# Spec: imcurious.how/the-js-event-loop-works
 
 ## Overview
 
 An interactive, F1-themed blog post explaining how the JavaScript event loop works. The event loop visualization is mapped to an F1 racing track, where a single car (representing the main thread / call stack) races around a circuit, making pit stops at queues and the rendering pipeline. The post combines rich educational content with hands-on interactivity, inspired by Josh Comeau's interactive blog style and Jake Archibald's iconic event loop conference talk.
 
-**URL**: `imcurious.how/the-event-loop-works`
+**URL**: `imcurious.how/the-js-event-loop-works`
 
 ---
 
@@ -144,7 +144,7 @@ The track visualization **evolves** as the user scrolls through sections. Comple
 - Simplified render stop
 - Hybrid sticky layout (desktop: side-by-side, mobile: top-sticky)
 - Full educational text across all 7 sections
-- Deployed to Vercel at `imcurious.how/the-event-loop-works`
+- Deployed to Vercel at `imcurious.how/the-js-event-loop-works`
 
 ### v2
 - Console/log panel showing execution order

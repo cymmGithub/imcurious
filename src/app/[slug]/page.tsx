@@ -3,8 +3,8 @@ import { MDXProvider } from '@/components/mdx/MDXProvider'
 import { ArticleSidebar } from '@/components/mdx/ArticleSidebar'
 
 const posts: Record<string, { loader: () => Promise<{ default: React.ComponentType }>, meta: { category: string, date: string } }> = {
-  'the-event-loop-works': {
-    loader: () => import('@/posts/the-event-loop-works.mdx'),
+  'the-js-event-loop-works': {
+    loader: () => import('@/posts/the-js-event-loop-works.mdx'),
     meta: { category: 'JS Fundamentals', date: '10/4/25' },
   },
 }
@@ -15,9 +15,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  if (slug === 'the-event-loop-works') {
+  if (slug === 'the-js-event-loop-works') {
     return {
-      title: 'How the Event Loop Works | imcurious.how',
+      title: 'How the JS Event Loop Works | imcurious.how',
       description:
         'An interactive guide to the JavaScript event loop. Watch tasks navigate queues, microtasks, and rendering.',
     }

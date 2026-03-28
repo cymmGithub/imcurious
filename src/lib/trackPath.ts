@@ -1,52 +1,52 @@
-// Figure-eight track for an 800x600 viewBox.
+// Oval racetrack for an 800x600 viewBox.
 export const VIEWBOX = { width: 800, height: 600 }
 
-// The track is a lemniscate (figure-eight / infinity symbol) shape.
-// Single continuous path that crosses itself at the center.
-// Uses cubic beziers to approximate the shape.
-// Trace: center → right lobe (clockwise) → center → left lobe (clockwise) → center
+// The track is a wide, flat oval.
+// Uses cubic beziers for smooth rounded ends with long straight stretches.
+// Trace: top-center → right curve → bottom straight → left curve → back to top
 export const TRACK_D = [
-  'M 400 300',
-  'C 500 200, 700 120, 700 300',  // up-right, around right lobe
-  'C 700 480, 500 400, 400 300',  // back down to center
-  'C 300 200, 100 120, 100 300',  // up-left, around left lobe
-  'C 100 480, 300 400, 400 300',  // back down to center
+  'M 400 180',                         // top center
+  'C 600 180, 720 220, 720 300',       // right curve top half
+  'C 720 380, 600 420, 400 420',       // right curve bottom half
+  'C 200 420, 80 380, 80 300',         // left curve bottom half
+  'C 80 220, 200 180, 400 180',        // left curve top half (close)
+  'Z',
 ].join(' ')
 
-// Pit stop positions — pathT values correspond to PIT_STOPS in simulation.ts
+// Pit stop positions — pathT values placed around the oval
 export const PIT_STOP_POSITIONS = {
   microtask: {
     pathT: 0.25,
     label: 'Microtask Queue',
-    anchor: { x: 700, y: 200 },      // right lobe, upper area
-    labelOffset: { x: 40, y: -30 },
+    anchor: { x: 720, y: 300 },        // right side, center
+    labelOffset: { x: 50, y: 0 },
     color: '#ffffff',
   },
   task: {
     pathT: 0.50,
     label: 'Task Queue',
-    anchor: { x: 400, y: 420 },      // center-bottom
-    labelOffset: { x: 0, y: 40 },
+    anchor: { x: 400, y: 420 },        // bottom center
+    labelOffset: { x: 0, y: 50 },
     color: '#888888',
   },
   render: {
     pathT: 0.75,
     label: 'Render',
-    anchor: { x: 100, y: 200 },      // left lobe, upper area
-    labelOffset: { x: -40, y: -30 },
+    anchor: { x: 80, y: 300 },         // left side, center
+    labelOffset: { x: -50, y: 0 },
     color: '#c0b8a8',
   },
 } as const
 
-// Web API "garage" area position (off-track, above center)
+// Web API "garage" area position (above the track)
 export const GARAGE_POSITION = {
   x: 400,
   y: 40,
   label: 'Web APIs',
 }
 
-// Start/finish line position
+// Start/finish line position — top center
 export const START_FINISH = {
   pathT: 0,
-  anchor: { x: 400, y: 300 },
+  anchor: { x: 400, y: 180 },
 }

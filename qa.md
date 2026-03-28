@@ -3,9 +3,9 @@
 ## Q1: What's the idea?
 
 **Answer:**
-An interactive blog post at `imcurious.how/the-event-loop-works` explaining how the JavaScript event loop works. Key points:
+An interactive blog post at `imcurious.how/the-js-event-loop-works` explaining how the JavaScript event loop works. Key points:
 
-- **Domain**: imcurious.how — SEO-friendly when concatenated with the slug (imcurious.how/the-event-loop-works)
+- **Domain**: imcurious.how — SEO-friendly when concatenated with the slug (imcurious.how/the-js-event-loop-works)
 - **Inspiration**: Josh Comeau's interactive blog style (React + motion library), and Jake Archibald's conference talk visualization of the event loop as a looping track
 - **Core concept**: Map the event loop visualization (from Jake's talk — the looping track with task queue, microtask queue, rendering pipeline) to an **F1 racing track** metaphor
 - **Interactivity**: Users can:

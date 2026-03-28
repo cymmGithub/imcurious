@@ -23,8 +23,8 @@ const components = {
     <p className="text-[var(--color-chalk)] leading-relaxed mb-4 font-body" {...props} />
   ),
   code: ({ className, ...rest }: ComponentPropsWithoutRef<'code'>) => {
-    if (className) {
-      return <code className={`${className} font-mono text-[var(--color-chalk-dim)]`} {...rest} />
+    if (className || (rest as Record<string, unknown>)['data-theme']) {
+      return <code className={`${className ?? ''} font-mono`} {...rest} />
     }
     return (
       <code
@@ -36,13 +36,15 @@ const components = {
       />
     )
   },
-  pre: (props: ComponentPropsWithoutRef<'pre'>) => (
+  pre: ({ children, ...rest }: ComponentPropsWithoutRef<'pre'>) => (
     <div className="rounded-lg overflow-hidden mb-6" style={{ border: '1px solid var(--color-chalk-faint)' }}>
       <pre
-        className="p-4 text-sm overflow-x-auto font-mono text-[var(--color-chalk-dim)]"
+        className="p-4 text-sm overflow-x-auto font-mono"
         style={{ background: 'var(--color-surface-card)' }}
-        {...props}
-      />
+        {...rest}
+      >
+        {children}
+      </pre>
     </div>
   ),
   strong: (props: ComponentPropsWithoutRef<'strong'>) => (

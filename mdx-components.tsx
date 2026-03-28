@@ -22,9 +22,11 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       <p className="text-[var(--color-chalk)] leading-[1.85] mb-6 text-[15px] font-body" {...props} />
     ),
     code: ({ className, ...rest }: ComponentPropsWithoutRef<'code'>) => {
-      if (className) {
-        return <code className={`${className} font-mono text-[var(--color-chalk-dim)]`} {...rest} />
+      // Block code (inside <pre>) — rehype-pretty-code handles styling via data-theme
+      if (className || (rest as Record<string, unknown>)['data-theme']) {
+        return <code className={`${className ?? ''} font-mono`} {...rest} />
       }
+      // Inline code
       return (
         <code
           className="bg-[var(--color-surface-card)] text-[var(--color-chalk)] px-1.5 py-0.5 rounded text-sm font-mono"
@@ -38,8 +40,9 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     pre: ({ children, ...rest }: ComponentPropsWithoutRef<'pre'>) => (
       <div className="rounded-lg overflow-hidden my-8" style={{ border: '1px solid var(--color-chalk-faint)' }}>
         <pre
-          className="p-4 text-sm overflow-x-auto font-mono text-[var(--color-chalk-dim)]"
+          className="p-4 text-sm overflow-x-auto font-mono"
           style={{ background: 'var(--color-surface-card)' }}
+          {...rest}
         >
           {children}
         </pre>
