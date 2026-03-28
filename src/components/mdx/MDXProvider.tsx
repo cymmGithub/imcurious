@@ -22,15 +22,22 @@ const components = {
   p: (props: ComponentPropsWithoutRef<'p'>) => (
     <p className="text-gray-300 leading-relaxed mb-4" {...props} />
   ),
-  code: (props: ComponentPropsWithoutRef<'code'>) => (
-    <code
-      className="bg-gray-800 text-[var(--color-neon-cyan)] px-1.5 py-0.5 rounded text-sm font-space-mono"
-      style={{
-        borderLeft: '2px solid rgba(0, 245, 255, 0.3)',
-      }}
-      {...props}
-    />
-  ),
+  code: ({ className, ...rest }: ComponentPropsWithoutRef<'code'>) => {
+    // Code inside <pre> blocks gets a language-* className from MDX — render plain
+    if (className) {
+      return <code className={`${className} font-space-mono`} {...rest} />
+    }
+    // Inline code gets the styled treatment
+    return (
+      <code
+        className="bg-gray-800 text-[var(--color-neon-cyan)] px-1.5 py-0.5 rounded text-sm font-space-mono"
+        style={{
+          borderLeft: '2px solid rgba(0, 245, 255, 0.3)',
+        }}
+        {...rest}
+      />
+    )
+  },
   pre: (props: ComponentPropsWithoutRef<'pre'>) => (
     <div className="rounded-lg overflow-hidden mb-6" style={{ border: '1px solid rgba(255, 255, 255, 0.08)' }}>
       <div
