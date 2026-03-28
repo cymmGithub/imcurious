@@ -4,10 +4,12 @@ import { MDXProvider as BaseMDXProvider } from '@mdx-js/react'
 import type { ComponentPropsWithoutRef } from 'react'
 import { ScrollStage } from '@/components/event-loop/ScrollStage'
 import { Section } from './Section'
+import { Callout } from './Callout'
 
 const components = {
   ScrollStage,
   Section,
+  Callout,
   h1: (props: ComponentPropsWithoutRef<'h1'>) => (
     <h1 className="font-orbitron text-4xl font-bold tracking-tight text-white mb-6" {...props} />
   ),
