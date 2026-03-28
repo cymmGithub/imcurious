@@ -1,17 +1,22 @@
 import type { Metadata } from 'next'
-import { Orbitron, Space_Mono } from 'next/font/google'
+import { Playfair_Display, DM_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 
-const orbitron = Orbitron({
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  variable: '--font-orbitron',
+  variable: '--font-display',
   display: 'swap',
 })
 
-const spaceMono = Space_Mono({
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-space-mono',
+  variable: '--font-body',
+  display: 'swap',
+})
+
+const jetbrains = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
   display: 'swap',
 })
 
@@ -26,8 +31,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${orbitron.variable} ${spaceMono.variable}`}>
-      <body className="bg-gray-950 text-gray-100 antialiased">
+    <html lang="en" className={`${playfair.variable} ${dmSans.variable} ${jetbrains.variable}`}>
+      <body className="bg-black text-[var(--color-chalk)] antialiased">
         {children}
       </body>
     </html>

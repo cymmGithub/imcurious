@@ -1,8 +1,12 @@
 import { notFound } from 'next/navigation'
 import { MDXProvider } from '@/components/mdx/MDXProvider'
+import { ArticleSidebar } from '@/components/mdx/ArticleSidebar'
 
-const posts: Record<string, () => Promise<{ default: React.ComponentType }>> = {
-  'the-event-loop-works': () => import('@/posts/the-event-loop-works.mdx'),
+const posts: Record<string, { loader: () => Promise<{ default: React.ComponentType }>, meta: { category: string, date: string } }> = {
+  'the-event-loop-works': {
+    loader: () => import('@/posts/the-event-loop-works.mdx'),
+    meta: { category: 'JS Fundamentals', date: '10/4/25' },
+  },
 }
 
 export function generateStaticParams() {
@@ -15,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return {
       title: 'How the Event Loop Works | imcurious.how',
       description:
-        'An interactive, F1-themed guide to the JavaScript event loop. Watch a race car navigate task queues, microtasks, and rendering.',
+        'An interactive guide to the JavaScript event loop. Watch tasks navigate queues, microtasks, and rendering.',
     }
   }
   return {}
@@ -23,18 +27,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const loader = posts[slug]
-  if (!loader) notFound()
+  const post = posts[slug]
+  if (!post) notFound()
 
-  const { default: Post } = await loader()
+  const { default: Post } = await post.loader()
 
   return (
-    <main>
+    <main className="lg:grid lg:grid-cols-[1fr_56px]">
       <article className="mx-auto">
         <MDXProvider>
           <Post />
         </MDXProvider>
       </article>
+      <ArticleSidebar
+        category={post.meta.category}
+        date={post.meta.date}
+      />
     </main>
   )
 }

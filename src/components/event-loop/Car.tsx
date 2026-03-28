@@ -78,7 +78,7 @@ export function Car({ pathRef, position, isExecuting, positionHistory }: CarProp
         const pt = path.getPointAtLength(pos * cache.totalLength)
         const sx = pt.x * cache.scaleX
         const sy = pt.y * cache.scaleY
-        const opacity = 0.5 - i * 0.05
+        const opacity = 0.4 - i * 0.04
         const scale = 1 - i * 0.08
         dot.style.transform = `translate(${sx}px, ${sy}px) scale(${scale})`
         dot.style.opacity = String(Math.max(0, opacity))
@@ -88,21 +88,17 @@ export function Car({ pathRef, position, isExecuting, positionHistory }: CarProp
 
   return (
     <>
-      {/* Exhaust trail */}
+      {/* Trail dots */}
       {!prefersReducedMotion && (
         <div ref={trailRef} className="absolute top-0 left-0 pointer-events-none">
           {Array.from({ length: 10 }).map((_, i) => (
             <div
               key={i}
-              className="absolute w-[5px] h-[5px] rounded-full -translate-x-1/2 -translate-y-1/2"
+              className="absolute w-[4px] h-[4px] rounded-full -translate-x-1/2 -translate-y-1/2"
               style={{
-                backgroundColor: 'var(--color-neon-cyan)',
-                boxShadow: '0 0 4px var(--color-neon-cyan)',
+                backgroundColor: 'var(--color-chalk-dim)',
                 willChange: 'transform, opacity',
                 opacity: 0,
-                ['--trail-opacity' as string]: `${0.5 - i * 0.05}`,
-                animation: 'trail-pulse 1.5s ease-in-out infinite',
-                animationDelay: `${i * 0.1}s`,
               }}
             />
           ))}
@@ -121,24 +117,24 @@ export function Car({ pathRef, position, isExecuting, positionHistory }: CarProp
           viewBox="0 0 32 16"
           className="block -translate-x-1/2 -translate-y-1/2"
           role="img"
-          aria-label="F1 car on track"
+          aria-label="Car on track"
         >
           {/* Shadow */}
           <ellipse cx="16" cy="14" rx="14" ry="3" fill="rgba(0,0,0,0.25)" />
 
           {/* Car body */}
-          <rect x="4" y="4" width="24" height="8" rx="2" fill="var(--color-neon-cyan)" />
+          <rect x="4" y="4" width="24" height="8" rx="2" fill="var(--color-chalk)" />
           {/* Nose */}
-          <polygon points="28,6 32,8 28,10" fill="var(--color-neon-cyan)" />
+          <polygon points="28,6 32,8 28,10" fill="var(--color-chalk)" />
           {/* Rear wing */}
-          <rect x="2" y="2" width="3" height="12" rx="1" fill="var(--color-neon-cyan)" opacity="0.8" />
+          <rect x="2" y="2" width="3" height="12" rx="1" fill="var(--color-chalk)" opacity="0.8" />
           {/* Wheels */}
-          <rect x="8" y="2" width="4" height="3" rx="1" fill="var(--color-surface-muted)" />
-          <rect x="8" y="11" width="4" height="3" rx="1" fill="var(--color-surface-muted)" />
-          <rect x="22" y="2" width="4" height="3" rx="1" fill="var(--color-surface-muted)" />
-          <rect x="22" y="11" width="4" height="3" rx="1" fill="var(--color-surface-muted)" />
+          <rect x="8" y="2" width="4" height="3" rx="1" fill="var(--color-chalk-faint)" />
+          <rect x="8" y="11" width="4" height="3" rx="1" fill="var(--color-chalk-faint)" />
+          <rect x="22" y="2" width="4" height="3" rx="1" fill="var(--color-chalk-faint)" />
+          <rect x="22" y="11" width="4" height="3" rx="1" fill="var(--color-chalk-faint)" />
 
-          {/* Glow effect when executing */}
+          {/* Highlight when executing */}
           {isExecuting && !prefersReducedMotion && (
             <rect
               x="4" y="4" width="24" height="8" rx="2"
@@ -149,8 +145,8 @@ export function Car({ pathRef, position, isExecuting, positionHistory }: CarProp
             >
               <animate
                 attributeName="opacity"
-                values="0.6;1;0.6"
-                dur="0.5s"
+                values="0.4;0.8;0.4"
+                dur="0.8s"
                 repeatCount="indefinite"
               />
             </rect>

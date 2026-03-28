@@ -26,10 +26,10 @@ export function Controls({
 
   return (
     <motion.div
-      className="flex flex-wrap items-center gap-2 p-3 bg-gray-900/80 backdrop-blur-sm rounded-lg"
+      className="flex flex-wrap items-center gap-2 p-3 rounded-lg"
       style={{
-        border: '1px solid rgba(0, 245, 255, 0.1)',
-        boxShadow: '0 -1px 12px rgba(0, 245, 255, 0.06)',
+        background: 'var(--color-surface-card)',
+        border: '1px solid var(--color-chalk-faint)',
       }}
       initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
       animate={{ opacity: visibility, y: 0 }}
@@ -39,28 +39,27 @@ export function Controls({
       <button
         onClick={onTogglePause}
         aria-label={isPaused ? 'Play simulation' : 'Pause simulation'}
-        className="flex items-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-bold font-orbitron tracking-wide transition-colors min-h-[44px]"
+        className="flex items-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-bold font-display tracking-wide transition-colors min-h-[44px]"
         style={{
-          backgroundColor: isPaused ? 'var(--color-neon-cyan)' : 'var(--color-surface-muted)',
-          color: isPaused ? '#000' : 'var(--color-neon-cyan)',
-          boxShadow: isPaused ? '0 0 12px var(--color-neon-cyan)40' : 'none',
+          backgroundColor: isPaused ? 'var(--color-chalk)' : 'var(--color-chalk-faint)',
+          color: isPaused ? '#000' : 'var(--color-chalk)',
         }}
       >
         {isPaused ? '▶ Play' : '⏸ Pause'}
       </button>
 
-      <div className="w-px h-6 bg-gray-700" aria-hidden="true" />
+      <div className="w-px h-6 bg-[var(--color-chalk-faint)]" aria-hidden="true" />
 
       {/* Add setTimeout */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => onAddTask('setTimeout', timeoutDelay)}
           aria-label={`Add setTimeout with ${timeoutDelay}ms delay`}
-          className="px-3 py-2.5 rounded-md text-sm font-bold font-space-mono transition-all hover:brightness-110 min-h-[44px]"
+          className="px-3 py-2.5 rounded-md text-sm font-bold font-mono transition-all hover:brightness-110 min-h-[44px]"
           style={{
-            backgroundColor: '#ffbe0b20',
-            border: '1px solid var(--color-neon-yellow)',
-            color: 'var(--color-neon-yellow)',
+            backgroundColor: '#88888815',
+            border: '1px solid #888888',
+            color: '#888888',
           }}
         >
           ⏱ setTimeout
@@ -77,10 +76,10 @@ export function Controls({
             step={100}
             value={timeoutDelay}
             onChange={(e) => setTimeoutDelay(Number(e.target.value))}
-            className="w-20 accent-[var(--color-neon-yellow)]"
+            className="w-20 accent-[var(--color-chalk-dim)]"
             aria-valuetext={`${timeoutDelay} milliseconds`}
           />
-          <span className="text-xs text-gray-400 font-space-mono w-12" aria-hidden="true">
+          <span className="text-xs text-[var(--color-chalk-faint)] font-mono w-12" aria-hidden="true">
             {timeoutDelay}ms
           </span>
         </div>
@@ -90,23 +89,23 @@ export function Controls({
       <button
         onClick={() => onAddTask('fetch')}
         aria-label="Add fetch request"
-        className="px-3 py-2.5 rounded-md text-sm font-bold font-space-mono transition-all hover:brightness-110 min-h-[44px]"
+        className="px-3 py-2.5 rounded-md text-sm font-bold font-mono transition-all hover:brightness-110 min-h-[44px]"
         style={{
-          backgroundColor: '#06d6a020',
-          border: '1px solid var(--color-neon-green)',
-          color: 'var(--color-neon-green)',
+          backgroundColor: '#ffffff10',
+          border: '1px solid #ffffff',
+          color: '#ffffff',
         }}
       >
         ↗ fetch
       </button>
 
-      <div className="w-px h-6 bg-gray-700" aria-hidden="true" />
+      <div className="w-px h-6 bg-[var(--color-chalk-faint)]" aria-hidden="true" />
 
       {/* Reset */}
       <button
         onClick={onReset}
         aria-label="Reset simulation"
-        className="px-3 py-2.5 rounded-md text-sm text-gray-500 hover:text-gray-300 transition-colors min-h-[44px]"
+        className="px-3 py-2.5 rounded-md text-sm text-[var(--color-chalk-faint)] hover:text-[var(--color-chalk)] transition-colors min-h-[44px]"
       >
         Reset
       </button>

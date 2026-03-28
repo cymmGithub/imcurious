@@ -1,42 +1,35 @@
 @import "tailwindcss";
 
 @theme {
-  --font-orbitron: var(--font-orbitron), sans-serif;
-  --font-space-mono: var(--font-space-mono), monospace;
+  --font-display: var(--font-display), serif;
+  --font-body: var(--font-body), sans-serif;
+  --font-mono: var(--font-mono), monospace;
 
-  --color-neon-cyan: #00f5ff;
-  --color-neon-pink: #ff006e;
-  --color-neon-yellow: #ffbe0b;
-  --color-neon-green: #06d6a0;
-  --color-track-surface: #1a1a2e;
-  --color-track-line: #4a4a6a;
-  --color-surface-dark: #0a0a1a;
-  --color-surface-muted: #333;
-  --color-surface-muted-hover: #555;
+  --color-chalk: #e8e4dc;
+  --color-chalk-dim: #a09a8e;
+  --color-chalk-faint: #5a554d;
+  --color-grid: #1a1a1a;
+  --color-surface: #000000;
+  --color-surface-card: #0a0a0a;
+  --color-accent: #c0b8a8;
 }
 
 body {
-  font-family: var(--font-space-mono), monospace;
+  font-family: var(--font-body), sans-serif;
+  background-color: var(--color-surface);
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 79px, var(--color-grid) 79px, var(--color-grid) 80px),
+    repeating-linear-gradient(90deg, transparent, transparent 79px, var(--color-grid) 79px, var(--color-grid) 80px);
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-orbitron), sans-serif;
-}
-
-/* Noise texture overlay */
-.noise-bg::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 1;
+  font-family: var(--font-display), serif;
 }
 
 /* Scrollbar styling */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-surface-muted) var(--color-surface-dark);
+  scrollbar-color: var(--color-chalk-faint) var(--color-surface);
 }
 
 ::-webkit-scrollbar {
@@ -44,40 +37,22 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-surface-dark);
+  background: var(--color-surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-surface-muted);
+  background: var(--color-chalk-faint);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-surface-muted-hover);
+  background: var(--color-chalk-dim);
 }
 
 /* Selection color */
 ::selection {
-  background: color-mix(in srgb, var(--color-neon-cyan) 19%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 25%, transparent);
   color: white;
-}
-
-/* Beacon ring pulse for active pit stops */
-@keyframes beacon-ring {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.3;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1.8);
-    opacity: 0;
-  }
-}
-
-/* Exhaust trail particle pulse */
-@keyframes trail-pulse {
-  0%, 100% { opacity: var(--trail-opacity); }
-  50% { opacity: calc(var(--trail-opacity) * 0.5); }
 }
 
 /* Reduced motion: disable decorative animations */

@@ -53,33 +53,12 @@ export function PitStop({
       role="region"
       aria-label={`${label} pit stop`}
     >
-      {/* Beacon rings — only when active */}
-      {isActive && !prefersReducedMotion && (
-        <>
-          <span
-            className="absolute left-1/2 top-1/2 w-16 h-16 rounded-full pointer-events-none"
-            style={{
-              border: `1px solid ${color}`,
-              animation: 'beacon-ring 2s ease-out infinite',
-            }}
-          />
-          <span
-            className="absolute left-1/2 top-1/2 w-16 h-16 rounded-full pointer-events-none"
-            style={{
-              border: `1px solid ${color}`,
-              animation: 'beacon-ring 2s ease-out infinite 0.5s',
-            }}
-          />
-        </>
-      )}
-
-      {/* Pit stop zone — structured container */}
+      {/* Pit stop zone */}
       <div
-        className="absolute rounded-xl"
+        className="absolute rounded-lg"
         style={{
-          background: `${color}0D`,
-          border: `1px solid ${color}26`,
-          boxShadow: isActive ? `inset 0 0 20px ${color}1A, 0 0 20px ${color}0D` : `inset 0 0 20px ${color}0A`,
+          background: `${color}08`,
+          border: `1px ${isActive ? 'solid' : 'dashed'} ${color}30`,
           width: 120,
           height: 80,
           transform: 'translate(-50%, -50%)',
@@ -90,13 +69,12 @@ export function PitStop({
 
       {/* Label */}
       <div
-        className="absolute font-orbitron text-xs font-bold tracking-wider uppercase whitespace-nowrap"
+        className="absolute font-display text-xs font-bold tracking-wider uppercase whitespace-nowrap"
         style={{
           color: color,
           left: `calc(50% + ${labelOffset.x}px)`,
           top: `calc(50% + ${labelOffset.y}px)`,
           transform: 'translate(-50%, -50%)',
-          textShadow: `0 0 10px ${color}80`,
         }}
       >
         {label}
@@ -135,10 +113,9 @@ export function PitStop({
               <span
                 key={step}
                 role="listitem"
-                className="text-[10px] font-space-mono font-bold uppercase tracking-wide transition-all duration-300"
+                className="text-[10px] font-mono font-bold uppercase tracking-wide transition-all duration-300"
                 style={{
                   color: isStepActive ? color : `${color}40`,
-                  textShadow: isStepActive ? `0 0 8px ${color}` : 'none',
                 }}
                 aria-current={isStepActive ? 'step' : undefined}
               >

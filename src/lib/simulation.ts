@@ -40,8 +40,8 @@ const STOP_PAUSE = 200
 const PIT_STOP_THRESHOLD = 0.02
 
 const COLOR_MAP: Record<TaskType, string> = {
-  setTimeout: '#ffbe0b',
-  fetch: '#06d6a0',
+  setTimeout: '#888888',
+  fetch: '#ffffff',
 }
 
 export function createInitialState(): SimulationState {

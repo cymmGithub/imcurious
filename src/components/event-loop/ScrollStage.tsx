@@ -14,7 +14,7 @@ export function ScrollStage({ children }: ScrollStageProps) {
     <div ref={contentRef} className="relative">
       <div className="flex flex-col lg:flex-row">
         {/* Visualization pane — sticky */}
-        <div className="lg:w-1/2 lg:h-screen lg:sticky lg:top-0 h-[55vh] min-h-[320px] sticky top-0 z-10 bg-gray-950">
+        <div className="lg:w-1/2 lg:h-screen lg:sticky lg:top-0 h-[55vh] min-h-[320px] sticky top-0 z-10 bg-black">
           <EventLoopViz getStageVisibility={getStageVisibility} />
         </div>
 

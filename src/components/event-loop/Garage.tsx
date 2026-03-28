@@ -15,7 +15,6 @@ export function Garage({ pendingAPIs, position, visibility }: GarageProps) {
 
   if (visibility <= 0) return null
 
-  // Convert SVG coordinates to percentages for responsive positioning
   const leftPct = (position.x / VIEWBOX.width) * 100
   const topPct = (position.y / VIEWBOX.height) * 100
 
@@ -34,11 +33,8 @@ export function Garage({ pendingAPIs, position, visibility }: GarageProps) {
       aria-label="Web APIs garage"
     >
       <div
-        className="font-orbitron text-xs font-bold tracking-wider uppercase text-center mb-2"
-        style={{
-          color: 'var(--color-neon-cyan)',
-          textShadow: '0 0 10px var(--color-neon-cyan)40',
-        }}
+        className="font-display text-xs font-bold tracking-wider uppercase text-center mb-2"
+        style={{ color: 'var(--color-chalk)' }}
       >
         Web APIs
       </div>
@@ -46,8 +42,8 @@ export function Garage({ pendingAPIs, position, visibility }: GarageProps) {
       <div
         className="relative rounded-lg border border-dashed p-2 min-w-[120px] min-h-[40px]"
         style={{
-          borderColor: 'var(--color-neon-cyan)30',
-          backgroundColor: 'var(--color-neon-cyan)08',
+          borderColor: 'var(--color-chalk-faint)',
+          backgroundColor: 'var(--color-surface-card)',
         }}
       >
         <div className="flex flex-col gap-1">
@@ -58,10 +54,10 @@ export function Garage({ pendingAPIs, position, visibility }: GarageProps) {
                 initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: 20 }}
-                className="flex items-center gap-2 px-2 py-1 rounded text-xs font-space-mono"
+                className="flex items-center gap-2 px-2 py-1 rounded text-xs font-mono"
                 style={{
-                  backgroundColor: `${api.color}15`,
-                  border: `1px solid ${api.color}40`,
+                  backgroundColor: `${api.color}10`,
+                  border: `1px solid ${api.color}30`,
                   color: api.color,
                 }}
               >
@@ -73,7 +69,7 @@ export function Garage({ pendingAPIs, position, visibility }: GarageProps) {
             ))}
           </AnimatePresence>
           {pendingAPIs.length === 0 && (
-            <span className="text-[10px] text-gray-400 text-center">idle</span>
+            <span className="text-[10px] text-[var(--color-chalk-faint)] text-center">idle</span>
           )}
         </div>
       </div>

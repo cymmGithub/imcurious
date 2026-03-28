@@ -21,12 +21,12 @@ function deriveFrames(carState: CarState, currentTask: Task | null): StackFrame[
     case 'EXECUTING_MICROTASK':
       if (!currentTask) return []
       return [
-        { id: 'global', label: 'global()', color: 'var(--color-neon-cyan)' },
+        { id: 'global', label: 'global()', color: '#ffffff' },
         { id: `task-${currentTask.id}`, label: currentTask.label, color: currentTask.color },
       ]
     case 'RENDERING':
       return [
-        { id: 'raf', label: 'requestAnimationFrame()', color: 'var(--color-neon-pink)' },
+        { id: 'raf', label: 'requestAnimationFrame()', color: '#c0b8a8' },
       ]
     default:
       return []
@@ -53,30 +53,26 @@ export function CallStack({ carState, currentTask, visibility }: CallStackProps)
       <div
         className="rounded-lg overflow-hidden min-w-[140px]"
         style={{
-          background: 'rgba(10, 10, 26, 0.85)',
-          border: '1px solid rgba(0, 245, 255, 0.12)',
-          boxShadow: '0 0 20px rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(8px)',
+          background: 'var(--color-surface-card)',
+          border: '1px solid var(--color-chalk-faint)',
         }}
       >
         {/* Header */}
         <div
           className="px-3 py-1.5 flex items-center gap-2"
           style={{
-            borderBottom: '1px solid rgba(0, 245, 255, 0.08)',
-            background: 'rgba(0, 245, 255, 0.03)',
+            borderBottom: '1px solid var(--color-chalk-faint)',
           }}
         >
           <span
             className="w-1.5 h-1.5 rounded-full"
             style={{
-              backgroundColor: isEmpty ? 'var(--color-surface-muted)' : 'var(--color-neon-cyan)',
-              boxShadow: isEmpty ? 'none' : '0 0 6px var(--color-neon-cyan)',
+              backgroundColor: isEmpty ? 'var(--color-chalk-faint)' : 'var(--color-chalk)',
             }}
           />
           <span
-            className="font-orbitron text-[9px] font-bold tracking-[0.15em] uppercase"
-            style={{ color: 'var(--color-neon-cyan)', opacity: 0.7 }}
+            className="font-display text-[9px] font-bold tracking-[0.15em] uppercase"
+            style={{ color: 'var(--color-chalk-dim)' }}
           >
             Call Stack
           </span>
@@ -91,29 +87,22 @@ export function CallStack({ carState, currentTask, visibility }: CallStackProps)
                 initial={prefersReducedMotion ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
-                className="text-[10px] text-gray-600 font-space-mono text-center py-1"
+                className="text-[10px] text-[var(--color-chalk-faint)] font-mono text-center py-1"
               >
                 (empty)
               </motion.div>
             )}
-            {frames.map((frame, i) => (
+            {frames.map((frame) => (
               <motion.div
                 key={frame.id}
                 layoutId={`frame-${frame.id}`}
                 initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.8, x: 10 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  x: 0,
-                  boxShadow: i === frames.length - 1
-                    ? `0 0 12px ${frame.color}30`
-                    : `0 0 4px ${frame.color}15`,
-                }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
                 exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.8, x: -10 }}
                 transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 25 }}
-                className="px-2 py-1 rounded text-[10px] font-space-mono font-bold truncate"
+                className="px-2 py-1 rounded text-[10px] font-mono font-bold truncate"
                 style={{
-                  backgroundColor: `${frame.color}15`,
+                  backgroundColor: `${frame.color}12`,
                   border: `1px solid ${frame.color}30`,
                   color: frame.color,
                 }}

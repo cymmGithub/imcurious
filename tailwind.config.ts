@@ -10,20 +10,21 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        orbitron: ['var(--font-orbitron)', 'sans-serif'],
-        'space-mono': ['var(--font-space-mono)', 'monospace'],
+        display: ['var(--font-display)', 'serif'],
+        body: ['var(--font-body)', 'sans-serif'],
+        mono: ['var(--font-mono)', 'monospace'],
       },
       colors: {
-        neon: {
-          cyan: '#00f5ff',
-          pink: '#ff006e',
-          yellow: '#ffbe0b',
-          green: '#06d6a0',
+        chalk: {
+          DEFAULT: '#e8e4dc',
+          dim: '#a09a8e',
+          faint: '#5a554d',
         },
-        track: {
-          surface: '#1a1a2e',
-          line: '#4a4a6a',
+        surface: {
+          DEFAULT: '#000000',
+          card: '#0a0a0a',
         },
+        accent: '#c0b8a8',
       },
     },
   },

@@ -20,21 +20,21 @@ export const PIT_STOP_POSITIONS = {
     label: 'Microtask Queue',
     anchor: { x: 700, y: 200 },      // right lobe, upper area
     labelOffset: { x: 40, y: -30 },
-    color: 'var(--color-neon-green)',
+    color: '#ffffff',
   },
   task: {
     pathT: 0.50,
     label: 'Task Queue',
     anchor: { x: 400, y: 420 },      // center-bottom
     labelOffset: { x: 0, y: 40 },
-    color: 'var(--color-neon-yellow)',
+    color: '#888888',
   },
   render: {
     pathT: 0.75,
     label: 'Render',
     anchor: { x: 100, y: 200 },      // left lobe, upper area
     labelOffset: { x: -40, y: -30 },
-    color: 'var(--color-neon-pink)',
+    color: '#c0b8a8',
   },
 } as const
 
