@@ -1,8 +1,8 @@
-import { Section } from '@/components/mdx/Section'
-
 # How the Event Loop Works
 
 An interactive, F1-themed guide to the JavaScript event loop.
+
+<ScrollStage>
 
 <Section stage={1}>
 
@@ -19,3 +19,45 @@ JavaScript has one thread — like an F1 race has one car on one track. Everythi
 Every time you call a function, it goes onto the **call stack**. When the function returns, it comes off. The car is always executing whatever is on top of the stack.
 
 </Section>
+
+<Section stage={3}>
+
+## Web APIs
+
+When you call `setTimeout` or `fetch`, you're not running JavaScript — you're asking the **browser** to do something in the background. These are **Web APIs** — features provided by the browser, not by JavaScript itself.
+
+</Section>
+
+<Section stage={4}>
+
+## The Task Queue
+
+When a `setTimeout` timer finishes, its callback goes into the **task queue**. The event loop picks up **one task per lap** — then continues around the loop before picking up the next.
+
+</Section>
+
+<Section stage={5}>
+
+## The Microtask Queue
+
+Promise callbacks (`.then()`, `async/await`) go into the **microtask queue**. Unlike the task queue, the event loop **drains all microtasks** before moving on. Microtasks always have priority over tasks.
+
+</Section>
+
+<Section stage={6}>
+
+## Rendering
+
+After processing tasks, the browser may repaint the screen — running `requestAnimationFrame` callbacks, recalculating styles, performing layout, and painting pixels. It can **skip this step** if nothing visual changed.
+
+</Section>
+
+<Section stage={7}>
+
+## Your Turn
+
+All pieces are on the track. Add tasks, watch them flow through the queues, and see the event loop in action. Try adding a `setTimeout(0)` and a `fetch` at the same time — which callback runs first?
+
+</Section>
+
+</ScrollStage>
