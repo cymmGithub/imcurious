@@ -91,27 +91,55 @@ export const Track = forwardRef<SVGPathElement, TrackProps>(
           fill="none"
           stroke="var(--color-neon-cyan)"
           strokeWidth={64}
-          opacity={0.04}
+          opacity={0.06}
           filter="url(#neon-glow)"
         />
 
         {/* Animated pulse on track edge */}
         {!prefersReducedMotion && (
-          <path
-            d={TRACK_D}
-            fill="none"
-            stroke="var(--color-neon-cyan)"
-            strokeWidth={1}
-            opacity={0.3}
-          >
-            <animate
-              attributeName="opacity"
-              values="0.1;0.3;0.1"
-              dur="3s"
-              repeatCount="indefinite"
-            />
-          </path>
+          <>
+            <path
+              d={TRACK_D}
+              fill="none"
+              stroke="var(--color-neon-cyan)"
+              strokeWidth={1}
+              opacity={0.3}
+            >
+              <animate
+                attributeName="opacity"
+                values="0.1;0.3;0.1"
+                dur="3s"
+                repeatCount="indefinite"
+              />
+            </path>
+
+            <path
+              d={TRACK_D}
+              fill="none"
+              stroke="var(--color-neon-cyan)"
+              strokeWidth={1}
+              opacity={0.3}
+            >
+              <animate
+                attributeName="opacity"
+                values="0.1;0.3;0.1"
+                dur="3s"
+                repeatCount="indefinite"
+                begin="1.5s"
+              />
+            </path>
+          </>
         )}
+
+        {/* Start/finish checkered line at center crossing */}
+        <rect
+          x={395}
+          y={270}
+          width={10}
+          height={60}
+          fill="url(#checker)"
+          opacity={0.4}
+        />
       </svg>
     )
   },
