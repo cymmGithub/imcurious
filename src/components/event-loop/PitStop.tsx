@@ -13,7 +13,7 @@ interface PitStopProps {
   isActive: boolean
   position: { x: number; y: number }
   labelOffset: { x: number; y: number }
-  visibility: number // 0–1 for progressive reveal
+  visibility: number
   renderSubSteps?: boolean
   renderProgress?: number
 }
@@ -36,11 +36,8 @@ export function PitStop({
 
   if (visibility <= 0) return null
 
-  // Convert SVG coordinates to percentages for responsive positioning
   const leftPct = (position.x / VIEWBOX.width) * 100
   const topPct = (position.y / VIEWBOX.height) * 100
-  const labelLeftPct = ((position.x + labelOffset.x) / VIEWBOX.width) * 100
-  const labelTopPct = ((position.y + labelOffset.y) / VIEWBOX.height) * 100
 
   return (
     <motion.div
@@ -56,11 +53,33 @@ export function PitStop({
       role="region"
       aria-label={`${label} pit stop`}
     >
-      {/* Pit stop zone glow */}
+      {/* Beacon rings — only when active */}
+      {isActive && !prefersReducedMotion && (
+        <>
+          <span
+            className="absolute left-1/2 top-1/2 w-16 h-16 rounded-full pointer-events-none"
+            style={{
+              border: `1px solid ${color}`,
+              animation: 'beacon-ring 2s ease-out infinite',
+            }}
+          />
+          <span
+            className="absolute left-1/2 top-1/2 w-16 h-16 rounded-full pointer-events-none"
+            style={{
+              border: `1px solid ${color}`,
+              animation: 'beacon-ring 2s ease-out infinite 0.5s',
+            }}
+          />
+        </>
+      )}
+
+      {/* Pit stop zone — structured container */}
       <div
         className="absolute rounded-xl"
         style={{
-          background: `radial-gradient(circle, ${color}15 0%, transparent 70%)`,
+          background: `${color}0D`,
+          border: `1px solid ${color}26`,
+          boxShadow: isActive ? `inset 0 0 20px ${color}1A, 0 0 20px ${color}0D` : `inset 0 0 20px ${color}0A`,
           width: 120,
           height: 80,
           transform: 'translate(-50%, -50%)',
@@ -69,12 +88,12 @@ export function PitStop({
         }}
       />
 
-      {/* Label — positioned via percentage offsets from parent */}
+      {/* Label */}
       <div
         className="absolute font-orbitron text-xs font-bold tracking-wider uppercase whitespace-nowrap"
         style={{
           color: color,
-          left: `calc(50% + ${labelLeftPct - leftPct}vw * 0 + ${labelOffset.x}px)`,
+          left: `calc(50% + ${labelOffset.x}px)`,
           top: `calc(50% + ${labelOffset.y}px)`,
           transform: 'translate(-50%, -50%)',
           textShadow: `0 0 10px ${color}80`,
@@ -106,7 +125,7 @@ export function PitStop({
         </AnimatePresence>
       </div>
 
-      {/* Render sub-steps (only for render pit stop) */}
+      {/* Render sub-steps */}
       {renderSubSteps && isActive && (
         <div className="flex gap-2 mt-2 justify-center" role="list" aria-label="Render pipeline steps">
           {RENDER_SUB_STEPS.map((step, i) => {
