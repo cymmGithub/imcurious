@@ -13,6 +13,7 @@ export function useEventLoopSimulation() {
   const [state, setState] = useState<SimulationState>(createInitialState)
   const rafRef = useRef<number>(0)
   const lastTimeRef = useRef<number>(0)
+  const positionHistoryRef = useRef<number[]>([])
 
   useEffect(() => {
     function tick(timestamp: number) {
@@ -20,10 +21,24 @@ export function useEventLoopSimulation() {
         lastTimeRef.current = timestamp
       }
 
-      const dt = Math.min(timestamp - lastTimeRef.current, 50) // cap to avoid huge jumps
+      const dt = Math.min(timestamp - lastTimeRef.current, 50)
       lastTimeRef.current = timestamp
 
-      setState((prev) => nextState(prev, dt))
+      setState((prev) => {
+        const next = nextState(prev, dt)
+        // Sample position history for exhaust trail (every other frame to keep it sparse)
+        if (next.carState === 'DRIVING') {
+          const history = positionHistoryRef.current
+          const last = history[history.length - 1]
+          if (last === undefined || Math.abs(next.carPosition - last) > 0.005) {
+            history.push(next.carPosition)
+            if (history.length > 10) history.shift()
+          }
+        } else {
+          positionHistoryRef.current = []
+        }
+        return next
+      })
       rafRef.current = requestAnimationFrame(tick)
     }
 
@@ -45,7 +60,8 @@ export function useEventLoopSimulation() {
   const reset = useCallback(() => {
     setState(createInitialState)
     lastTimeRef.current = 0
+    positionHistoryRef.current = []
   }, [])
 
-  return { state, togglePause, addTask, reset }
+  return { state, positionHistory: positionHistoryRef, togglePause, addTask, reset }
 }

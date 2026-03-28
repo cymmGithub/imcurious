@@ -26,7 +26,7 @@ const CAR_STATE_LABELS: Record<string, string> = {
 
 export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
   const pathRef = useRef<SVGPathElement>(null)
-  const { state, togglePause, addTask, reset } = useEventLoopSimulation()
+  const { state, positionHistory, togglePause, addTask, reset } = useEventLoopSimulation()
 
   const isAtMicrotask =
     state.carState === 'STOPPED_AT_MICROTASK_QUEUE' ||
@@ -66,6 +66,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           pathRef={pathRef}
           position={state.carPosition}
           isExecuting={isExecuting}
+          positionHistory={positionHistory}
         />
 
         <Garage
