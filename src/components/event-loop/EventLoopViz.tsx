@@ -6,6 +6,7 @@ import { Car } from './Car'
 import { PitStop } from './PitStop'
 import { Garage } from './Garage'
 import { Controls } from './Controls'
+import { CallStack } from './CallStack'
 import { useEventLoopSimulation } from '@/hooks/useEventLoopSimulation'
 import { PIT_STOP_POSITIONS, GARAGE_POSITION } from '@/lib/trackPath'
 import { EXECUTION_DURATION } from '@/lib/simulation'
@@ -97,6 +98,13 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           position={PIT_STOP_POSITIONS.task.anchor}
           labelOffset={PIT_STOP_POSITIONS.task.labelOffset}
           visibility={getStageVisibility(4)}
+        />
+
+        {/* Call Stack Dashboard */}
+        <CallStack
+          carState={state.carState}
+          currentTask={state.currentTask}
+          visibility={getStageVisibility(2)}
         />
 
         {/* Render Pit Stop */}
