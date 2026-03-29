@@ -8,6 +8,7 @@ import {
   startStepping,
   stepForward,
   stepBack,
+  resolveFetch,
   PIT_STOPS,
   EXECUTION_DURATION,
   type SimulationState,
@@ -486,8 +487,8 @@ describe('stepping with asyncEffect', () => {
     expect(state.pendingWebAPIs[0].type).toBe('setTimeout')
     expect(state.pendingWebAPIs[1].type).toBe('fetch')
     expect(state.steppingFinalWebAPIs).toEqual([])
-    // renderNeeded is NOT set by stepping — only DOM/style changes trigger render
-    expect(state.renderNeeded).toBe(false)
+    // renderNeeded is set to true when steppingFinalWebAPIs had entries
+    expect(state.renderNeeded).toBe(true)
   })
 
   it('buildSyncSnapshots generates unique IDs starting from startId', () => {
@@ -607,5 +608,27 @@ describe('scenario step count alignment', () => {
     expect(snapshots[4].pendingWebAPIs).toHaveLength(2)
     // Step 5: pop → empty
     expect(snapshots[5].callStackFrames).toEqual([])
+  })
+})
+
+describe('rAF routing', () => {
+  it('moves rAF callback to rAfCallbacks when delay elapses (not taskQueue or microtaskQueue)', () => {
+    const state: SimulationState = {
+      ...createInitialState(),
+      pendingWebAPIs: [{
+        id: '1',
+        type: 'rAF',
+        label: 'requestAnimationFrame',
+        delay: 0,
+        color: '#ffffff',
+        remainingDelay: 0,
+      }],
+    }
+    const next = nextState(state, 16)
+    expect(next.pendingWebAPIs).toHaveLength(0)
+    expect(next.rAfCallbacks).toHaveLength(1)
+    expect(next.rAfCallbacks[0].label).toBe('requestAnimationFrame')
+    expect(next.taskQueue).toHaveLength(0)
+    expect(next.microtaskQueue).toHaveLength(0)
   })
 })

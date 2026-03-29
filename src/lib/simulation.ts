@@ -9,7 +9,7 @@ export type CursorState =
   | 'EXECUTING_SYNC'
   | 'STEPPING_SYNC'
 
-export type TaskType = 'setTimeout' | 'fetch'
+export type TaskType = 'setTimeout' | 'fetch' | 'rAF'
 
 export type SyncStepSnapshot = {
   callStackFrames: string[]
@@ -36,6 +36,7 @@ export type SimulationState = {
   cursorState: CursorState
   taskQueue: Task[]
   microtaskQueue: Task[]
+  rAfCallbacks: Task[]
   pendingWebAPIs: PendingWebAPI[]
   renderNeeded: boolean
   isPaused: boolean
@@ -62,6 +63,7 @@ const SYNC_FRAME_DURATION = 800
 const COLOR_MAP: Record<TaskType, string> = {
   setTimeout: '#888888',
   fetch: '#ffffff',
+  rAF: '#ffffff',
 }
 
 export function createInitialState(): SimulationState {
@@ -70,6 +72,7 @@ export function createInitialState(): SimulationState {
     cursorState: 'ORBITING',
     taskQueue: [],
     microtaskQueue: [],
+    rAfCallbacks: [],
     pendingWebAPIs: [],
     renderNeeded: false,
     isPaused: false,
@@ -183,6 +186,8 @@ export function stepForward(state: SimulationState): SimulationState {
       activeScenarioId: null,
       pendingWebAPIs: state.steppingFinalWebAPIs,
       steppingFinalWebAPIs: [],
+      rAfCallbacks: [],
+      renderNeeded: state.steppingFinalWebAPIs.length > 0,
     }
   }
 
@@ -271,6 +276,7 @@ function tickWebAPIs(state: SimulationState, dt: number): SimulationState {
   const stillPending: PendingWebAPI[] = []
   const newTasks: Task[] = []
   const newMicrotasks: Task[] = []
+  const newRAfCallbacks: Task[] = []
 
   for (const api of state.pendingWebAPIs) {
     const remaining = api.remainingDelay - dt
@@ -284,6 +290,8 @@ function tickWebAPIs(state: SimulationState, dt: number): SimulationState {
       }
       if (api.type === 'setTimeout') {
         newTasks.push(task)
+      } else if (api.type === 'rAF') {
+        newRAfCallbacks.push(task)
       } else {
         newMicrotasks.push(task)
       }
@@ -297,6 +305,7 @@ function tickWebAPIs(state: SimulationState, dt: number): SimulationState {
     pendingWebAPIs: stillPending,
     taskQueue: [...state.taskQueue, ...newTasks],
     microtaskQueue: [...state.microtaskQueue, ...newMicrotasks],
+    rAfCallbacks: [...state.rAfCallbacks, ...newRAfCallbacks],
   }
 }
 
@@ -397,7 +406,18 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
     case 'STOPPED_AT_RENDER': {
       const timer = s.executionTimer - dt
       if (timer <= 0) {
-        return { ...s, cursorState: 'RENDERING', executionTimer: EXECUTION_DURATION }
+        return {
+          ...s,
+          cursorState: 'RENDERING',
+          executionTimer: EXECUTION_DURATION,
+          currentTask: {
+            id: 'rAF',
+            type: 'setTimeout',
+            label: 'requestAnimationFrame',
+            delay: 0,
+            color: '#ffffff',
+          },
+        }
       }
       return { ...s, executionTimer: timer }
     }
