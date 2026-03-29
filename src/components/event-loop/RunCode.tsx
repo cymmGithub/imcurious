@@ -92,12 +92,6 @@ export function RunCode({ scenarioId }: RunCodeProps) {
           borderTop: '1px solid var(--color-chalk-faint)',
         }}
       >
-        <span
-          className="text-[10px] font-mono uppercase tracking-[0.1em]"
-          style={{ color: 'var(--color-chalk-faint)' }}
-        >
-          interactive
-        </span>
         <div className="flex items-center gap-2">
           <button
             onClick={isStepping ? stepBack : undefined}

@@ -6,17 +6,38 @@ import { ScrollStage } from '@/components/event-loop/ScrollStage'
 import { RunCode } from '@/components/event-loop/RunCode'
 import { Section } from './Section'
 import { Callout } from './Callout'
+import { StepList } from './StepList'
 
 const components = {
   ScrollStage,
   RunCode,
   Section,
   Callout,
+  StepList,
   h1: (props: ComponentPropsWithoutRef<'h1'>) => (
     <h1 className="font-sketch text-4xl font-bold tracking-tight text-[var(--color-chalk)] mb-6" {...props} />
   ),
-  h2: (props: ComponentPropsWithoutRef<'h2'>) => (
-    <h2 className="font-sketch text-2xl font-bold tracking-tight text-[var(--color-chalk)] mt-16 mb-4" {...props} />
+  h2: ({ children, ...rest }: ComponentPropsWithoutRef<'h2'>) => (
+    <h2 className="font-sketch text-2xl font-bold tracking-tight text-[var(--color-chalk)] mt-16 mb-4 relative inline-block" {...rest}>
+      {children}
+      <svg
+        className="absolute left-0 w-full pointer-events-none"
+        style={{ bottom: '-4px', height: '10px' }}
+        viewBox="0 0 200 10"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M0 5 C20 4, 40 6, 65 4.8 S100 6.2, 130 4.6 S165 6, 185 5.2 Q195 4.8, 200 5"
+          fill="none"
+          stroke="#ef4444"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeOpacity="1"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+    </h2>
   ),
   h3: (props: ComponentPropsWithoutRef<'h3'>) => (
     <h3 className="font-sketch text-xl font-semibold text-[var(--color-chalk-dim)] mt-8 mb-3 italic" {...props} />
