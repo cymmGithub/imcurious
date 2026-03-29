@@ -79,9 +79,9 @@ So when the timer finishes, where does the callback go? It cannot just jump onto
 
 <Section stage={4}>
 
-## The Task Queue
+## The Callback Queue
 
-When a timer finishes or a click happens, the browser does not slam the callback onto the call stack. That would be chaos — imagine a background worker cutting into the cursor's orbit. Instead, the callback goes into a **waiting area**: the task queue.
+When a timer finishes or a click happens, the browser does not slam the callback onto the call stack. That would be chaos — imagine a background worker cutting into the cursor's orbit. Instead, the callback goes into a **waiting area**: the callback queue.
 
 Think of it as a staging station. Callbacks line up, single file, waiting for their chance to enter the loop. And the event loop — our loop marshal — enforces one strict rule: **one task per cycle**.
 
@@ -90,7 +90,7 @@ Think of it as a staging station. Callbacks line up, single file, waiting for th
 Even with a delay of 0 milliseconds, those callbacks do not run immediately. Here is the full sequence:
 
 1. Both `setTimeout` calls hand their callbacks to the browser's timer (0ms means "immediately complete")
-2. Both callbacks enter the task queue — `A` first, then `B`
+2. Both callbacks enter the callback queue — `A` first, then `B`
 3. `console.log("C")` runs because it is synchronous, still on the call stack
 4. All global code finishes. The call stack is empty.
 5. The event loop checks: "Call stack empty? All global code done? Anything in the queue?" Yes! It grabs `A` and puts it on the stack
@@ -110,7 +110,7 @@ As Will Sentance puts it: "You could have a million console logs, and still, eve
 
 Now here is the plot twist. There is not just one staging station. There are **two**. And one of them has priority access.
 
-When you use Promises — `.then()`, `.catch()`, or `async/await` — the callbacks do not go into the regular task queue. They go into a separate, higher-priority lane called the **microtask queue**.
+When you use Promises — `.then()`, `.catch()`, or `async/await` — the callbacks do not go into the regular callback queue. They go into a separate, higher-priority lane called the **microcallback queue**.
 
 The difference? The event loop **drains all microtasks** before it does anything else. Not one per cycle. All of them.
 
@@ -118,19 +118,19 @@ The difference? The event loop **drains all microtasks** before it does anything
 
 Even though `setTimeout` was called first, the Promise callback wins. Every time. Here is why:
 
-1. `setTimeout` callback enters the **task queue**
-2. `Promise.resolve().then()` callback enters the **microtask queue**
+1. `setTimeout` callback enters the **callback queue**
+2. `Promise.resolve().then()` callback enters the **microcallback queue**
 3. `console.log("Sync")` runs immediately (synchronous)
-4. Global code is done. The event loop checks the microtask queue **first**
+4. Global code is done. The event loop checks the microcallback queue **first**
 5. "Microtask" prints
-6. Microtask queue is empty. Now the event loop checks the task queue
+6. Microcallback queue is empty. Now the event loop checks the callback queue
 7. "Task" prints
 
 <Callout>
-Microtasks run whenever the JavaScript stack empties. Not just between tasks — after every task, after every callback, after every event handler. The engine clears the entire microtask queue before moving on.
+Microtasks run whenever the JavaScript stack empties. Not just between tasks — after every task, after every callback, after every event handler. The engine clears the entire microcallback queue before moving on.
 </Callout>
 
-And here is the dangerous part: if a microtask queues another microtask, that one runs too, before any task or rendering gets a chance. Microtasks can **starve everything else**:
+And here is the dangerous part: if a microcallback queues another microtask, that one runs too, before any task or rendering gets a chance. Microtasks can **starve everything else**:
 
 ```js
 // DON'T DO THIS — infinite microtasks block rendering forever
@@ -148,7 +148,7 @@ The cursor never completes its cycle. The priority station has an infinite queue
 
 ## Rendering
 
-After the cursor finishes its tasks and clears the microtask queue, the loop marshal checks one more thing: does the screen need to be repainted?
+After the cursor finishes its tasks and clears the microcallback queue, the loop marshal checks one more thing: does the screen need to be repainted?
 
 This is the **rendering step**. The browser may run these sub-steps:
 
@@ -167,7 +167,7 @@ This is why long-running tasks cause jank. If your JavaScript takes 200ms to run
 requestAnimationFrame is synchronized with the display's refresh rate, while setTimeout is not. A setTimeout loop might fire too often (wasting CPU) or not often enough (causing visual stutters). For animations, always use requestAnimationFrame — it is the browser telling you "now is a good time to update visuals."
 </Callout>
 
-The rendering step is the final piece of the cycle. After it completes (or gets skipped), the event loop starts a brand new cycle — or as it is often called, a new **tick**. Each tick is one full pass: check the task queue, drain microtasks, maybe render. Around and around, forever, until you close the tab.
+The rendering step is the final piece of the cycle. After it completes (or gets skipped), the event loop starts a brand new cycle — or as it is often called, a new **tick**. Each tick is one full pass: check the callback queue, drain microtasks, maybe render. Around and around, forever, until you close the tab.
 
 </Section>
 

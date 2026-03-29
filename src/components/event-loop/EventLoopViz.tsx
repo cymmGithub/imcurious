@@ -16,7 +16,7 @@ const CURSOR_STATE_LABELS: Record<string, string> = {
   ORBITING: 'Cursor orbiting the event loop',
   STOPPED_AT_MICROTASK_QUEUE: 'Stopped at microtask queue',
   EXECUTING_MICROTASK: 'Executing microtask',
-  STOPPED_AT_TASK_QUEUE: 'Stopped at task queue',
+  STOPPED_AT_TASK_QUEUE: 'Stopped at callback queue',
   EXECUTING_TASK: 'Executing task',
   STOPPED_AT_RENDER: 'Stopped at render step',
   RENDERING: 'Rendering in progress',

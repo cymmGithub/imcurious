@@ -27,7 +27,7 @@ export const STATION_POSITIONS = {
   },
   task: {
     pathT: 1 / 3,
-    label: 'Task Queue',
+    label: 'Callback Queue',
     anchor: stationAnchor(120),   // (456, 390) — ~5 o'clock
     color: '#888888',
   },

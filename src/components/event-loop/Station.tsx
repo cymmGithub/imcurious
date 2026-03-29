@@ -67,6 +67,14 @@ export function Station({
         >
           {label}
         </div>
+        {!renderSubSteps && (
+          <div
+            className="font-mono text-[7px] tracking-wider uppercase"
+            style={{ color: `${color}66`, marginBottom: '4px' }}
+          >
+            FIFO
+          </div>
+        )}
 
         {(allTasks.length > 0 || renderSubSteps) && (
           <div
