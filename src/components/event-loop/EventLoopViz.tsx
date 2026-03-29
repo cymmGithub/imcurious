@@ -48,6 +48,19 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
       ? 1 - state.executionTimer / EXECUTION_DURATION
       : 0
 
+  // Detect hidden work: simulation active but stations scrolled out of view
+  const microtaskVis = getStageVisibility(5)
+  const taskVis = getStageVisibility(4)
+  const renderVis = getStageVisibility(6)
+  const anyStationHidden = microtaskVis < 0.1 || taskVis < 0.1 || renderVis < 0.1
+  const hasActiveWork =
+    state.taskQueue.length > 0 ||
+    state.microtaskQueue.length > 0 ||
+    state.pendingWebAPIs.length > 0 ||
+    state.currentTask !== null ||
+    state.cursorState !== 'ORBITING'
+  const hasHiddenWork = anyStationHidden && hasActiveWork
+
   const statusLabel = CURSOR_STATE_LABELS[state.cursorState] ?? 'Simulation running'
   const taskDetail = state.currentTask ? `: ${state.currentTask.label}` : ''
 
@@ -62,10 +75,11 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           <CircleTrack
             cursorPosition={state.cursorPosition}
             isExecuting={isExecuting}
+            hasHiddenWork={hasHiddenWork}
             dotVisibilities={{
-              microtask: getStageVisibility(5),
-              task: getStageVisibility(4),
-              render: getStageVisibility(6),
+              microtask: microtaskVis,
+              task: taskVis,
+              render: renderVis,
             }}
           />
 
@@ -128,20 +142,6 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
             pendingAPIs={state.pendingWebAPIs}
             visibility={getStageVisibility(3)}
           />
-
-          {/* Annotation */}
-          <text
-            x={300}
-            y={525}
-            textAnchor="middle"
-            fontFamily="'Playfair Display', serif"
-            fontStyle="italic"
-            fontSize={10}
-            fill="var(--color-chalk-faint)"
-            opacity={getStageVisibility(6)}
-          >
-            one task per lap — all microtasks drain first
-          </text>
         </svg>
       </div>
     </div>

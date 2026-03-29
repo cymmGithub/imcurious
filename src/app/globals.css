@@ -55,6 +55,22 @@ h1, h2, h3, h4, h5, h6 {
   color: white;
 }
 
+/* Heartbeat indicator — event loop working under the hood */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes bounce-hint {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
 /* Reduced motion: disable decorative animations */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
