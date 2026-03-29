@@ -13,8 +13,8 @@ export const VIEWBOX = '-60 30 720 500'
 function stationAnchor(angleDeg: number) {
   const rad = (angleDeg * Math.PI) / 180
   return {
-    x: CIRCLE.cx + CIRCLE.r * Math.sin(rad),
-    y: CIRCLE.cy - CIRCLE.r * Math.cos(rad),
+    x: Math.round(CIRCLE.cx + CIRCLE.r * Math.sin(rad)),
+    y: Math.round(CIRCLE.cy - CIRCLE.r * Math.cos(rad)),
   }
 }
 
