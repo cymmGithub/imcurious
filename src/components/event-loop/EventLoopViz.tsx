@@ -7,7 +7,6 @@ import { CallStack } from './CallStack'
 import { useEventLoopStore } from '@/stores/eventLoopStore'
 import { useShallow } from 'zustand/react/shallow'
 import { VIEWBOX, STATION_POSITIONS } from '@/lib/circlePath'
-import { EXECUTION_DURATION } from '@/lib/simulation'
 
 interface EventLoopVizProps {
   getStageVisibility: (stage: number) => number
@@ -28,14 +27,14 @@ const CURSOR_STATE_LABELS: Record<string, string> = {
 export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
   const cursorPosition = useEventLoopStore((s) => s.cursorPosition)
   const cursorState = useEventLoopStore((s) => s.cursorState)
-  const executionTimer = useEventLoopStore((s) => s.executionTimer)
-  const { currentTask, taskQueue, microtaskQueue, pendingWebAPIs, callStackFrames } =
+  const { currentTask, taskQueue, microtaskQueue, pendingWebAPIs, callStackFrames, rAfCallbacks } =
     useEventLoopStore(useShallow((s) => ({
       currentTask: s.currentTask,
       taskQueue: s.taskQueue,
       microtaskQueue: s.microtaskQueue,
       pendingWebAPIs: s.pendingWebAPIs,
       callStackFrames: s.callStackFrames,
+      rAfCallbacks: s.rAfCallbacks,
     })))
 
   const isAtMicrotask =
@@ -53,11 +52,6 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
     cursorState === 'RENDERING' ||
     cursorState === 'EXECUTING_SYNC' ||
     cursorState === 'STEPPING_SYNC'
-
-  const renderProgress =
-    cursorState === 'RENDERING'
-      ? 1 - executionTimer / EXECUTION_DURATION
-      : 0
 
   // Detect hidden work: cursor stopped/executing at a station that's scrolled out of view
   const microtaskVis = getStageVisibility(5)
@@ -164,17 +158,16 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           <Station
             label={STATION_POSITIONS.render.label}
             color={STATION_POSITIONS.render.color}
-            tasks={[]}
-            currentTask={null}
+            tasks={rAfCallbacks}
+            currentTask={isAtRender ? currentTask : null}
             isActive={isAtRender}
             visibility={getStageVisibility(6)}
             foreignObjectX={-95}
             foreignObjectY={380}
             foreignObjectWidth={180}
-            foreignObjectHeight={130}
+            foreignObjectHeight={100}
             align="right"
-            renderSubSteps
-            renderProgress={renderProgress}
+            showQueueOrder={false}
           />
 
           {/* Web APIs — external box, right side */}
