@@ -48,13 +48,13 @@ export function CallStack({
           className="font-sketch text-[11px] font-bold tracking-[0.08em] uppercase"
           style={{ color: 'var(--color-chalk)', marginBottom: '2px' }}
         >
-          Call Stack
-        </div>
-        <div
-          className="font-mono text-[7px] tracking-wider uppercase"
-          style={{ color: 'var(--color-chalk-faint)', marginBottom: '6px' }}
-        >
-          LIFO
+          Call Stack{' '}
+          <span
+            className="font-mono text-[7px] tracking-wider uppercase"
+            style={{ color: 'var(--color-chalk-faint)' }}
+          >
+            (LIFO)
+          </span>
         </div>
         <div
           className="font-mono text-[9px] rounded-md"

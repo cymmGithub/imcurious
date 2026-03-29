@@ -58,23 +58,22 @@ export function Station({
           className="font-sketch text-[12px] font-bold tracking-wider uppercase inline-block"
           style={{
             padding: '5px 14px',
-            borderRadius: '20px',
+            borderRadius: '6px',
             background: `${color}0d`,
             border: `1px ${isActive ? 'solid' : 'dashed'} ${color}4d`,
             color,
             marginBottom: '6px',
           }}
         >
-          {label}
+          {label}{!renderSubSteps && (
+            <span
+              className="font-mono text-[7px] tracking-wider uppercase"
+              style={{ color: `${color}66`, marginLeft: '6px' }}
+            >
+              (FIFO)
+            </span>
+          )}
         </div>
-        {!renderSubSteps && (
-          <div
-            className="font-mono text-[7px] tracking-wider uppercase"
-            style={{ color: `${color}66`, marginBottom: '4px' }}
-          >
-            FIFO
-          </div>
-        )}
 
         {(allTasks.length > 0 || renderSubSteps) && (
           <div

@@ -5,7 +5,7 @@ import { ArticleSidebar } from '@/components/mdx/ArticleSidebar'
 const posts: Record<string, { loader: () => Promise<{ default: React.ComponentType }>, meta: { category: string, date: string } }> = {
   'the-js-event-loop-works': {
     loader: () => import('@/posts/the-js-event-loop-works.mdx'),
-    meta: { category: 'JS Fundamentals', date: '10/4/25' },
+    meta: { category: 'JS Fundamentals', date: '30/03/26' },
   },
 }
 

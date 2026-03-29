@@ -6,7 +6,7 @@ export const CIRCLE = {
   r: 180,
 } as const
 
-export const VIEWBOX = '-60 30 720 500'
+export const VIEWBOX = '-60 -5 720 555'
 
 // Station positions at 120° intervals (0°, 120°, 240°)
 // 0° = top (12 o'clock), clockwise
@@ -29,13 +29,13 @@ export const STATION_POSITIONS = {
     pathT: 1 / 3,
     label: 'Callback Queue',
     anchor: stationAnchor(120),   // (456, 390) — ~5 o'clock
-    color: '#888888',
+    color: '#ffffff',
   },
   render: {
     pathT: 2 / 3,
     label: 'Render',
     anchor: stationAnchor(240),   // (144, 390) — ~7 o'clock
-    color: '#c0b8a8',
+    color: '#ffffff',
   },
 } as const
 
@@ -44,6 +44,6 @@ export const ORBIT_PATH = `M ${CIRCLE.cx} ${CIRCLE.cy - CIRCLE.r} A ${CIRCLE.r} 
 
 // Web APIs box position (top-right corner)
 export const WEB_API_POSITION = {
-  x: 490,
-  y: 40,
+  x: 450,
+  y: -55,
 }

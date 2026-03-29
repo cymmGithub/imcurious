@@ -99,6 +99,38 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
             visibility={getStageVisibility(2)}
           />
 
+          {/* Dashed connector lines from anchor dots to stations */}
+          <line
+            x1={STATION_POSITIONS.microtask.anchor.x}
+            y1={STATION_POSITIONS.microtask.anchor.y}
+            x2={248}
+            y2={48}
+            stroke={STATION_POSITIONS.microtask.color}
+            strokeWidth={1}
+            strokeDasharray="4 4"
+            opacity={0.3 * microtaskVis}
+          />
+          <line
+            x1={STATION_POSITIONS.task.anchor.x}
+            y1={STATION_POSITIONS.task.anchor.y}
+            x2={510}
+            y2={402}
+            stroke={STATION_POSITIONS.task.color}
+            strokeWidth={1}
+            strokeDasharray="4 4"
+            opacity={0.3 * taskVis}
+          />
+          <line
+            x1={STATION_POSITIONS.render.anchor.x}
+            y1={STATION_POSITIONS.render.anchor.y}
+            x2={90}
+            y2={402}
+            stroke={STATION_POSITIONS.render.color}
+            strokeWidth={1}
+            strokeDasharray="4 4"
+            opacity={0.3 * renderVis}
+          />
+
           {/* Microtask Queue — 12 o'clock */}
           <Station
             label={STATION_POSITIONS.microtask.label}
@@ -107,11 +139,11 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
             currentTask={isAtMicrotask ? currentTask : null}
             isActive={isAtMicrotask}
             visibility={getStageVisibility(5)}
-            foreignObjectX={190}
-            foreignObjectY={35}
-            foreignObjectWidth={220}
+            foreignObjectX={70}
+            foreignObjectY={10}
+            foreignObjectWidth={200}
             foreignObjectHeight={90}
-            align="center"
+            align="right"
           />
 
           {/* Task Queue — ~5 o'clock */}
@@ -122,8 +154,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
             currentTask={isAtTask ? currentTask : null}
             isActive={isAtTask}
             visibility={getStageVisibility(4)}
-            foreignObjectX={460}
-            foreignObjectY={370}
+            foreignObjectX={510}
+            foreignObjectY={380}
             foreignObjectWidth={180}
             foreignObjectHeight={100}
           />
@@ -136,8 +168,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
             currentTask={null}
             isActive={isAtRender}
             visibility={getStageVisibility(6)}
-            foreignObjectX={-40}
-            foreignObjectY={370}
+            foreignObjectX={-95}
+            foreignObjectY={380}
             foreignObjectWidth={180}
             foreignObjectHeight={130}
             align="right"
