@@ -4,22 +4,22 @@
 
 ## How the <img src="/js-logo.png" alt="JavaScript" style={{display: 'inline', height: '1em', verticalAlign: '-0.1em', borderRadius: '3px'}} /> Event Loop Works
 
-Imagine an F1 race with a single rule: only one car can be on the track at a time. No overtaking, no side-by-side battles. Just one car, one track, one lap at a time.
+Imagine a loop with a single rule: only one cursor can orbit it at a time. No skipping ahead, no parallel paths. Just one cursor, one loop, one cycle at a time.
 
 That is JavaScript. It is a **single-threaded** language. It has one call stack, one thread of execution, and it runs your code line by line, in the order it appears. While it is doing one thing, it literally cannot do anything else.
 
-This sounds limiting, right? And it is! If your one car stops in the middle of the track to change a tire, the entire race grinds to a halt. No rendering, no click handlers, no animations. The browser tab freezes. Users rage.
+This sounds limiting, right? And it is! If your cursor stops mid-loop to wait at a station, the entire cycle grinds to a halt. No rendering, no click handlers, no animations. The browser tab freezes. Users rage.
 
 ```js
 // This blocks EVERYTHING for ~3 seconds
 while (Date.now() < Date.now() + 3000) {
-  // The car is stuck. Nothing else can run.
+  // The cursor is stuck. Nothing else can run.
 }
 ```
 
 But here is the thing: this constraint is also a superpower. Because JavaScript only does one thing at a time, your code is **predictable**. You never have to worry about two functions fighting over the same variable, or a callback sneaking in mid-execution. The order is deterministic.
 
-The question is: if we only have one car, how does JavaScript handle timers, network requests, and all the other async stuff the web demands? That is what the rest of this guide is about. Let us follow the car around the track.
+The question is: if we only have one cursor, how does JavaScript handle timers, network requests, and all the other async stuff the web demands? That is what the rest of this guide is about. Let us follow the cursor around the loop.
 
 </Section>
 
@@ -27,35 +27,24 @@ The question is: if we only have one car, how does JavaScript handle timers, net
 
 ## The Call Stack
 
-The call stack is our car's GPS. It tracks exactly where the car is at any moment: which function is running, and which functions are waiting for it to return.
+The call stack is our cursor's GPS. It tracks exactly where the cursor is at any moment: which function is running, and which functions are waiting for it to return.
 
-Every time you call a function, it gets **pushed** onto the stack. When the function finishes and returns a value, it gets **popped** off. The car always executes whatever is sitting on top.
+Every time you call a function, it gets **pushed** onto the stack. When the function finishes and returns a value, it gets **popped** off. The cursor always executes whatever is sitting on top.
 
-```js
-function greet(name) {
-  return `Hello, ${name}!`;
-}
+<RunCode scenarioId="sync-callstack" />
 
-function welcome() {
-  const message = greet("world");
-  console.log(message);
-}
-
-welcome();
-```
-
-Walk through this like a pit crew radio call:
+Walk through this step by step:
 
 1. `welcome()` is called — pushed onto the stack
 2. Inside `welcome`, we call `greet("world")` — pushed on top
 3. `greet` returns `"Hello, world!"` — popped off
 4. `console.log(message)` runs — pushed, then popped
 5. `welcome` finishes — popped off
-6. The stack is empty. The car has completed the lap.
+6. The stack is empty. The cursor has completed the cycle.
 
-The critical rule: the car **cannot move forward** until the current function on top of the stack finishes. If you call a function that calls a function that calls a function, they all pile up. The car does not come back to the main track until every nested call has returned.
+The critical rule: the cursor **cannot move forward** until the current function on top of the stack finishes. If you call a function that calls a function that calls a function, they all pile up. The cursor does not come back to the main loop until every nested call has returned.
 
-This is synchronous execution. Predictable. Orderly. One thing at a time, like a car following the racing line through every turn. But what happens when our car needs something that takes a while, like fetching data from across the internet?
+This is synchronous execution. Predictable. Orderly. One thing at a time, like a cursor orbiting the loop through every station. But what happens when our cursor needs something that takes a while, like fetching data from across the internet?
 
 </Section>
 
@@ -63,21 +52,11 @@ This is synchronous execution. Predictable. Orderly. One thing at a time, like a
 
 ## Web APIs
 
-Here is where our F1 metaphor gets interesting. The car cannot leave the track, but the **team garage** has mechanics who can do work in the background.
+Here is where our event loop metaphor gets interesting. The cursor cannot leave its loop, but the **environment** has workers who can do work in the background.
 
-When you call `setTimeout`, `fetch`, or add an event listener, you are not running JavaScript. You are sending a request to the browser's built-in features — the **Web APIs**. These are the garage crew. They work off-track, on their own threads, while the car keeps racing.
+When you call `setTimeout`, `fetch`, or add an event listener, you are not running JavaScript. You are sending a request to the browser's built-in features — the **Web APIs**. These are the background workers. They work off-loop, on their own threads, while the cursor keeps orbiting.
 
-```js
-console.log("Start");
-
-setTimeout(() => {
-  console.log("Timer done");
-}, 1000);
-
-console.log("End");
-
-// Output: "Start", "End", "Timer done"
-```
+<RunCode scenarioId="webapi-settimeout" />
 
 Here is what actually happens:
 
@@ -89,35 +68,29 @@ Here is what actually happens:
 This is the key insight Will Sentance drives home: `setTimeout` is not a JavaScript function in any meaningful sense. It is a label, a facade, for browser functionality that lives entirely outside the JavaScript engine. Same with `fetch` (network requests), `document` (the DOM), and even `console` (dev tools).
 
 <Callout>
-The JavaScript engine is just the car. The browser is the entire racing organization: the garage, the pit wall, the tire warmers, the telemetry. JavaScript gets to use all of it through these facade functions, but the work happens elsewhere.
+The JavaScript engine is just the cursor. The browser is the entire runtime organization: the background workers, the timer system, the network layer, the telemetry. JavaScript gets to use all of it through these facade functions, but the work happens elsewhere.
 </Callout>
 
-Here is a distinction worth internalizing: the JavaScript engine itself is single-threaded, but the environment it lives in is not. The call stack belongs to the engine — that is the car. But the event loop, the queues, the timers, the network layer? Those belong to the environment. The browser is a multi-threaded runtime wrapping a single-threaded language. JavaScript does not "do" async. The environment does async *on its behalf*.
+Here is a distinction worth internalizing: the JavaScript engine itself is single-threaded, but the environment it lives in is not. The call stack belongs to the engine — that is the cursor. But the event loop, the queues, the timers, the network layer? Those belong to the environment. The browser is a multi-threaded runtime wrapping a single-threaded language. JavaScript does not "do" async. The environment does async *on its behalf*.
 
-So when the timer finishes, where does the callback go? It cannot just jump onto the call stack. That would break our "one car, one track" rule. It needs to wait its turn.
+So when the timer finishes, where does the callback go? It cannot just jump onto the call stack. That would break our "one cursor, one loop" rule. It needs to wait its turn.
 
 </Section>
 
 <Section stage={4}>
 
-## The Task Queue
+## The Callback Queue
 
-When a timer finishes or a click happens, the browser does not slam the callback onto the call stack. That would be chaos — imagine a mechanic running onto the track mid-race. Instead, the callback goes into a **waiting area**: the task queue.
+When a timer finishes or a click happens, the browser does not slam the callback onto the call stack. That would be chaos — imagine a background worker cutting into the cursor's orbit. Instead, the callback goes into a **waiting area**: the callback queue.
 
-Think of it as a pit lane. Callbacks line up, single file, waiting for their chance to enter the track. And the event loop — our race marshal — enforces one strict rule: **one task per lap**.
+Think of it as a staging station. Callbacks line up, single file, waiting for their chance to enter the loop. And the event loop — our loop marshal — enforces one strict rule: **one task per cycle**.
 
-```js
-setTimeout(() => console.log("A"), 0);
-setTimeout(() => console.log("B"), 0);
-console.log("C");
-
-// Output: "C", "A", "B"
-```
+<RunCode scenarioId="task-queue-ordering" />
 
 Even with a delay of 0 milliseconds, those callbacks do not run immediately. Here is the full sequence:
 
 1. Both `setTimeout` calls hand their callbacks to the browser's timer (0ms means "immediately complete")
-2. Both callbacks enter the task queue — `A` first, then `B`
+2. Both callbacks enter the callback queue — `A` first, then `B`
 3. `console.log("C")` runs because it is synchronous, still on the call stack
 4. All global code finishes. The call stack is empty.
 5. The event loop checks: "Call stack empty? All global code done? Anything in the queue?" Yes! It grabs `A` and puts it on the stack
@@ -135,31 +108,25 @@ As Will Sentance puts it: "You could have a million console logs, and still, eve
 
 ## The Microtask Queue
 
-Now here is the plot twist. There is not just one pit lane. There are **two**. And one of them has VIP access.
+Now here is the plot twist. There is not just one staging station. There are **two**. And one of them has priority access.
 
-When you use Promises — `.then()`, `.catch()`, or `async/await` — the callbacks do not go into the regular task queue. They go into a separate, higher-priority lane called the **microtask queue**.
+When you use Promises — `.then()`, `.catch()`, or `async/await` — the callbacks do not go into the regular callback queue. They go into a separate, higher-priority lane called the **microtask queue**.
 
-The difference? The event loop **drains all microtasks** before it does anything else. Not one per lap. All of them.
+The difference? The event loop **drains all microtasks** before it does anything else. Not one per cycle. All of them.
 
-```js
-setTimeout(() => console.log("Task"), 0);
+<RunCode scenarioId="microtask-priority" />
 
-Promise.resolve().then(() => console.log("Microtask"));
+Even though `setTimeout` was called first, the fetch callback wins. Every time. Here is why:
 
-console.log("Sync");
-
-// Output: "Sync", "Microtask", "Task"
-```
-
-Even though `setTimeout` was called first, the Promise callback wins. Every time. Here is why:
-
-1. `setTimeout` callback enters the **task queue**
-2. `Promise.resolve().then()` callback enters the **microtask queue**
+1. `setTimeout` callback enters the **callback queue**
+2. `fetch()` returns a Promise — its `.then()` callback enters the **microtask queue**
 3. `console.log("Sync")` runs immediately (synchronous)
 4. Global code is done. The event loop checks the microtask queue **first**
-5. "Microtask" prints
-6. Microtask queue is empty. Now the event loop checks the task queue
+5. The fetch result prints
+6. Microtask queue is empty. Now the event loop checks the callback queue
 7. "Task" prints
+
+Notice something subtle: the `fetch()` call itself fires **immediately** when the interpreter hits that line. It does not wait for the rest of your synchronous code to finish. The browser's network thread starts the HTTP request right away, in parallel. What *does* wait is the `.then()` callback — that only runs after the fetch resolves *and* the call stack is empty. So the request is already in-flight while `console.log("Sync")` executes. The `fetch()` function is synchronous; the *result handling* is asynchronous.
 
 <Callout>
 Microtasks run whenever the JavaScript stack empties. Not just between tasks — after every task, after every callback, after every event handler. The engine clears the entire microtask queue before moving on.
@@ -175,7 +142,7 @@ function forever() {
 forever();
 ```
 
-The car never finishes the lap. The VIP pit lane has an infinite queue. The race marshal keeps sending cars through it, and the track never gets to repaint.
+The cursor never completes its cycle. The priority station has an infinite queue. The loop marshal keeps sending the cursor through it, and the loop never gets to repaint.
 
 </Section>
 
@@ -183,7 +150,7 @@ The car never finishes the lap. The VIP pit lane has an infinite queue. The race
 
 ## Rendering
 
-After the car finishes its tasks and clears the microtask queue, the race marshal checks one more thing: does the track need to be repainted?
+After the cursor finishes its tasks and clears the microtask queue, the loop marshal checks one more thing: does the screen need to be repainted?
 
 This is the **rendering step**. The browser may run these sub-steps:
 
@@ -192,46 +159,17 @@ This is the **rendering step**. The browser may run these sub-steps:
 3. **Layout** — calculating where everything goes on the page
 4. **Paint** — actually drawing pixels to the screen
 
-The key word there is **may**. The browser is smart. If nothing visual has changed, it skips the entire rendering step. No need to repaint a track that looks the same. This typically runs at 60 times per second (every ~16.6ms), synced to your monitor's refresh rate.
+The key word there is **may**. The browser is smart. If nothing visual has changed, it skips the entire rendering step. No need to repaint a screen that looks the same. This typically runs at 60 times per second (every ~16.6ms), synced to your monitor's refresh rate.
 
-This is why long-running tasks cause jank. If your JavaScript takes 200ms to run, the browser cannot render for that entire duration. The user sees a frozen screen, unresponsive buttons, choppy animations. The car is hogging the track and the paint crew cannot get on to refresh the lines.
+<RunCode scenarioId="render-step" />
 
-```js
-// This blocks rendering for ~2 seconds
-for (let i = 0; i < 2_000_000_000; i++) {
-  // Heavy computation — no rendering can happen
-}
-```
+This is why long-running tasks cause jank. If your JavaScript takes 200ms to run, the browser cannot render for that entire duration. The user sees a frozen screen, unresponsive buttons, choppy animations. The cursor is hogging the loop and the paint crew cannot get in to refresh the visuals.
 
 <Callout>
 requestAnimationFrame is synchronized with the display's refresh rate, while setTimeout is not. A setTimeout loop might fire too often (wasting CPU) or not often enough (causing visual stutters). For animations, always use requestAnimationFrame — it is the browser telling you "now is a good time to update visuals."
 </Callout>
 
-The rendering step is the final piece of the lap. After it completes (or gets skipped), the event loop starts a brand new lap — or as it is often called, a new **tick**. Each tick is one full pass: check the task queue, drain microtasks, maybe render. Around and around, forever, until you close the tab.
-
-</Section>
-
-<Section stage={7}>
-
-## Your Turn
-
-You have seen the full lap now. One car, one track, three stops:
-
-- **Task queue** — `setTimeout`, clicks, network callbacks. One per lap.
-- **Microtask queue** — Promise `.then()`, `async/await`. Drained completely before moving on.
-- **Rendering** — `requestAnimationFrame`, style, layout, paint. Skipped if nothing changed.
-
-The interactive track above is your sandbox. Use the controls to add tasks and microtasks, then watch them flow through the queues and onto the call stack.
-
-Here are some experiments to try:
-
-- Add a `setTimeout(0)` and a Promise at the same time. Which runs first? (Spoiler: the Promise, always.)
-- Queue several tasks and watch the event loop pick them up one per lap
-- Notice how microtasks all run together before the next task gets a turn
-
-One thing to keep an eye on: what would happen if microtasks kept spawning more microtasks, endlessly? The rendering step would never get a chance to run. The screen would freeze. This is called **rendering starvation**, and it is one of the most subtle bugs you can create with Promises. A future version of this visualization will let you see it happen in real time.
-
-The event loop is not magic. It is a while loop with priorities. And now you know the order.
+The rendering step is the final piece of the cycle. After it completes (or gets skipped), the event loop starts a brand new cycle — or as it is often called, a new **tick**. Each tick is one full pass: check the callback queue, drain microtasks, maybe render. Around and around, forever, until you close the tab.
 
 </Section>
 

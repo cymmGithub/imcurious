@@ -3,11 +3,13 @@
 import { MDXProvider as BaseMDXProvider } from '@mdx-js/react'
 import type { ComponentPropsWithoutRef } from 'react'
 import { ScrollStage } from '@/components/event-loop/ScrollStage'
+import { RunCode } from '@/components/event-loop/RunCode'
 import { Section } from './Section'
 import { Callout } from './Callout'
 
 const components = {
   ScrollStage,
+  RunCode,
   Section,
   Callout,
   h1: (props: ComponentPropsWithoutRef<'h1'>) => (

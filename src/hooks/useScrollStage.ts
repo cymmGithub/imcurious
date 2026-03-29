@@ -3,7 +3,7 @@
 import { useRef, useCallback, useState } from 'react'
 import { useScroll, useMotionValueEvent, type MotionValue } from 'framer-motion'
 
-const TOTAL_STAGES = 7
+const TOTAL_STAGES = 6
 
 export interface ScrollStageResult {
   contentRef: React.RefObject<HTMLDivElement | null>
@@ -40,7 +40,7 @@ export function useScrollStage(): ScrollStageResult {
     (stage: number): number => {
       const scrollProgress = scrollProgressRef.current
       const stageStart = (stage - 1) / (TOTAL_STAGES - 1)
-      const transitionWidth = 0.5 / (TOTAL_STAGES - 1)
+      const transitionWidth = 1.0 / (TOTAL_STAGES - 1)
 
       if (scrollProgress >= stageStart) return 1
       if (scrollProgress >= stageStart - transitionWidth) {

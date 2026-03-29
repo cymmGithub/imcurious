@@ -2,6 +2,7 @@
 
 import { useScrollStage } from '@/hooks/useScrollStage'
 import { EventLoopViz } from './EventLoopViz'
+import { useAnimationLoop } from '@/hooks/useAnimationLoop'
 
 interface ScrollStageProps {
   children: React.ReactNode
@@ -9,6 +10,7 @@ interface ScrollStageProps {
 
 export function ScrollStage({ children }: ScrollStageProps) {
   const { contentRef, getStageVisibility } = useScrollStage()
+  useAnimationLoop()
 
   return (
     <div ref={contentRef} className="relative">

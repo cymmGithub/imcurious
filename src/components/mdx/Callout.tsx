@@ -11,12 +11,6 @@ export function Callout({ children }: CalloutProps) {
         background: 'var(--color-surface-card)',
       }}
     >
-      <div
-        className="font-display text-[10px] font-semibold tracking-[0.2em] uppercase mb-2"
-        style={{ color: 'var(--color-chalk-dim)' }}
-      >
-        Note
-      </div>
       <div className="text-[var(--color-chalk-dim)] text-sm leading-relaxed italic font-body">
         {children}
       </div>

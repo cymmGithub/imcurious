@@ -1,135 +1,156 @@
 'use client'
 
-import { useRef } from 'react'
-import { Track } from './Track'
-import { Car } from './Car'
-import { PitStop } from './PitStop'
-import { Garage } from './Garage'
-import { Controls } from './Controls'
+import { CircleTrack } from './CircleTrack'
+import { Station } from './Station'
+import { WebApiBox } from './WebApiBox'
 import { CallStack } from './CallStack'
-import { useEventLoopSimulation } from '@/hooks/useEventLoopSimulation'
-import { PIT_STOP_POSITIONS, GARAGE_POSITION } from '@/lib/trackPath'
+import { useEventLoopStore } from '@/stores/eventLoopStore'
+import { useShallow } from 'zustand/react/shallow'
+import { VIEWBOX, STATION_POSITIONS } from '@/lib/circlePath'
 import { EXECUTION_DURATION } from '@/lib/simulation'
 
 interface EventLoopVizProps {
   getStageVisibility: (stage: number) => number
 }
 
-const CAR_STATE_LABELS: Record<string, string> = {
-  DRIVING: 'Car is driving around the track',
-  STOPPED_AT_MICROTASK_QUEUE: 'Car stopped at microtask queue',
+const CURSOR_STATE_LABELS: Record<string, string> = {
+  ORBITING: 'Cursor orbiting the event loop',
+  STOPPED_AT_MICROTASK_QUEUE: 'Stopped at microtask queue',
   EXECUTING_MICROTASK: 'Executing microtask',
-  STOPPED_AT_TASK_QUEUE: 'Car stopped at task queue',
+  STOPPED_AT_TASK_QUEUE: 'Stopped at callback queue',
   EXECUTING_TASK: 'Executing task',
-  STOPPED_AT_RENDER: 'Car stopped at render step',
+  STOPPED_AT_RENDER: 'Stopped at render step',
   RENDERING: 'Rendering in progress',
+  EXECUTING_SYNC: 'Executing synchronous code',
+  STEPPING_SYNC: 'Stepping through synchronous code',
 }
 
 export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
-  const pathRef = useRef<SVGPathElement>(null)
-  const { state, positionHistory, togglePause, addTask, reset } = useEventLoopSimulation()
+  const cursorPosition = useEventLoopStore((s) => s.cursorPosition)
+  const cursorState = useEventLoopStore((s) => s.cursorState)
+  const executionTimer = useEventLoopStore((s) => s.executionTimer)
+  const { currentTask, taskQueue, microtaskQueue, pendingWebAPIs, callStackFrames } =
+    useEventLoopStore(useShallow((s) => ({
+      currentTask: s.currentTask,
+      taskQueue: s.taskQueue,
+      microtaskQueue: s.microtaskQueue,
+      pendingWebAPIs: s.pendingWebAPIs,
+      callStackFrames: s.callStackFrames,
+    })))
 
   const isAtMicrotask =
-    state.carState === 'STOPPED_AT_MICROTASK_QUEUE' ||
-    state.carState === 'EXECUTING_MICROTASK'
+    cursorState === 'STOPPED_AT_MICROTASK_QUEUE' ||
+    cursorState === 'EXECUTING_MICROTASK'
   const isAtTask =
-    state.carState === 'STOPPED_AT_TASK_QUEUE' ||
-    state.carState === 'EXECUTING_TASK'
+    cursorState === 'STOPPED_AT_TASK_QUEUE' ||
+    cursorState === 'EXECUTING_TASK'
   const isAtRender =
-    state.carState === 'STOPPED_AT_RENDER' ||
-    state.carState === 'RENDERING'
+    cursorState === 'STOPPED_AT_RENDER' ||
+    cursorState === 'RENDERING'
   const isExecuting =
-    state.carState === 'EXECUTING_TASK' ||
-    state.carState === 'EXECUTING_MICROTASK' ||
-    state.carState === 'RENDERING'
+    cursorState === 'EXECUTING_TASK' ||
+    cursorState === 'EXECUTING_MICROTASK' ||
+    cursorState === 'RENDERING' ||
+    cursorState === 'EXECUTING_SYNC' ||
+    cursorState === 'STEPPING_SYNC'
 
-  // Render sub-step progress (0–1)
   const renderProgress =
-    state.carState === 'RENDERING'
-      ? 1 - state.executionTimer / EXECUTION_DURATION
+    cursorState === 'RENDERING'
+      ? 1 - executionTimer / EXECUTION_DURATION
       : 0
 
-  const statusLabel = CAR_STATE_LABELS[state.carState] ?? 'Simulation running'
-  const taskDetail = state.currentTask ? `: ${state.currentTask.label}` : ''
+  // Detect hidden work: cursor stopped/executing at a station that's scrolled out of view
+  const microtaskVis = getStageVisibility(5)
+  const taskVis = getStageVisibility(4)
+  const renderVis = getStageVisibility(6)
+  const isStoppedAtHiddenStation =
+    (isAtMicrotask && microtaskVis < 0.1) ||
+    (isAtTask && taskVis < 0.1) ||
+    (isAtRender && renderVis < 0.1)
+  const hasHiddenWork = isStoppedAtHiddenStation
+
+  const statusLabel = CURSOR_STATE_LABELS[cursorState] ?? 'Simulation running'
+  const taskDetail = currentTask ? `: ${currentTask.label}` : ''
 
   return (
     <div className="relative w-full h-full flex flex-col" role="application" aria-label="Event loop visualization">
-      {/* Screen-reader live region for state changes */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {statusLabel}{taskDetail}
       </div>
 
-      {/* Track area */}
-      <div className="relative flex-1 min-h-0">
-        <Track ref={pathRef} className="w-full h-full" />
+      <div className="relative flex-1 min-h-0 flex items-center justify-center">
+        <svg viewBox={VIEWBOX} className="w-full h-full max-h-full">
+          <CircleTrack
+            cursorPosition={cursorPosition}
+            isExecuting={isExecuting}
+            hasHiddenWork={hasHiddenWork}
+            dotVisibilities={{
+              microtask: microtaskVis,
+              task: taskVis,
+              render: renderVis,
+            }}
+          />
 
-        <Car
-          pathRef={pathRef}
-          position={state.carPosition}
-          isExecuting={isExecuting}
-          positionHistory={positionHistory}
-        />
+          {/* Call Stack — center of circle */}
+          <CallStack
+            cursorState={cursorState}
+            currentTask={currentTask}
+            callStackFrames={callStackFrames}
+            visibility={getStageVisibility(2)}
+          />
 
-        <Garage
-          pendingAPIs={state.pendingWebAPIs}
-          position={{ x: GARAGE_POSITION.x, y: GARAGE_POSITION.y }}
-          visibility={getStageVisibility(3)}
-        />
+          {/* Microtask Queue — 12 o'clock */}
+          <Station
+            label={STATION_POSITIONS.microtask.label}
+            color={STATION_POSITIONS.microtask.color}
+            tasks={microtaskQueue}
+            currentTask={isAtMicrotask ? currentTask : null}
+            isActive={isAtMicrotask}
+            visibility={getStageVisibility(5)}
+            foreignObjectX={190}
+            foreignObjectY={35}
+            foreignObjectWidth={220}
+            foreignObjectHeight={90}
+            align="center"
+          />
 
-        {/* Microtask Queue Pit Stop */}
-        <PitStop
-          label={PIT_STOP_POSITIONS.microtask.label}
-          color={PIT_STOP_POSITIONS.microtask.color}
-          tasks={state.microtaskQueue}
-          currentTask={isAtMicrotask ? state.currentTask : null}
-          isActive={isAtMicrotask}
-          position={PIT_STOP_POSITIONS.microtask.anchor}
-          labelOffset={PIT_STOP_POSITIONS.microtask.labelOffset}
-          visibility={getStageVisibility(5)}
-        />
+          {/* Task Queue — ~5 o'clock */}
+          <Station
+            label={STATION_POSITIONS.task.label}
+            color={STATION_POSITIONS.task.color}
+            tasks={taskQueue}
+            currentTask={isAtTask ? currentTask : null}
+            isActive={isAtTask}
+            visibility={getStageVisibility(4)}
+            foreignObjectX={460}
+            foreignObjectY={370}
+            foreignObjectWidth={180}
+            foreignObjectHeight={100}
+          />
 
-        {/* Task Queue Pit Stop */}
-        <PitStop
-          label={PIT_STOP_POSITIONS.task.label}
-          color={PIT_STOP_POSITIONS.task.color}
-          tasks={state.taskQueue}
-          currentTask={isAtTask ? state.currentTask : null}
-          isActive={isAtTask}
-          position={PIT_STOP_POSITIONS.task.anchor}
-          labelOffset={PIT_STOP_POSITIONS.task.labelOffset}
-          visibility={getStageVisibility(4)}
-        />
+          {/* Render — ~7 o'clock */}
+          <Station
+            label={STATION_POSITIONS.render.label}
+            color={STATION_POSITIONS.render.color}
+            tasks={[]}
+            currentTask={null}
+            isActive={isAtRender}
+            visibility={getStageVisibility(6)}
+            foreignObjectX={-40}
+            foreignObjectY={370}
+            foreignObjectWidth={180}
+            foreignObjectHeight={130}
+            align="right"
+            renderSubSteps
+            renderProgress={renderProgress}
+          />
 
-        {/* Render Pit Stop */}
-        <PitStop
-          label={PIT_STOP_POSITIONS.render.label}
-          color={PIT_STOP_POSITIONS.render.color}
-          tasks={[]}
-          currentTask={null}
-          isActive={isAtRender}
-          position={PIT_STOP_POSITIONS.render.anchor}
-          labelOffset={PIT_STOP_POSITIONS.render.labelOffset}
-          visibility={getStageVisibility(6)}
-          renderSubSteps
-          renderProgress={renderProgress}
-        />
-        {/* Call Stack Dashboard */}
-        <CallStack
-          carState={state.carState}
-          currentTask={state.currentTask}
-          visibility={getStageVisibility(2)}
-        />
-      </div>
-
-      {/* Controls — pinned to bottom */}
-      <div className="flex-shrink-0 p-3">
-        <Controls
-          isPaused={state.isPaused}
-          onTogglePause={togglePause}
-          onAddTask={addTask}
-          onReset={reset}
-          visibility={getStageVisibility(4)}
-        />
+          {/* Web APIs — external box, right side */}
+          <WebApiBox
+            pendingAPIs={pendingWebAPIs}
+            visibility={getStageVisibility(3)}
+          />
+        </svg>
       </div>
     </div>
   )
