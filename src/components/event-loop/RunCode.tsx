@@ -123,7 +123,7 @@ export function RunCode({ scenarioId }: RunCodeProps) {
           </span>
           <button
             onClick={() => isStepping ? stepForward() : runScenario(scenarioId)}
-            className="font-mono text-xs px-2 py-1 rounded"
+            className="font-mono text-xs px-2 py-1 rounded inline-flex items-center gap-0.5"
             style={{
               color: '#000',
               background: 'var(--color-chalk)',
