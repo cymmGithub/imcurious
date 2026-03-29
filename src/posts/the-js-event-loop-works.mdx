@@ -110,7 +110,7 @@ As Will Sentance puts it: "You could have a million console logs, and still, eve
 
 Now here is the plot twist. There is not just one staging station. There are **two**. And one of them has priority access.
 
-When you use Promises — `.then()`, `.catch()`, or `async/await` — the callbacks do not go into the regular callback queue. They go into a separate, higher-priority lane called the **microcallback queue**.
+When you use Promises — `.then()`, `.catch()`, or `async/await` — the callbacks do not go into the regular callback queue. They go into a separate, higher-priority lane called the **microtask queue**.
 
 The difference? The event loop **drains all microtasks** before it does anything else. Not one per cycle. All of them.
 
@@ -119,18 +119,18 @@ The difference? The event loop **drains all microtasks** before it does anything
 Even though `setTimeout` was called first, the Promise callback wins. Every time. Here is why:
 
 1. `setTimeout` callback enters the **callback queue**
-2. `Promise.resolve().then()` callback enters the **microcallback queue**
+2. `Promise.resolve().then()` callback enters the **microtask queue**
 3. `console.log("Sync")` runs immediately (synchronous)
-4. Global code is done. The event loop checks the microcallback queue **first**
+4. Global code is done. The event loop checks the microtask queue **first**
 5. "Microtask" prints
-6. Microcallback queue is empty. Now the event loop checks the callback queue
+6. Microtask queue is empty. Now the event loop checks the callback queue
 7. "Task" prints
 
 <Callout>
-Microtasks run whenever the JavaScript stack empties. Not just between tasks — after every task, after every callback, after every event handler. The engine clears the entire microcallback queue before moving on.
+Microtasks run whenever the JavaScript stack empties. Not just between tasks — after every task, after every callback, after every event handler. The engine clears the entire microtask queue before moving on.
 </Callout>
 
-And here is the dangerous part: if a microcallback queues another microtask, that one runs too, before any task or rendering gets a chance. Microtasks can **starve everything else**:
+And here is the dangerous part: if a microtask queues another microtask, that one runs too, before any task or rendering gets a chance. Microtasks can **starve everything else**:
 
 ```js
 // DON'T DO THIS — infinite microtasks block rendering forever
@@ -148,7 +148,7 @@ The cursor never completes its cycle. The priority station has an infinite queue
 
 ## Rendering
 
-After the cursor finishes its tasks and clears the microcallback queue, the loop marshal checks one more thing: does the screen need to be repainted?
+After the cursor finishes its tasks and clears the microtask queue, the loop marshal checks one more thing: does the screen need to be repainted?
 
 This is the **rendering step**. The browser may run these sub-steps:
 

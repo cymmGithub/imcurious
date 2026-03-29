@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useEventLoop } from '@/contexts/EventLoopContext'
 import { SCENARIOS } from '@/lib/scenarios'
 
@@ -10,6 +11,27 @@ interface RunCodeProps {
 export function RunCode({ scenarioId }: RunCodeProps) {
   const { state, runScenario, stepForward, stepBack } = useEventLoop()
   const scenario = SCENARIOS[scenarioId]
+  const [highlightedLines, setHighlightedLines] = useState<string[]>([])
+
+  useEffect(() => {
+    if (!scenario) return
+    let cancelled = false
+    import('shiki').then(({ codeToHtml }) =>
+      codeToHtml(scenario.code, { lang: 'javascript', theme: 'vitesse-dark' })
+    ).then((html) => {
+      if (cancelled) return
+      // Extract inner content from <pre><code>...</code></pre>
+      const codeMatch = html.match(/<code[^>]*>([\s\S]*)<\/code>/)
+      if (!codeMatch) return
+      // Split by line spans — shiki wraps each line in <span class="line">
+      const lineHtmls = codeMatch[1]
+        .split(/<span class="line">/)
+        .filter(Boolean)
+        .map((l) => l.replace(/<\/span>$/, ''))
+      setHighlightedLines(lineHtmls)
+    })
+    return () => { cancelled = true }
+  }, [scenario])
 
   if (!scenario) return null
 
@@ -35,9 +57,9 @@ export function RunCode({ scenarioId }: RunCodeProps) {
               key={i}
               className="transition-colors duration-200"
               style={{
-                color: activeLine !== null
-                  ? (i === activeLine ? 'var(--color-chalk)' : 'var(--color-chalk-faint)')
-                  : 'var(--color-chalk)',
+                ...(activeLine !== null && i !== activeLine
+                  ? { opacity: 0.3 }
+                  : {}),
                 backgroundColor: i === activeLine ? 'rgba(232, 228, 220, 0.08)' : 'transparent',
                 marginLeft: i === activeLine ? '-1rem' : '0',
                 paddingLeft: i === activeLine ? 'calc(1rem - 2px)' : '0',
@@ -46,7 +68,9 @@ export function RunCode({ scenarioId }: RunCodeProps) {
                 paddingRight: i === activeLine ? '1rem' : '0',
               }}
             >
-              {line || '\u00A0'}
+              {highlightedLines[i]
+                ? <span dangerouslySetInnerHTML={{ __html: highlightedLines[i] }} />
+                : (line || '\u00A0')}
             </div>
           ))}
         </code>
