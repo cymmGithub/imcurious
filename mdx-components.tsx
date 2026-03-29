@@ -1,12 +1,14 @@
 import type { MDXComponents } from 'mdx/types'
 import type { ComponentPropsWithoutRef } from 'react'
 import { ScrollStage } from '@/components/event-loop/ScrollStage'
+import { RunCode } from '@/components/event-loop/RunCode'
 import { Section } from '@/components/mdx/Section'
 import { Callout } from '@/components/mdx/Callout'
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ScrollStage,
+    RunCode,
     Section,
     Callout,
     h1: (props: ComponentPropsWithoutRef<'h1'>) => (
