@@ -4,7 +4,7 @@ import { CircleTrack } from './CircleTrack'
 import { Station } from './Station'
 import { WebApiBox } from './WebApiBox'
 import { CallStack } from './CallStack'
-import { useEventLoop } from '@/contexts/EventLoopContext'
+import { useEventLoopStore } from '@/stores/eventLoopStore'
 import { VIEWBOX, STATION_POSITIONS } from '@/lib/circlePath'
 import { EXECUTION_DURATION } from '@/lib/simulation'
 
@@ -25,27 +25,34 @@ const CURSOR_STATE_LABELS: Record<string, string> = {
 }
 
 export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
-  const { state } = useEventLoop()
+  const cursorPosition = useEventLoopStore((s) => s.cursorPosition)
+  const cursorState = useEventLoopStore((s) => s.cursorState)
+  const currentTask = useEventLoopStore((s) => s.currentTask)
+  const taskQueue = useEventLoopStore((s) => s.taskQueue)
+  const microtaskQueue = useEventLoopStore((s) => s.microtaskQueue)
+  const pendingWebAPIs = useEventLoopStore((s) => s.pendingWebAPIs)
+  const callStackFrames = useEventLoopStore((s) => s.callStackFrames)
+  const executionTimer = useEventLoopStore((s) => s.executionTimer)
 
   const isAtMicrotask =
-    state.cursorState === 'STOPPED_AT_MICROTASK_QUEUE' ||
-    state.cursorState === 'EXECUTING_MICROTASK'
+    cursorState === 'STOPPED_AT_MICROTASK_QUEUE' ||
+    cursorState === 'EXECUTING_MICROTASK'
   const isAtTask =
-    state.cursorState === 'STOPPED_AT_TASK_QUEUE' ||
-    state.cursorState === 'EXECUTING_TASK'
+    cursorState === 'STOPPED_AT_TASK_QUEUE' ||
+    cursorState === 'EXECUTING_TASK'
   const isAtRender =
-    state.cursorState === 'STOPPED_AT_RENDER' ||
-    state.cursorState === 'RENDERING'
+    cursorState === 'STOPPED_AT_RENDER' ||
+    cursorState === 'RENDERING'
   const isExecuting =
-    state.cursorState === 'EXECUTING_TASK' ||
-    state.cursorState === 'EXECUTING_MICROTASK' ||
-    state.cursorState === 'RENDERING' ||
-    state.cursorState === 'EXECUTING_SYNC' ||
-    state.cursorState === 'STEPPING_SYNC'
+    cursorState === 'EXECUTING_TASK' ||
+    cursorState === 'EXECUTING_MICROTASK' ||
+    cursorState === 'RENDERING' ||
+    cursorState === 'EXECUTING_SYNC' ||
+    cursorState === 'STEPPING_SYNC'
 
   const renderProgress =
-    state.cursorState === 'RENDERING'
-      ? 1 - state.executionTimer / EXECUTION_DURATION
+    cursorState === 'RENDERING'
+      ? 1 - executionTimer / EXECUTION_DURATION
       : 0
 
   // Detect hidden work: cursor stopped/executing at a station that's scrolled out of view
@@ -58,8 +65,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
     (isAtRender && renderVis < 0.1)
   const hasHiddenWork = isStoppedAtHiddenStation
 
-  const statusLabel = CURSOR_STATE_LABELS[state.cursorState] ?? 'Simulation running'
-  const taskDetail = state.currentTask ? `: ${state.currentTask.label}` : ''
+  const statusLabel = CURSOR_STATE_LABELS[cursorState] ?? 'Simulation running'
+  const taskDetail = currentTask ? `: ${currentTask.label}` : ''
 
   return (
     <div className="relative w-full h-full flex flex-col" role="application" aria-label="Event loop visualization">
@@ -70,7 +77,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
       <div className="relative flex-1 min-h-0 flex items-center justify-center">
         <svg viewBox={VIEWBOX} className="w-full h-full max-h-full">
           <CircleTrack
-            cursorPosition={state.cursorPosition}
+            cursorPosition={cursorPosition}
             isExecuting={isExecuting}
             hasHiddenWork={hasHiddenWork}
             dotVisibilities={{
@@ -82,9 +89,9 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 
           {/* Call Stack — center of circle */}
           <CallStack
-            cursorState={state.cursorState}
-            currentTask={state.currentTask}
-            callStackFrames={state.callStackFrames}
+            cursorState={cursorState}
+            currentTask={currentTask}
+            callStackFrames={callStackFrames}
             visibility={getStageVisibility(2)}
           />
 
@@ -92,8 +99,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           <Station
             label={STATION_POSITIONS.microtask.label}
             color={STATION_POSITIONS.microtask.color}
-            tasks={state.microtaskQueue}
-            currentTask={isAtMicrotask ? state.currentTask : null}
+            tasks={microtaskQueue}
+            currentTask={isAtMicrotask ? currentTask : null}
             isActive={isAtMicrotask}
             visibility={getStageVisibility(5)}
             foreignObjectX={190}
@@ -107,8 +114,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           <Station
             label={STATION_POSITIONS.task.label}
             color={STATION_POSITIONS.task.color}
-            tasks={state.taskQueue}
-            currentTask={isAtTask ? state.currentTask : null}
+            tasks={taskQueue}
+            currentTask={isAtTask ? currentTask : null}
             isActive={isAtTask}
             visibility={getStageVisibility(4)}
             foreignObjectX={460}
@@ -136,7 +143,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 
           {/* Web APIs — external box, right side */}
           <WebApiBox
-            pendingAPIs={state.pendingWebAPIs}
+            pendingAPIs={pendingWebAPIs}
             visibility={getStageVisibility(3)}
           />
         </svg>

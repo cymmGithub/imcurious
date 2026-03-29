@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useEventLoop } from '@/contexts/EventLoopContext'
+import { useEventLoopStore } from '@/stores/eventLoopStore'
 import { SCENARIOS } from '@/lib/scenarios'
 
 interface RunCodeProps {
@@ -9,7 +9,14 @@ interface RunCodeProps {
 }
 
 export function RunCode({ scenarioId }: RunCodeProps) {
-  const { state, runScenario, stepForward, stepBack } = useEventLoop()
+  const activeScenarioId = useEventLoopStore((s) => s.activeScenarioId)
+  const cursorState = useEventLoopStore((s) => s.cursorState)
+  const syncFrameIndex = useEventLoopStore((s) => s.syncFrameIndex)
+  const syncFrameOps = useEventLoopStore((s) => s.syncFrameOps)
+  const activeLine = useEventLoopStore((s) => s.activeLine)
+  const runScenario = useEventLoopStore((s) => s.runScenario)
+  const stepForward = useEventLoopStore((s) => s.stepForward)
+  const stepBack = useEventLoopStore((s) => s.stepBack)
   const scenario = SCENARIOS[scenarioId]
   const [highlightedLines, setHighlightedLines] = useState<string[]>([])
 
@@ -35,10 +42,10 @@ export function RunCode({ scenarioId }: RunCodeProps) {
 
   if (!scenario) return null
 
-  const isActive = state.activeScenarioId === scenarioId
-  const isStepping = isActive && state.cursorState === 'STEPPING_SYNC'
-  const isLastStep = isStepping && state.syncFrameIndex >= state.syncFrameOps.length - 1
-  const activeLine = isActive ? state.activeLine : null
+  const isActive = activeScenarioId === scenarioId
+  const isStepping = isActive && cursorState === 'STEPPING_SYNC'
+  const isLastStep = isStepping && syncFrameIndex >= syncFrameOps.length - 1
+  const currentActiveLine = isActive ? activeLine : null
   const lines = scenario.code.split('\n')
 
   return (
@@ -57,15 +64,15 @@ export function RunCode({ scenarioId }: RunCodeProps) {
               key={i}
               className="transition-colors duration-200"
               style={{
-                ...(activeLine !== null && i !== activeLine
+                ...(currentActiveLine !== null && i !== currentActiveLine
                   ? { opacity: 0.3 }
                   : {}),
-                backgroundColor: i === activeLine ? 'rgba(232, 228, 220, 0.08)' : 'transparent',
-                marginLeft: i === activeLine ? '-1rem' : '0',
-                paddingLeft: i === activeLine ? 'calc(1rem - 2px)' : '0',
-                borderLeft: i === activeLine ? '2px solid var(--color-chalk)' : '2px solid transparent',
-                marginRight: i === activeLine ? '-1rem' : '0',
-                paddingRight: i === activeLine ? '1rem' : '0',
+                backgroundColor: i === currentActiveLine ? 'rgba(232, 228, 220, 0.08)' : 'transparent',
+                marginLeft: i === currentActiveLine ? '-1rem' : '0',
+                paddingLeft: i === currentActiveLine ? 'calc(1rem - 2px)' : '0',
+                borderLeft: i === currentActiveLine ? '2px solid var(--color-chalk)' : '2px solid transparent',
+                marginRight: i === currentActiveLine ? '-1rem' : '0',
+                paddingRight: i === currentActiveLine ? '1rem' : '0',
               }}
             >
               {highlightedLines[i]
@@ -93,14 +100,14 @@ export function RunCode({ scenarioId }: RunCodeProps) {
         <div className="flex items-center gap-2">
           <button
             onClick={isStepping ? stepBack : undefined}
-            disabled={!isStepping || state.syncFrameIndex === 0}
+            disabled={!isStepping || syncFrameIndex === 0}
             className="font-mono text-xs px-2 py-1 rounded"
             style={{
               color: 'var(--color-chalk)',
               background: 'var(--color-surface-card)',
               border: '1px solid var(--color-chalk-faint)',
-              opacity: !isStepping || state.syncFrameIndex === 0 ? 0.3 : 1,
-              cursor: !isStepping || state.syncFrameIndex === 0 ? 'not-allowed' : 'pointer',
+              opacity: !isStepping || syncFrameIndex === 0 ? 0.3 : 1,
+              cursor: !isStepping || syncFrameIndex === 0 ? 'not-allowed' : 'pointer',
             }}
           >
             ←
@@ -110,7 +117,7 @@ export function RunCode({ scenarioId }: RunCodeProps) {
             style={{ color: 'var(--color-chalk-dim)' }}
           >
             {isStepping
-              ? `${state.syncFrameIndex + 1} / ${state.syncFrameOps.length}`
+              ? `${syncFrameIndex + 1} / ${syncFrameOps.length}`
               : '· · ·'}
           </span>
           <button
