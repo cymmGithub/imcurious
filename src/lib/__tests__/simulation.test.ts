@@ -609,6 +609,39 @@ describe('scenario step count alignment', () => {
   })
 })
 
+describe('rAF dequeue during RENDERING', () => {
+  it('transitions from STOPPED_AT_RENDER to RENDERING with first rAF callback as currentTask', () => {
+    const rAfTask = { id: '1', type: 'rAF' as const, label: 'requestAnimationFrame', color: '#ffffff' }
+    const state: SimulationState = {
+      ...createInitialState(),
+      cursorPosition: PIT_STOPS.render,
+      cursorState: 'STOPPED_AT_RENDER',
+      rAfCallbacks: [rAfTask],
+      executionTimer: 0,
+    }
+    const next = nextState(state, 250)
+    expect(next.cursorState).toBe('RENDERING')
+    expect(next.currentTask).toEqual(rAfTask)
+    expect(next.rAfCallbacks).toEqual([])
+  })
+
+  it('RENDERING completes and transitions to ORBITING with empty rAfCallbacks', () => {
+    const rAfTask = { id: '1', type: 'rAF' as const, label: 'requestAnimationFrame', color: '#ffffff' }
+    const state: SimulationState = {
+      ...createInitialState(),
+      cursorPosition: PIT_STOPS.render,
+      cursorState: 'RENDERING',
+      currentTask: rAfTask,
+      rAfCallbacks: [],
+      executionTimer: 1,
+    }
+    const next = nextState(state, 10)
+    expect(next.cursorState).toBe('ORBITING')
+    expect(next.currentTask).toBeNull()
+    expect(next.rAfCallbacks).toEqual([])
+  })
+})
+
 describe('rAF routing', () => {
   it('moves rAF callback to rAfCallbacks when delay elapses (not taskQueue or microtaskQueue)', () => {
     const state: SimulationState = {

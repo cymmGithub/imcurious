@@ -31,7 +31,7 @@ export default function SketchTitle() {
           delay: dotStart,
           ease: [0.34, 1.56, 0.64, 1],
         }}
-        className="inline-block text-red-400 origin-bottom"
+        className="inline-block text-red-400 origin-bottom relative top-0.75"
       >
         .
       </motion.span>
@@ -42,7 +42,7 @@ export default function SketchTitle() {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.15, delay: tldStart + i * charDelay, ease: 'easeOut' }}
-          className="inline-block"
+          className="inline-block relative top-0.75"
         >
           {char}
         </motion.span>

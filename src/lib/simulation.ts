@@ -402,17 +402,13 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
     case 'STOPPED_AT_RENDER': {
       const timer = s.executionTimer - dt
       if (timer <= 0) {
+        const [first, ...rest] = s.rAfCallbacks
         return {
           ...s,
           cursorState: 'RENDERING',
           executionTimer: EXECUTION_DURATION,
-          currentTask: {
-            id: 'rAF',
-            type: 'setTimeout',
-            label: 'requestAnimationFrame',
-            delay: 0,
-            color: '#ffffff',
-          },
+          currentTask: first ?? null,
+          rAfCallbacks: rest,
         }
       }
       return { ...s, executionTimer: timer }
