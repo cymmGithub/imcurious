@@ -368,9 +368,9 @@ describe('stepping', () => {
 })
 
 describe('stepping with asyncEffect', () => {
-  // Simulates the render-step scenario: rAF (no async), setTimeout (async), fetch (async)
+  // Simulates the render-step scenario: rAF (async), setTimeout (async), fetch (async)
   const asyncOps: SyncFrameOp[] = [
-    { action: 'push', name: 'requestAnimationFrame()', line: 0 },
+    { action: 'push', name: 'requestAnimationFrame()', line: 0, asyncEffect: { type: 'rAF' } },
     { action: 'pop', line: 2 },
     { action: 'push', name: 'setTimeout()', line: 4, asyncEffect: { type: 'setTimeout', delay: 0 } },
     { action: 'pop', line: 4 },
@@ -382,93 +382,101 @@ describe('stepping with asyncEffect', () => {
     const { snapshots, finalWebAPIs, nextId } = buildSyncSnapshots(asyncOps, 0)
     expect(snapshots).toHaveLength(6)
 
-    // Steps 0-1: rAF push/pop — no asyncEffect
-    expect(snapshots[0].pendingWebAPIs).toEqual([])
-    expect(snapshots[1].pendingWebAPIs).toEqual([])
+    // Step 0: after rAF push (has asyncEffect) — web API appears immediately
+    expect(snapshots[0].pendingWebAPIs).toHaveLength(1)
+    expect(snapshots[0].pendingWebAPIs[0].type).toBe('rAF')
 
-    // Step 2: after setTimeout push (has asyncEffect) — web API appears immediately
-    expect(snapshots[2].pendingWebAPIs).toHaveLength(1)
-    expect(snapshots[2].pendingWebAPIs[0].type).toBe('setTimeout')
-    expect(snapshots[2].pendingWebAPIs[0].remainingDelay).toBe(0)
+    // Step 1: after rAF pop — web API persists
+    expect(snapshots[1].pendingWebAPIs).toHaveLength(1)
 
-    // Step 3: after setTimeout pop — web API persists
-    expect(snapshots[3].pendingWebAPIs).toHaveLength(1)
+    // Step 2: after setTimeout push (has asyncEffect) — both web APIs visible
+    expect(snapshots[2].pendingWebAPIs).toHaveLength(2)
+    expect(snapshots[2].pendingWebAPIs[1].type).toBe('setTimeout')
+    expect(snapshots[2].pendingWebAPIs[1].remainingDelay).toBe(0)
 
-    // Step 4: after fetch push (has asyncEffect) — both web APIs visible
-    expect(snapshots[4].pendingWebAPIs).toHaveLength(2)
-    expect(snapshots[4].pendingWebAPIs[1].type).toBe('fetch')
-    expect(snapshots[4].pendingWebAPIs[1].remainingDelay).toBe(999999)
+    // Step 3: after setTimeout pop — both web APIs persist
+    expect(snapshots[3].pendingWebAPIs).toHaveLength(2)
 
-    // Step 5: after fetch pop — both still visible
-    expect(snapshots[5].pendingWebAPIs).toHaveLength(2)
+    // Step 4: after fetch push (has asyncEffect) — all three web APIs visible
+    expect(snapshots[4].pendingWebAPIs).toHaveLength(3)
+    expect(snapshots[4].pendingWebAPIs[2].type).toBe('fetch')
+    expect(snapshots[4].pendingWebAPIs[2].remainingDelay).toBe(999999)
 
-    // Final state includes both web APIs
-    expect(finalWebAPIs).toHaveLength(2)
-    expect(finalWebAPIs[0].type).toBe('setTimeout')
-    expect(finalWebAPIs[1].type).toBe('fetch')
+    // Step 5: after fetch pop — all three still visible
+    expect(snapshots[5].pendingWebAPIs).toHaveLength(3)
 
-    // nextId should be incremented by 2 (one for each asyncEffect)
-    expect(nextId).toBe(2)
+    // Final state includes all three web APIs
+    expect(finalWebAPIs).toHaveLength(3)
+    expect(finalWebAPIs[0].type).toBe('rAF')
+    expect(finalWebAPIs[1].type).toBe('setTimeout')
+    expect(finalWebAPIs[2].type).toBe('fetch')
+
+    // nextId should be incremented by 3 (one for each asyncEffect)
+    expect(nextId).toBe(3)
   })
 
   it('startStepping with asyncEffect ops starts with first snapshot state', () => {
     const initial = createInitialState()
     const state = startStepping(initial, asyncOps, 'render-step')
 
-    // First op is rAF push (no asyncEffect) — no web APIs yet
-    expect(state.pendingWebAPIs).toEqual([])
+    // First op is rAF push (has asyncEffect) — web API appears immediately
+    expect(state.pendingWebAPIs).toHaveLength(1)
+    expect(state.pendingWebAPIs[0].type).toBe('rAF')
     expect(state.callStackFrames).toEqual(['requestAnimationFrame()'])
-    expect(state.steppingFinalWebAPIs).toHaveLength(2)
-    expect(state.nextId).toBe(2)
+    expect(state.steppingFinalWebAPIs).toHaveLength(3)
+    expect(state.nextId).toBe(3)
   })
 
   it('stepForward reveals web APIs at the correct step', () => {
     const initial = createInitialState()
     let state = startStepping(initial, asyncOps, 'render-step')
 
-    // Step 0 (initial): after rAF push — no async effect
-    expect(state.pendingWebAPIs).toEqual([])
-
-    // Step 0 → 1: after rAF pop — no async effect
-    state = stepForward(state)
-    expect(state.pendingWebAPIs).toEqual([])
-
-    // Step 1 → 2: after setTimeout push (has asyncEffect) — web API appears
-    state = stepForward(state)
+    // Step 0 (initial): after rAF push — rAF web API appears
     expect(state.pendingWebAPIs).toHaveLength(1)
-    expect(state.pendingWebAPIs[0].type).toBe('setTimeout')
+    expect(state.pendingWebAPIs[0].type).toBe('rAF')
 
-    // Step 2 → 3: after setTimeout pop — web API persists
+    // Step 0 → 1: after rAF pop — rAF web API persists
     state = stepForward(state)
     expect(state.pendingWebAPIs).toHaveLength(1)
 
-    // Step 3 → 4: after fetch push (has asyncEffect) — both web APIs visible
+    // Step 1 → 2: after setTimeout push (has asyncEffect) — both web APIs visible
     state = stepForward(state)
     expect(state.pendingWebAPIs).toHaveLength(2)
-    expect(state.pendingWebAPIs[1].type).toBe('fetch')
+    expect(state.pendingWebAPIs[1].type).toBe('setTimeout')
+
+    // Step 2 → 3: after setTimeout pop — both web APIs persist
+    state = stepForward(state)
+    expect(state.pendingWebAPIs).toHaveLength(2)
+
+    // Step 3 → 4: after fetch push (has asyncEffect) — all three web APIs visible
+    state = stepForward(state)
+    expect(state.pendingWebAPIs).toHaveLength(3)
+    expect(state.pendingWebAPIs[2].type).toBe('fetch')
   })
 
   it('stepBack removes web APIs that were not yet registered', () => {
     const initial = createInitialState()
     let state = startStepping(initial, asyncOps, 'render-step')
 
-    // Advance to step 3 (after setTimeout pop — web API visible)
+    // Advance to step 3 (after setTimeout pop — both web APIs visible)
     state = stepForward(state) // 1: after rAF pop
-    state = stepForward(state) // 2: after setTimeout push — web API appears
-    state = stepForward(state) // 3: after setTimeout pop — web API persists
-    expect(state.pendingWebAPIs).toHaveLength(1)
+    state = stepForward(state) // 2: after setTimeout push — both web APIs visible
+    state = stepForward(state) // 3: after setTimeout pop — both persist
+    expect(state.pendingWebAPIs).toHaveLength(2)
 
-    // Step back to step 2 (after setTimeout push — web API still visible)
+    // Step back to step 2 (after setTimeout push — both still visible)
+    state = stepBack(state)
+    expect(state.pendingWebAPIs).toHaveLength(2)
+
+    // Step back to step 1 (after rAF pop — only rAF web API)
     state = stepBack(state)
     expect(state.pendingWebAPIs).toHaveLength(1)
+    expect(state.pendingWebAPIs[0].type).toBe('rAF')
 
-    // Step back to step 1 (after rAF pop — no web APIs)
+    // Step back to step 0 (after rAF push — rAF web API still present)
     state = stepBack(state)
-    expect(state.pendingWebAPIs).toEqual([])
-
-    // Step back to step 0 (after rAF push — no web APIs)
-    state = stepBack(state)
-    expect(state.pendingWebAPIs).toEqual([])
+    expect(state.pendingWebAPIs).toHaveLength(1)
+    expect(state.pendingWebAPIs[0].type).toBe('rAF')
   })
 
   it('final stepForward transitions to ORBITING with accumulated web APIs', () => {
@@ -481,9 +489,10 @@ describe('stepping with asyncEffect', () => {
     }
 
     expect(state.cursorState).toBe('ORBITING')
-    expect(state.pendingWebAPIs).toHaveLength(2)
-    expect(state.pendingWebAPIs[0].type).toBe('setTimeout')
-    expect(state.pendingWebAPIs[1].type).toBe('fetch')
+    expect(state.pendingWebAPIs).toHaveLength(3)
+    expect(state.pendingWebAPIs[0].type).toBe('rAF')
+    expect(state.pendingWebAPIs[1].type).toBe('setTimeout')
+    expect(state.pendingWebAPIs[2].type).toBe('fetch')
     expect(state.steppingFinalWebAPIs).toEqual([])
     // rAfCallbacks is reset to [] when transitioning to ORBITING
     expect(state.rAfCallbacks).toEqual([])
@@ -491,11 +500,13 @@ describe('stepping with asyncEffect', () => {
 
   it('buildSyncSnapshots generates unique IDs starting from startId', () => {
     const { snapshots, nextId } = buildSyncSnapshots(asyncOps, 42)
-    // First async effect at step 2 (after setTimeout push) gets id "42"
-    expect(snapshots[2].pendingWebAPIs[0].id).toBe('42')
-    // Second async effect at step 4 (after fetch push) gets id "43"
-    expect(snapshots[4].pendingWebAPIs[1].id).toBe('43')
-    expect(nextId).toBe(44)
+    // First async effect at step 0 (after rAF push) gets id "42"
+    expect(snapshots[0].pendingWebAPIs[0].id).toBe('42')
+    // Second async effect at step 2 (after setTimeout push) gets id "43"
+    expect(snapshots[2].pendingWebAPIs[1].id).toBe('43')
+    // Third async effect at step 4 (after fetch push) gets id "44"
+    expect(snapshots[4].pendingWebAPIs[2].id).toBe('44')
+    expect(nextId).toBe(45)
   })
 })
 
@@ -591,21 +602,40 @@ describe('scenario step count alignment', () => {
     expect(scenario.syncOps).toHaveLength(6)
     const { snapshots } = buildSyncSnapshots(scenario.syncOps!, 0)
 
-    // Step 0: push rAF (no asyncEffect)
+    // Step 0: push rAF (has asyncEffect) — rAF web API appears
     expect(snapshots[0].callStackFrames).toEqual(['requestAnimationFrame()'])
-    expect(snapshots[0].pendingWebAPIs).toEqual([])
+    expect(snapshots[0].pendingWebAPIs).toHaveLength(1)
+    expect(snapshots[0].pendingWebAPIs[0].type).toBe('rAF')
     // Step 1: pop
     expect(snapshots[1].callStackFrames).toEqual([])
-    // Step 2: push setTimeout → web API
+    // Step 2: push setTimeout → rAF + setTimeout web APIs
     expect(snapshots[2].callStackFrames).toEqual(['setTimeout()'])
-    expect(snapshots[2].pendingWebAPIs).toHaveLength(1)
+    expect(snapshots[2].pendingWebAPIs).toHaveLength(2)
     // Step 3: pop
     expect(snapshots[3].callStackFrames).toEqual([])
-    // Step 4: push fetch → web API
+    // Step 4: push fetch → all three web APIs
     expect(snapshots[4].callStackFrames).toEqual(['fetch()'])
-    expect(snapshots[4].pendingWebAPIs).toHaveLength(2)
-    // Step 5: pop → empty
+    expect(snapshots[4].pendingWebAPIs).toHaveLength(3)
+    // Step 5: pop → empty stack
     expect(snapshots[5].callStackFrames).toEqual([])
+  })
+})
+
+describe('render-step rAF asyncEffect', () => {
+  it('render-step scenario: rAF push creates a pending web API with type rAF', () => {
+    const scenario = SCENARIOS['render-step']
+    const { snapshots, finalWebAPIs } = buildSyncSnapshots(scenario.syncOps!, 0)
+
+    // Step 0: after rAF push — web API appears (rAF type)
+    expect(snapshots[0].pendingWebAPIs).toHaveLength(1)
+    expect(snapshots[0].pendingWebAPIs[0].type).toBe('rAF')
+    expect(snapshots[0].pendingWebAPIs[0].label).toBe('requestAnimationFrame')
+
+    // finalWebAPIs should have 3 entries: rAF, setTimeout, fetch
+    expect(finalWebAPIs).toHaveLength(3)
+    expect(finalWebAPIs[0].type).toBe('rAF')
+    expect(finalWebAPIs[1].type).toBe('setTimeout')
+    expect(finalWebAPIs[2].type).toBe('fetch')
   })
 })
 
