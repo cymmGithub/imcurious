@@ -1,13 +1,16 @@
-export type CarState =
-  | 'DRIVING'
+export type CursorState =
+  | 'ORBITING'
   | 'STOPPED_AT_TASK_QUEUE'
   | 'EXECUTING_TASK'
   | 'STOPPED_AT_MICROTASK_QUEUE'
   | 'EXECUTING_MICROTASK'
   | 'STOPPED_AT_RENDER'
   | 'RENDERING'
+  | 'EXECUTING_SYNC'
 
 export type TaskType = 'setTimeout' | 'fetch'
+
+export type SyncFrameOp = { action: 'push'; name: string; line?: number } | { action: 'pop'; line?: number }
 
 export type Task = {
   id: string
@@ -20,8 +23,8 @@ export type Task = {
 export type PendingWebAPI = Task & { remainingDelay: number }
 
 export type SimulationState = {
-  carPosition: number
-  carState: CarState
+  cursorPosition: number
+  cursorState: CursorState
   taskQueue: Task[]
   microtaskQueue: Task[]
   pendingWebAPIs: PendingWebAPI[]
@@ -30,14 +33,21 @@ export type SimulationState = {
   currentTask: Task | null
   executionTimer: number
   nextId: number
+  // Sync execution state
+  syncFrameOps: SyncFrameOp[]
+  syncFrameIndex: number
+  callStackFrames: string[]
+  activeLine: number | null
+  activeScenarioId: string | null
 }
 
-export const PIT_STOPS = { microtask: 0.25, task: 0.50, render: 0.75 } as const
+export const PIT_STOPS = { microtask: 0, task: 1/3, render: 2/3 } as const
 
-const CAR_SPEED = 0.0001
+const CURSOR_SPEED = 0.0001
 export const EXECUTION_DURATION = 600
 const STOP_PAUSE = 200
 const PIT_STOP_THRESHOLD = 0.02
+const SYNC_FRAME_DURATION = 800
 
 const COLOR_MAP: Record<TaskType, string> = {
   setTimeout: '#888888',
@@ -46,8 +56,8 @@ const COLOR_MAP: Record<TaskType, string> = {
 
 export function createInitialState(): SimulationState {
   return {
-    carPosition: 0,
-    carState: 'DRIVING',
+    cursorPosition: 0,
+    cursorState: 'ORBITING',
     taskQueue: [],
     microtaskQueue: [],
     pendingWebAPIs: [],
@@ -56,6 +66,29 @@ export function createInitialState(): SimulationState {
     currentTask: null,
     executionTimer: 0,
     nextId: 0,
+    syncFrameOps: [],
+    syncFrameIndex: 0,
+    callStackFrames: [],
+    activeLine: null,
+    activeScenarioId: null,
+  }
+}
+
+export function startSyncExecution(
+  state: SimulationState,
+  ops: SyncFrameOp[],
+  scenarioId: string
+): SimulationState {
+  const firstLine = ops[0]?.line ?? null
+  return {
+    ...state,
+    cursorState: 'EXECUTING_SYNC',
+    syncFrameOps: ops,
+    syncFrameIndex: 0,
+    callStackFrames: [],
+    executionTimer: SYNC_FRAME_DURATION,
+    activeLine: firstLine,
+    activeScenarioId: scenarioId,
   }
 }
 
@@ -66,7 +99,7 @@ export function shouldStopAtPitStop(
   queue: Task[]
 ): boolean {
   if (queue.length === 0) return false
-  // Car must cross from before the pit stop to at/after it
+  // Cursor must cross from before the pit stop to at/after it
   const threshold = pitStopPos - PIT_STOP_THRESHOLD
   return prevPos < pitStopPos && newPos >= threshold
 }
@@ -138,36 +171,34 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
   // Always tick web APIs
   let s = tickWebAPIs(state, dt)
 
-  switch (s.carState) {
-    case 'DRIVING': {
-      const prevPos = s.carPosition
-      let newPos = prevPos + CAR_SPEED * dt
+  switch (s.cursorState) {
+    case 'ORBITING': {
+      const prevPos = s.cursorPosition
+      let newPos = prevPos + CURSOR_SPEED * dt
 
-      // Check pit stops in order
-      if (prevPos < PIT_STOPS.microtask && newPos >= PIT_STOPS.microtask - PIT_STOP_THRESHOLD) {
-        if (s.microtaskQueue.length > 0) {
-          return { ...s, carPosition: PIT_STOPS.microtask, carState: 'STOPPED_AT_MICROTASK_QUEUE', executionTimer: STOP_PAUSE }
-        }
-      }
-
+      // Check task and render pit stops (at 0.333 and 0.667 — no wrap issues)
       if (prevPos < PIT_STOPS.task && newPos >= PIT_STOPS.task - PIT_STOP_THRESHOLD) {
         if (s.taskQueue.length > 0) {
-          return { ...s, carPosition: PIT_STOPS.task, carState: 'STOPPED_AT_TASK_QUEUE', executionTimer: STOP_PAUSE }
+          return { ...s, cursorPosition: PIT_STOPS.task, cursorState: 'STOPPED_AT_TASK_QUEUE', executionTimer: STOP_PAUSE }
         }
       }
 
       if (prevPos < PIT_STOPS.render && newPos >= PIT_STOPS.render - PIT_STOP_THRESHOLD) {
         if (s.renderNeeded) {
-          return { ...s, carPosition: PIT_STOPS.render, carState: 'STOPPED_AT_RENDER', executionTimer: STOP_PAUSE }
+          return { ...s, cursorPosition: PIT_STOPS.render, cursorState: 'STOPPED_AT_RENDER', executionTimer: STOP_PAUSE }
         }
       }
 
       // Wrap position
       if (newPos >= 1.0) {
         newPos = newPos - 1.0
+        // Check microtask stop after wrap (position 0)
+        if (s.microtaskQueue.length > 0) {
+          return { ...s, cursorPosition: 0, cursorState: 'STOPPED_AT_MICROTASK_QUEUE', executionTimer: STOP_PAUSE }
+        }
       }
 
-      return { ...s, carPosition: newPos }
+      return { ...s, cursorPosition: newPos }
     }
 
     case 'STOPPED_AT_MICROTASK_QUEUE': {
@@ -176,7 +207,7 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
         const [first, ...rest] = s.microtaskQueue
         return {
           ...s,
-          carState: 'EXECUTING_MICROTASK',
+          cursorState: 'EXECUTING_MICROTASK',
           currentTask: first,
           microtaskQueue: rest,
           executionTimer: EXECUTION_DURATION,
@@ -197,7 +228,7 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
             executionTimer: EXECUTION_DURATION,
           }
         }
-        return { ...s, carState: 'DRIVING', currentTask: null, executionTimer: 0 }
+        return { ...s, cursorState: 'ORBITING', currentTask: null, executionTimer: 0 }
       }
       return { ...s, executionTimer: timer }
     }
@@ -208,7 +239,7 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
         const [first, ...rest] = s.taskQueue
         return {
           ...s,
-          carState: 'EXECUTING_TASK',
+          cursorState: 'EXECUTING_TASK',
           currentTask: first,
           taskQueue: rest,
           executionTimer: EXECUTION_DURATION,
@@ -221,7 +252,7 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
       const timer = s.executionTimer - dt
       if (timer <= 0) {
         // Only ONE task per lap
-        return { ...s, carState: 'DRIVING', currentTask: null, executionTimer: 0 }
+        return { ...s, cursorState: 'ORBITING', currentTask: null, executionTimer: 0 }
       }
       return { ...s, executionTimer: timer }
     }
@@ -229,7 +260,7 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
     case 'STOPPED_AT_RENDER': {
       const timer = s.executionTimer - dt
       if (timer <= 0) {
-        return { ...s, carState: 'RENDERING', executionTimer: EXECUTION_DURATION }
+        return { ...s, cursorState: 'RENDERING', executionTimer: EXECUTION_DURATION }
       }
       return { ...s, executionTimer: timer }
     }
@@ -237,7 +268,48 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
     case 'RENDERING': {
       const timer = s.executionTimer - dt
       if (timer <= 0) {
-        return { ...s, carState: 'DRIVING', renderNeeded: false, currentTask: null, executionTimer: 0 }
+        return { ...s, cursorState: 'ORBITING', renderNeeded: false, currentTask: null, executionTimer: 0 }
+      }
+      return { ...s, executionTimer: timer }
+    }
+
+    case 'EXECUTING_SYNC': {
+      const timer = s.executionTimer - dt
+      if (timer <= 0) {
+        // Apply current frame op
+        let frames = [...s.callStackFrames]
+        const op = s.syncFrameOps[s.syncFrameIndex]
+        if (op) {
+          if (op.action === 'push') {
+            frames = [...frames, op.name]
+          } else {
+            frames = frames.slice(0, -1)
+          }
+        }
+
+        const nextIndex = s.syncFrameIndex + 1
+        if (nextIndex >= s.syncFrameOps.length) {
+          // Done with all sync ops
+          return {
+            ...s,
+            cursorState: 'ORBITING',
+            callStackFrames: [],
+            syncFrameOps: [],
+            syncFrameIndex: 0,
+            executionTimer: 0,
+            activeLine: null,
+            activeScenarioId: null,
+          }
+        }
+
+        const nextOp = s.syncFrameOps[nextIndex]
+        return {
+          ...s,
+          callStackFrames: frames,
+          syncFrameIndex: nextIndex,
+          executionTimer: SYNC_FRAME_DURATION,
+          activeLine: nextOp?.line ?? s.activeLine,
+        }
       }
       return { ...s, executionTimer: timer }
     }
