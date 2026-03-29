@@ -18,7 +18,7 @@ export function CallStack({
   visibility,
 }: CallStackProps) {
   let frames: string[] = []
-  if (cursorState === 'EXECUTING_SYNC') {
+  if (cursorState === 'EXECUTING_SYNC' || cursorState === 'STEPPING_SYNC') {
     frames = callStackFrames
   } else if (
     cursorState === 'EXECUTING_TASK' ||
@@ -56,7 +56,7 @@ export function CallStack({
             padding: '6px 10px',
             margin: '0 auto',
             width: 'fit-content',
-            minWidth: '80px',
+            minWidth: '120px',
             minHeight: '100px',
             display: 'flex',
             flexDirection: 'column',

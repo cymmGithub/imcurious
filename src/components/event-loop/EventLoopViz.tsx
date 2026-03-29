@@ -21,6 +21,7 @@ const CURSOR_STATE_LABELS: Record<string, string> = {
   STOPPED_AT_RENDER: 'Stopped at render step',
   RENDERING: 'Rendering in progress',
   EXECUTING_SYNC: 'Executing synchronous code',
+  STEPPING_SYNC: 'Stepping through synchronous code',
 }
 
 export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
@@ -39,7 +40,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
     state.cursorState === 'EXECUTING_TASK' ||
     state.cursorState === 'EXECUTING_MICROTASK' ||
     state.cursorState === 'RENDERING' ||
-    state.cursorState === 'EXECUTING_SYNC'
+    state.cursorState === 'EXECUTING_SYNC' ||
+    state.cursorState === 'STEPPING_SYNC'
 
   const renderProgress =
     state.cursorState === 'RENDERING'
