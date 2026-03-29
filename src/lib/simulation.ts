@@ -14,9 +14,12 @@ export type TaskType = 'setTimeout' | 'fetch'
 export type SyncStepSnapshot = {
   callStackFrames: string[]
   activeLine: number | null
+  pendingWebAPIs: PendingWebAPI[]
 }
 
-export type SyncFrameOp = { action: 'push'; name: string; line?: number } | { action: 'pop'; line?: number }
+export type SyncFrameOp =
+  | { action: 'push'; name: string; line?: number; asyncEffect?: { type: TaskType; delay?: number } }
+  | { action: 'pop'; line?: number }
 
 export type Task = {
   id: string
@@ -46,6 +49,7 @@ export type SimulationState = {
   activeLine: number | null
   activeScenarioId: string | null
   syncStepSnapshots: SyncStepSnapshot[]
+  steppingFinalWebAPIs: PendingWebAPI[]
 }
 
 export const PIT_STOPS = { microtask: 0, task: 1/3, render: 2/3 } as const
@@ -78,6 +82,7 @@ export function createInitialState(): SimulationState {
     activeLine: null,
     activeScenarioId: null,
     syncStepSnapshots: [],
+    steppingFinalWebAPIs: [],
   }
 }
 
@@ -99,23 +104,42 @@ export function startSyncExecution(
   }
 }
 
-export function buildSyncSnapshots(ops: SyncFrameOp[]): SyncStepSnapshot[] {
+export function buildSyncSnapshots(
+  ops: SyncFrameOp[],
+  startId: number
+): { snapshots: SyncStepSnapshot[]; finalWebAPIs: PendingWebAPI[]; nextId: number } {
   const snapshots: SyncStepSnapshot[] = []
   let stack: string[] = []
+  let webAPIs: PendingWebAPI[] = []
+  let nextId = startId
+
   for (let i = 0; i < ops.length; i++) {
     snapshots.push({
       callStackFrames: [...stack],
       activeLine: ops[i].line ?? null,
+      pendingWebAPIs: [...webAPIs],
     })
     // Apply op to build stack for next snapshot
     const op = ops[i]
     if (op.action === 'push') {
       stack = [...stack, op.name]
+      if (op.asyncEffect) {
+        const { type, delay: d } = op.asyncEffect
+        const resolvedDelay = type === 'fetch' ? 999999 : (d ?? 0)
+        webAPIs = [...webAPIs, {
+          id: String(nextId++),
+          type,
+          label: type === 'setTimeout' ? `setTimeout(${resolvedDelay}ms)` : 'fetch()',
+          delay: resolvedDelay,
+          color: COLOR_MAP[type],
+          remainingDelay: resolvedDelay,
+        }]
+      }
     } else {
       stack = stack.slice(0, -1)
     }
   }
-  return snapshots
+  return { snapshots, finalWebAPIs: [...webAPIs], nextId }
 }
 
 export function startStepping(
@@ -123,7 +147,7 @@ export function startStepping(
   ops: SyncFrameOp[],
   scenarioId: string
 ): SimulationState {
-  const snapshots = buildSyncSnapshots(ops)
+  const { snapshots, finalWebAPIs, nextId } = buildSyncSnapshots(ops, state.nextId)
   return {
     ...state,
     cursorState: 'STEPPING_SYNC',
@@ -131,9 +155,12 @@ export function startStepping(
     syncFrameIndex: 0,
     callStackFrames: snapshots[0].callStackFrames,
     activeLine: snapshots[0].activeLine,
+    pendingWebAPIs: snapshots[0].pendingWebAPIs,
     syncStepSnapshots: snapshots,
+    steppingFinalWebAPIs: finalWebAPIs,
     activeScenarioId: scenarioId,
     executionTimer: 0,
+    nextId,
   }
 }
 
@@ -142,17 +169,7 @@ export function stepForward(state: SimulationState): SimulationState {
 
   const nextIndex = state.syncFrameIndex + 1
   if (nextIndex >= state.syncFrameOps.length) {
-    // Apply the final op before transitioning
-    let frames = [...state.callStackFrames]
-    const op = state.syncFrameOps[state.syncFrameIndex]
-    if (op) {
-      if (op.action === 'push') {
-        frames = [...frames, op.name]
-      } else {
-        frames = frames.slice(0, -1)
-      }
-    }
-    // Done — transition to ORBITING
+    // Done — transition to ORBITING with accumulated Web APIs
     return {
       ...state,
       cursorState: 'ORBITING',
@@ -163,6 +180,8 @@ export function stepForward(state: SimulationState): SimulationState {
       executionTimer: 0,
       activeLine: null,
       activeScenarioId: null,
+      pendingWebAPIs: state.steppingFinalWebAPIs,
+      steppingFinalWebAPIs: [],
     }
   }
 
@@ -172,6 +191,7 @@ export function stepForward(state: SimulationState): SimulationState {
     syncFrameIndex: nextIndex,
     callStackFrames: snapshot.callStackFrames,
     activeLine: snapshot.activeLine,
+    pendingWebAPIs: snapshot.pendingWebAPIs,
   }
 }
 
@@ -185,6 +205,7 @@ export function stepBack(state: SimulationState): SimulationState {
     syncFrameIndex: prevIndex,
     callStackFrames: snapshot.callStackFrames,
     activeLine: snapshot.activeLine,
+    pendingWebAPIs: snapshot.pendingWebAPIs,
   }
 }
 

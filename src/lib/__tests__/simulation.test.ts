@@ -232,7 +232,7 @@ describe('stepping', () => {
   ]
 
   it('buildSyncSnapshots produces correct stack at each step', () => {
-    const snapshots = buildSyncSnapshots(syncOps)
+    const { snapshots } = buildSyncSnapshots(syncOps, 0)
     expect(snapshots).toHaveLength(6)
 
     // snapshot[0]: stack before any op applied, line from ops[0]
@@ -260,6 +260,14 @@ describe('stepping', () => {
     expect(snapshots[5].activeLine).toBe(6)
   })
 
+  it('buildSyncSnapshots with no asyncEffects has empty pendingWebAPIs throughout', () => {
+    const { snapshots, finalWebAPIs } = buildSyncSnapshots(syncOps, 0)
+    for (const snap of snapshots) {
+      expect(snap.pendingWebAPIs).toEqual([])
+    }
+    expect(finalWebAPIs).toEqual([])
+  })
+
   it('startStepping sets cursorState to STEPPING_SYNC and applies first snapshot', () => {
     const initial = createInitialState()
     const state = startStepping(initial, syncOps, 'test-scenario')
@@ -271,6 +279,8 @@ describe('stepping', () => {
     expect(state.syncStepSnapshots).toHaveLength(6)
     expect(state.activeScenarioId).toBe('test-scenario')
     expect(state.executionTimer).toBe(0)
+    expect(state.pendingWebAPIs).toEqual([])
+    expect(state.steppingFinalWebAPIs).toEqual([])
   })
 
   it('stepForward increments index and applies next snapshot', () => {
@@ -332,12 +342,12 @@ describe('stepping', () => {
     const initial = createInitialState()
     const stepping = startStepping(initial, syncOps, 'test-scenario')
 
-    // Add a pending web API that would normally be ticked
+    // Manually add a pending web API to verify it's not ticked during stepping
     const steppingWithAPI: SimulationState = {
       ...stepping,
       pendingWebAPIs: [
         {
-          id: '1',
+          id: '99',
           type: 'setTimeout',
           label: 'setTimeout(100ms)',
           delay: 100,
@@ -354,5 +364,130 @@ describe('stepping', () => {
     expect(next.cursorState).toBe('STEPPING_SYNC')
     expect(next.pendingWebAPIs).toHaveLength(1)
     expect(next.pendingWebAPIs[0].remainingDelay).toBe(100)
+  })
+})
+
+describe('stepping with asyncEffect', () => {
+  // Simulates the render-step scenario: rAF (no async), setTimeout (async), fetch (async)
+  const asyncOps: SyncFrameOp[] = [
+    { action: 'push', name: 'requestAnimationFrame()', line: 0 },
+    { action: 'pop', line: 2 },
+    { action: 'push', name: 'setTimeout()', line: 4, asyncEffect: { type: 'setTimeout', delay: 0 } },
+    { action: 'pop', line: 4 },
+    { action: 'push', name: 'fetch()', line: 6, asyncEffect: { type: 'fetch' } },
+    { action: 'pop', line: 7 },
+  ]
+
+  it('buildSyncSnapshots tracks web APIs at correct steps', () => {
+    const { snapshots, finalWebAPIs, nextId } = buildSyncSnapshots(asyncOps, 0)
+    expect(snapshots).toHaveLength(6)
+
+    // Steps 0-2: no web APIs yet (rAF push/pop, setTimeout push not yet applied)
+    expect(snapshots[0].pendingWebAPIs).toEqual([])
+    expect(snapshots[1].pendingWebAPIs).toEqual([])
+    expect(snapshots[2].pendingWebAPIs).toEqual([])
+
+    // Step 3: setTimeout was pushed at step 2, so its web API appears here
+    expect(snapshots[3].pendingWebAPIs).toHaveLength(1)
+    expect(snapshots[3].pendingWebAPIs[0].type).toBe('setTimeout')
+    expect(snapshots[3].pendingWebAPIs[0].remainingDelay).toBe(0)
+
+    // Step 4: fetch pushed at step 4, not yet applied — still only setTimeout
+    expect(snapshots[4].pendingWebAPIs).toHaveLength(1)
+
+    // Step 5: fetch was pushed at step 4, so both web APIs appear
+    expect(snapshots[5].pendingWebAPIs).toHaveLength(2)
+    expect(snapshots[5].pendingWebAPIs[1].type).toBe('fetch')
+    expect(snapshots[5].pendingWebAPIs[1].remainingDelay).toBe(999999)
+
+    // Final state includes both web APIs
+    expect(finalWebAPIs).toHaveLength(2)
+    expect(finalWebAPIs[0].type).toBe('setTimeout')
+    expect(finalWebAPIs[1].type).toBe('fetch')
+
+    // nextId should be incremented by 2 (one for each asyncEffect)
+    expect(nextId).toBe(2)
+  })
+
+  it('startStepping with asyncEffect ops starts with empty web APIs', () => {
+    const initial = createInitialState()
+    const state = startStepping(initial, asyncOps, 'render-step')
+
+    expect(state.pendingWebAPIs).toEqual([])
+    expect(state.steppingFinalWebAPIs).toHaveLength(2)
+    expect(state.nextId).toBe(2)
+  })
+
+  it('stepForward reveals web APIs at the correct step', () => {
+    const initial = createInitialState()
+    let state = startStepping(initial, asyncOps, 'render-step')
+
+    // Step 0 → 1: rAF pushed, no async effect
+    state = stepForward(state)
+    expect(state.pendingWebAPIs).toEqual([])
+
+    // Step 1 → 2: rAF popped, no async effect
+    state = stepForward(state)
+    expect(state.pendingWebAPIs).toEqual([])
+
+    // Step 2 → 3: setTimeout pushed (has asyncEffect), web API appears
+    state = stepForward(state)
+    expect(state.pendingWebAPIs).toHaveLength(1)
+    expect(state.pendingWebAPIs[0].type).toBe('setTimeout')
+
+    // Step 3 → 4: setTimeout popped, web API persists
+    state = stepForward(state)
+    expect(state.pendingWebAPIs).toHaveLength(1)
+
+    // Step 4 → 5: fetch pushed (has asyncEffect), both web APIs visible
+    state = stepForward(state)
+    expect(state.pendingWebAPIs).toHaveLength(2)
+    expect(state.pendingWebAPIs[1].type).toBe('fetch')
+  })
+
+  it('stepBack removes web APIs that were not yet registered', () => {
+    const initial = createInitialState()
+    let state = startStepping(initial, asyncOps, 'render-step')
+
+    // Advance to step 3 (setTimeout web API visible)
+    state = stepForward(state) // 1
+    state = stepForward(state) // 2
+    state = stepForward(state) // 3
+    expect(state.pendingWebAPIs).toHaveLength(1)
+
+    // Step back to step 2 (setTimeout not yet registered)
+    state = stepBack(state)
+    expect(state.pendingWebAPIs).toEqual([])
+
+    // Step back to step 1
+    state = stepBack(state)
+    expect(state.pendingWebAPIs).toEqual([])
+  })
+
+  it('final stepForward transitions to ORBITING with accumulated web APIs', () => {
+    const initial = createInitialState()
+    let state = startStepping(initial, asyncOps, 'render-step')
+
+    // Step through all ops
+    for (let i = 0; i < asyncOps.length; i++) {
+      state = stepForward(state)
+    }
+
+    expect(state.cursorState).toBe('ORBITING')
+    expect(state.pendingWebAPIs).toHaveLength(2)
+    expect(state.pendingWebAPIs[0].type).toBe('setTimeout')
+    expect(state.pendingWebAPIs[1].type).toBe('fetch')
+    expect(state.steppingFinalWebAPIs).toEqual([])
+    // renderNeeded is NOT set by stepping — only DOM/style changes trigger render
+    expect(state.renderNeeded).toBe(false)
+  })
+
+  it('buildSyncSnapshots generates unique IDs starting from startId', () => {
+    const { snapshots, nextId } = buildSyncSnapshots(asyncOps, 42)
+    // First async effect at step 2 (push setTimeout) gets id "42"
+    expect(snapshots[3].pendingWebAPIs[0].id).toBe('42')
+    // Second async effect at step 4 (push fetch) gets id "43"
+    expect(snapshots[5].pendingWebAPIs[1].id).toBe('43')
+    expect(nextId).toBe(44)
   })
 })

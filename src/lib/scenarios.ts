@@ -47,12 +47,12 @@ console.log("End");`,
     syncOps: [
       { action: 'push', name: 'console.log("Start")', line: 0 },
       { action: 'pop', line: 0 },
-      { action: 'push', name: 'setTimeout()', line: 2 },
+      { action: 'push', name: 'setTimeout()', line: 2, asyncEffect: { type: 'setTimeout', delay: 1000 } },
       { action: 'pop', line: 4 },
       { action: 'push', name: 'console.log("End")', line: 6 },
       { action: 'pop', line: 6 },
     ],
-    asyncSteps: [{ type: 'setTimeout', delay: 1500 }],
+    asyncSteps: [{ type: 'setTimeout', delay: 1000 }],
   },
 
   'task-queue-ordering': {
@@ -61,9 +61,9 @@ console.log("End");`,
 setTimeout(() => console.log("B"), 0);
 console.log("C");`,
     syncOps: [
-      { action: 'push', name: 'setTimeout(A)', line: 0 },
+      { action: 'push', name: 'setTimeout(A)', line: 0, asyncEffect: { type: 'setTimeout', delay: 0 } },
       { action: 'pop', line: 0 },
-      { action: 'push', name: 'setTimeout(B)', line: 1 },
+      { action: 'push', name: 'setTimeout(B)', line: 1, asyncEffect: { type: 'setTimeout', delay: 0 } },
       { action: 'pop', line: 1 },
       { action: 'push', name: 'console.log("C")', line: 2 },
       { action: 'pop', line: 2 },
@@ -84,9 +84,9 @@ fetch("/api/starwars")
 
 console.log("Sync");`,
     syncOps: [
-      { action: 'push', name: 'setTimeout()', line: 0 },
+      { action: 'push', name: 'setTimeout()', line: 0, asyncEffect: { type: 'setTimeout', delay: 0 } },
       { action: 'pop', line: 0 },
-      { action: 'push', name: 'fetch()', line: 2 },
+      { action: 'push', name: 'fetch()', line: 2, asyncEffect: { type: 'fetch' } },
       { action: 'pop', line: 4 },
       { action: 'push', name: 'console.log("Sync")', line: 6 },
       { action: 'pop', line: 6 },
@@ -110,9 +110,9 @@ fetch("/api/starwars")
     syncOps: [
       { action: 'push', name: 'requestAnimationFrame()', line: 0 },
       { action: 'pop', line: 2 },
-      { action: 'push', name: 'setTimeout()', line: 4 },
+      { action: 'push', name: 'setTimeout()', line: 4, asyncEffect: { type: 'setTimeout', delay: 0 } },
       { action: 'pop', line: 4 },
-      { action: 'push', name: 'fetch()', line: 6 },
+      { action: 'push', name: 'fetch()', line: 6, asyncEffect: { type: 'fetch' } },
       { action: 'pop', line: 7 },
     ],
     asyncSteps: [

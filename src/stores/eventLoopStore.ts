@@ -44,38 +44,37 @@ export const useEventLoopStore = create<EventLoopStore>()((set, get) => ({
       let s: SimulationState = prev
       if (s.isPaused) s = { ...s, isPaused: false }
 
-      if (scenario.asyncSteps) {
-        for (const step of scenario.asyncSteps) {
-          if (step.type === 'fetch') {
-            s = addTaskPure(s, 'fetch', 999999)
-          } else {
-            s = addTaskPure(s, step.type, step.delay)
-          }
-        }
-      }
-
       if (scenario.syncOps && scenario.syncOps.length > 0) {
         s = startStepping(s, scenario.syncOps, scenarioId)
       }
 
       return s
     })
+  },
 
-    // Fire real fetches — no stale closures, called outside set()
-    if (scenario.asyncSteps) {
-      for (const step of scenario.asyncSteps) {
-        if (step.type === 'fetch') {
-          fetch('/api/starwars')
-            .then((res) => res.json())
-            .then((data: { name: string }) => {
-              set((s) => resolveFetch(s, `fetch → "${data.name}"`))
-            })
+  stepForward: () => {
+    const prev = get()
+    set((s) => stepForwardFn(s))
+
+    // Fire real fetches when stepping completes
+    if (prev.cursorState === 'STEPPING_SYNC' && prev.activeScenarioId) {
+      const next = get()
+      if (next.cursorState === 'ORBITING') {
+        const scenario = SCENARIOS[prev.activeScenarioId]
+        if (scenario?.asyncSteps) {
+          for (const step of scenario.asyncSteps) {
+            if (step.type === 'fetch') {
+              fetch('/api/starwars')
+                .then((res) => res.json())
+                .then((data: { name: string }) => {
+                  set((s) => resolveFetch(s, `fetch → "${data.name}"`))
+                })
+            }
+          }
         }
       }
     }
   },
-
-  stepForward: () => set((s) => stepForwardFn(s)),
 
   stepBack: () => set((s) => stepBackFn(s)),
 }))
