@@ -52,7 +52,6 @@ export function Station({
       }}
     >
       <div
-        xmlns="http://www.w3.org/1999/xhtml"
         style={{ textAlign: align }}
       >
         <div

@@ -42,7 +42,6 @@ export function CallStack({
       }}
     >
       <div
-        xmlns="http://www.w3.org/1999/xhtml"
         style={{ textAlign: 'center' }}
       >
         <div

@@ -22,7 +22,7 @@ export function WebApiBox({ pendingAPIs, visibility }: WebApiBoxProps) {
         transition: 'opacity 0.3s ease',
       }}
     >
-      <div xmlns="http://www.w3.org/1999/xhtml">
+      <div>
         <div
           className="font-mono text-[9px] rounded-md"
           style={{
