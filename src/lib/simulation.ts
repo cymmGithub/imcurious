@@ -53,7 +53,6 @@ export const PIT_STOPS = { microtask: 0, task: 1/3, render: 2/3 } as const
 const CURSOR_SPEED = 0.0001
 export const EXECUTION_DURATION = 600
 const STOP_PAUSE = 200
-const PIT_STOP_THRESHOLD = 0.02
 const SYNC_FRAME_DURATION = 800
 
 const COLOR_MAP: Record<TaskType, string> = {
@@ -196,9 +195,8 @@ export function shouldStopAtPitStop(
   queue: Task[]
 ): boolean {
   if (queue.length === 0) return false
-  // Cursor must cross from before the pit stop to at/after it
-  const threshold = pitStopPos - PIT_STOP_THRESHOLD
-  return prevPos < pitStopPos && newPos >= threshold
+  // Cursor must actually cross the pit stop position (no early snapping)
+  return prevPos < pitStopPos && newPos >= pitStopPos
 }
 
 export function addTask(
@@ -275,13 +273,14 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
       let newPos = prevPos + CURSOR_SPEED * dt
 
       // Check task and render pit stops (at 0.333 and 0.667 — no wrap issues)
-      if (prevPos < PIT_STOPS.task && newPos >= PIT_STOPS.task - PIT_STOP_THRESHOLD) {
+      // Use exact crossing check (no threshold) to avoid visible cursor snapping
+      if (prevPos < PIT_STOPS.task && newPos >= PIT_STOPS.task) {
         if (s.taskQueue.length > 0) {
           return { ...s, cursorPosition: PIT_STOPS.task, cursorState: 'STOPPED_AT_TASK_QUEUE', executionTimer: STOP_PAUSE }
         }
       }
 
-      if (prevPos < PIT_STOPS.render && newPos >= PIT_STOPS.render - PIT_STOP_THRESHOLD) {
+      if (prevPos < PIT_STOPS.render && newPos >= PIT_STOPS.render) {
         if (s.renderNeeded) {
           return { ...s, cursorPosition: PIT_STOPS.render, cursorState: 'STOPPED_AT_RENDER', executionTimer: STOP_PAUSE }
         }
