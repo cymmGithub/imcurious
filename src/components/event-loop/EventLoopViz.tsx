@@ -5,6 +5,7 @@ import { Station } from './Station'
 import { WebApiBox } from './WebApiBox'
 import { CallStack } from './CallStack'
 import { useEventLoopStore } from '@/stores/eventLoopStore'
+import { useShallow } from 'zustand/react/shallow'
 import { VIEWBOX, STATION_POSITIONS } from '@/lib/circlePath'
 import { EXECUTION_DURATION } from '@/lib/simulation'
 
@@ -27,12 +28,15 @@ const CURSOR_STATE_LABELS: Record<string, string> = {
 export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
   const cursorPosition = useEventLoopStore((s) => s.cursorPosition)
   const cursorState = useEventLoopStore((s) => s.cursorState)
-  const currentTask = useEventLoopStore((s) => s.currentTask)
-  const taskQueue = useEventLoopStore((s) => s.taskQueue)
-  const microtaskQueue = useEventLoopStore((s) => s.microtaskQueue)
-  const pendingWebAPIs = useEventLoopStore((s) => s.pendingWebAPIs)
-  const callStackFrames = useEventLoopStore((s) => s.callStackFrames)
   const executionTimer = useEventLoopStore((s) => s.executionTimer)
+  const { currentTask, taskQueue, microtaskQueue, pendingWebAPIs, callStackFrames } =
+    useEventLoopStore(useShallow((s) => ({
+      currentTask: s.currentTask,
+      taskQueue: s.taskQueue,
+      microtaskQueue: s.microtaskQueue,
+      pendingWebAPIs: s.pendingWebAPIs,
+      callStackFrames: s.callStackFrames,
+    })))
 
   const isAtMicrotask =
     cursorState === 'STOPPED_AT_MICROTASK_QUEUE' ||

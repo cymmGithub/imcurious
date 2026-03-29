@@ -41,7 +41,7 @@ export const useEventLoopStore = create<EventLoopStore>()((set, get) => ({
     if (!scenario) return
 
     set((prev) => {
-      let s = { ...prev } as SimulationState
+      let s: SimulationState = prev
       if (s.isPaused) s = { ...s, isPaused: false }
 
       if (scenario.asyncSteps) {
