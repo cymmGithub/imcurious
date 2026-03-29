@@ -66,54 +66,43 @@ export function RunCode({ scenarioId }: RunCodeProps) {
         >
           interactive
         </span>
-        {isStepping ? (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={stepBack}
-              disabled={state.syncFrameIndex === 0}
-              className="font-mono text-xs px-2 py-1 rounded"
-              style={{
-                color: 'var(--color-chalk)',
-                background: 'var(--color-surface-card)',
-                border: '1px solid var(--color-chalk-faint)',
-                opacity: state.syncFrameIndex === 0 ? 0.3 : 1,
-                cursor: state.syncFrameIndex === 0 ? 'not-allowed' : 'pointer',
-              }}
-            >
-              ←
-            </button>
-            <span
-              className="font-mono text-[10px]"
-              style={{ color: 'var(--color-chalk-dim)' }}
-            >
-              {state.syncFrameIndex + 1} / {state.syncFrameOps.length}
-            </span>
-            <button
-              onClick={stepForward}
-              className="font-mono text-xs px-2 py-1 rounded"
-              style={{
-                color: '#000',
-                background: 'var(--color-chalk)',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              {isLastStep ? '→ finish' : '→'}
-            </button>
-          </div>
-        ) : (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => runScenario(scenarioId)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold font-display tracking-wide transition-all hover:brightness-125 min-h-[32px]"
+            onClick={isStepping ? stepBack : undefined}
+            disabled={!isStepping || state.syncFrameIndex === 0}
+            className="font-mono text-xs px-2 py-1 rounded"
             style={{
-              backgroundColor: 'var(--color-chalk)',
-              color: '#000',
+              color: 'var(--color-chalk)',
+              background: 'var(--color-surface-card)',
+              border: '1px solid var(--color-chalk-faint)',
+              opacity: !isStepping || state.syncFrameIndex === 0 ? 0.3 : 1,
+              cursor: !isStepping || state.syncFrameIndex === 0 ? 'not-allowed' : 'pointer',
             }}
-            aria-label={`Run ${scenarioId} scenario`}
           >
-            ▶ Run
+            ←
           </button>
-        )}
+          <span
+            className="font-mono text-[10px]"
+            style={{ color: 'var(--color-chalk-dim)' }}
+          >
+            {isStepping
+              ? `${state.syncFrameIndex + 1} / ${state.syncFrameOps.length}`
+              : '· · ·'}
+          </span>
+          <button
+            onClick={() => isStepping ? stepForward() : runScenario(scenarioId)}
+            className="font-mono text-xs px-2 py-1 rounded"
+            style={{
+              color: '#000',
+              background: 'var(--color-chalk)',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+            aria-label={isStepping ? (isLastStep ? 'Finish scenario' : 'Next step') : `Start ${scenarioId} scenario`}
+          >
+            {isLastStep ? '→ finish' : '→'}
+          </button>
+        </div>
       </div>
     </div>
   )
