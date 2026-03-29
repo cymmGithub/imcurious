@@ -7,8 +7,14 @@ export type CursorState =
   | 'STOPPED_AT_RENDER'
   | 'RENDERING'
   | 'EXECUTING_SYNC'
+  | 'STEPPING_SYNC'
 
 export type TaskType = 'setTimeout' | 'fetch'
+
+export type SyncStepSnapshot = {
+  callStackFrames: string[]
+  activeLine: number | null
+}
 
 export type SyncFrameOp = { action: 'push'; name: string; line?: number } | { action: 'pop'; line?: number }
 
@@ -39,6 +45,7 @@ export type SimulationState = {
   callStackFrames: string[]
   activeLine: number | null
   activeScenarioId: string | null
+  syncStepSnapshots: SyncStepSnapshot[]
 }
 
 export const PIT_STOPS = { microtask: 0, task: 1/3, render: 2/3 } as const
@@ -71,6 +78,7 @@ export function createInitialState(): SimulationState {
     callStackFrames: [],
     activeLine: null,
     activeScenarioId: null,
+    syncStepSnapshots: [],
   }
 }
 
@@ -89,6 +97,95 @@ export function startSyncExecution(
     executionTimer: SYNC_FRAME_DURATION,
     activeLine: firstLine,
     activeScenarioId: scenarioId,
+  }
+}
+
+export function buildSyncSnapshots(ops: SyncFrameOp[]): SyncStepSnapshot[] {
+  const snapshots: SyncStepSnapshot[] = []
+  let stack: string[] = []
+  for (let i = 0; i < ops.length; i++) {
+    snapshots.push({
+      callStackFrames: [...stack],
+      activeLine: ops[i].line ?? null,
+    })
+    // Apply op to build stack for next snapshot
+    const op = ops[i]
+    if (op.action === 'push') {
+      stack = [...stack, op.name]
+    } else {
+      stack = stack.slice(0, -1)
+    }
+  }
+  return snapshots
+}
+
+export function startStepping(
+  state: SimulationState,
+  ops: SyncFrameOp[],
+  scenarioId: string
+): SimulationState {
+  const snapshots = buildSyncSnapshots(ops)
+  return {
+    ...state,
+    cursorState: 'STEPPING_SYNC',
+    syncFrameOps: ops,
+    syncFrameIndex: 0,
+    callStackFrames: snapshots[0].callStackFrames,
+    activeLine: snapshots[0].activeLine,
+    syncStepSnapshots: snapshots,
+    activeScenarioId: scenarioId,
+    executionTimer: 0,
+  }
+}
+
+export function stepForward(state: SimulationState): SimulationState {
+  if (state.cursorState !== 'STEPPING_SYNC') return state
+
+  const nextIndex = state.syncFrameIndex + 1
+  if (nextIndex >= state.syncFrameOps.length) {
+    // Apply the final op before transitioning
+    let frames = [...state.callStackFrames]
+    const op = state.syncFrameOps[state.syncFrameIndex]
+    if (op) {
+      if (op.action === 'push') {
+        frames = [...frames, op.name]
+      } else {
+        frames = frames.slice(0, -1)
+      }
+    }
+    // Done — transition to ORBITING
+    return {
+      ...state,
+      cursorState: 'ORBITING',
+      callStackFrames: [],
+      syncFrameOps: [],
+      syncFrameIndex: 0,
+      syncStepSnapshots: [],
+      executionTimer: 0,
+      activeLine: null,
+      activeScenarioId: null,
+    }
+  }
+
+  const snapshot = state.syncStepSnapshots[nextIndex]
+  return {
+    ...state,
+    syncFrameIndex: nextIndex,
+    callStackFrames: snapshot.callStackFrames,
+    activeLine: snapshot.activeLine,
+  }
+}
+
+export function stepBack(state: SimulationState): SimulationState {
+  if (state.cursorState !== 'STEPPING_SYNC' || state.syncFrameIndex <= 0) return state
+
+  const prevIndex = state.syncFrameIndex - 1
+  const snapshot = state.syncStepSnapshots[prevIndex]
+  return {
+    ...state,
+    syncFrameIndex: prevIndex,
+    callStackFrames: snapshot.callStackFrames,
+    activeLine: snapshot.activeLine,
   }
 }
 
@@ -167,6 +264,7 @@ function tickWebAPIs(state: SimulationState, dt: number): SimulationState {
 
 export function nextState(state: SimulationState, dt: number): SimulationState {
   if (state.isPaused) return state
+  if (state.cursorState === 'STEPPING_SYNC') return state
 
   // Always tick web APIs
   let s = tickWebAPIs(state, dt)
@@ -313,6 +411,9 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
       }
       return { ...s, executionTimer: timer }
     }
+
+    case 'STEPPING_SYNC':
+      return s
 
     default:
       return s

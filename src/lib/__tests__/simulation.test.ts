@@ -4,9 +4,14 @@ import {
   nextState,
   addTask,
   shouldStopAtPitStop,
+  buildSyncSnapshots,
+  startStepping,
+  stepForward,
+  stepBack,
   PIT_STOPS,
   EXECUTION_DURATION,
   type SimulationState,
+  type SyncFrameOp,
 } from '../simulation'
 
 describe('createInitialState', () => {
@@ -212,5 +217,142 @@ describe('shouldStopAtPitStop', () => {
       { id: '1', type: 'setTimeout', label: 'setTimeout()', color: '#888888' },
     ])
     expect(result).toBe(true)
+  })
+})
+
+describe('stepping', () => {
+  // sync-callstack ops: push welcome, push greet, pop, push console.log, pop, pop
+  const syncOps: SyncFrameOp[] = [
+    { action: 'push', name: 'welcome()', line: 1 },
+    { action: 'push', name: 'greet()', line: 2 },
+    { action: 'pop', line: 3 },
+    { action: 'push', name: 'console.log()', line: 4 },
+    { action: 'pop', line: 5 },
+    { action: 'pop', line: 6 },
+  ]
+
+  it('buildSyncSnapshots produces correct stack at each step', () => {
+    const snapshots = buildSyncSnapshots(syncOps)
+    expect(snapshots).toHaveLength(6)
+
+    // snapshot[0]: stack before any op applied, line from ops[0]
+    expect(snapshots[0].callStackFrames).toEqual([])
+    expect(snapshots[0].activeLine).toBe(1)
+
+    // snapshot[1]: after push welcome, line from ops[1]
+    expect(snapshots[1].callStackFrames).toEqual(['welcome()'])
+    expect(snapshots[1].activeLine).toBe(2)
+
+    // snapshot[2]: after push greet, line from ops[2]
+    expect(snapshots[2].callStackFrames).toEqual(['welcome()', 'greet()'])
+    expect(snapshots[2].activeLine).toBe(3)
+
+    // snapshot[3]: after pop, line from ops[3]
+    expect(snapshots[3].callStackFrames).toEqual(['welcome()'])
+    expect(snapshots[3].activeLine).toBe(4)
+
+    // snapshot[4]: after push console.log, line from ops[4]
+    expect(snapshots[4].callStackFrames).toEqual(['welcome()', 'console.log()'])
+    expect(snapshots[4].activeLine).toBe(5)
+
+    // snapshot[5]: after pop, line from ops[5]
+    expect(snapshots[5].callStackFrames).toEqual(['welcome()'])
+    expect(snapshots[5].activeLine).toBe(6)
+  })
+
+  it('startStepping sets cursorState to STEPPING_SYNC and applies first snapshot', () => {
+    const initial = createInitialState()
+    const state = startStepping(initial, syncOps, 'test-scenario')
+
+    expect(state.cursorState).toBe('STEPPING_SYNC')
+    expect(state.syncFrameIndex).toBe(0)
+    expect(state.callStackFrames).toEqual([])
+    expect(state.activeLine).toBe(1)
+    expect(state.syncStepSnapshots).toHaveLength(6)
+    expect(state.activeScenarioId).toBe('test-scenario')
+    expect(state.executionTimer).toBe(0)
+  })
+
+  it('stepForward increments index and applies next snapshot', () => {
+    const initial = createInitialState()
+    const stepping = startStepping(initial, syncOps, 'test-scenario')
+    const next = stepForward(stepping)
+
+    expect(next.syncFrameIndex).toBe(1)
+    expect(next.callStackFrames).toEqual(['welcome()'])
+    expect(next.activeLine).toBe(2)
+    expect(next.cursorState).toBe('STEPPING_SYNC')
+  })
+
+  it('stepForward at last index transitions to ORBITING and clears sync fields', () => {
+    const initial = createInitialState()
+    const stepping = startStepping(initial, syncOps, 'test-scenario')
+
+    // Advance to the last index (5)
+    let state = stepping
+    for (let i = 0; i < syncOps.length; i++) {
+      state = stepForward(state)
+    }
+
+    expect(state.cursorState).toBe('ORBITING')
+    expect(state.callStackFrames).toEqual([])
+    expect(state.syncFrameOps).toEqual([])
+    expect(state.syncFrameIndex).toBe(0)
+    expect(state.syncStepSnapshots).toEqual([])
+    expect(state.executionTimer).toBe(0)
+    expect(state.activeLine).toBeNull()
+    expect(state.activeScenarioId).toBeNull()
+  })
+
+  it('stepBack decrements index and restores previous snapshot', () => {
+    const initial = createInitialState()
+    const stepping = startStepping(initial, syncOps, 'test-scenario')
+
+    // Step forward twice to index 2
+    const at2 = stepForward(stepForward(stepping))
+    expect(at2.syncFrameIndex).toBe(2)
+
+    // Step back to index 1
+    const back = stepBack(at2)
+    expect(back.syncFrameIndex).toBe(1)
+    expect(back.callStackFrames).toEqual(['welcome()'])
+    expect(back.activeLine).toBe(2)
+  })
+
+  it('stepBack at index 0 is a no-op', () => {
+    const initial = createInitialState()
+    const stepping = startStepping(initial, syncOps, 'test-scenario')
+
+    expect(stepping.syncFrameIndex).toBe(0)
+    const result = stepBack(stepping)
+    expect(result).toBe(stepping) // same reference
+  })
+
+  it('nextState with STEPPING_SYNC returns state unchanged (no timer advancement, no tickWebAPIs)', () => {
+    const initial = createInitialState()
+    const stepping = startStepping(initial, syncOps, 'test-scenario')
+
+    // Add a pending web API that would normally be ticked
+    const steppingWithAPI: SimulationState = {
+      ...stepping,
+      pendingWebAPIs: [
+        {
+          id: '1',
+          type: 'setTimeout',
+          label: 'setTimeout(100ms)',
+          delay: 100,
+          color: '#888888',
+          remainingDelay: 100,
+        },
+      ],
+    }
+
+    const next = nextState(steppingWithAPI, 150)
+
+    // State should be completely unchanged (same reference behavior: no mutations)
+    expect(next).toBe(steppingWithAPI)
+    expect(next.cursorState).toBe('STEPPING_SYNC')
+    expect(next.pendingWebAPIs).toHaveLength(1)
+    expect(next.pendingWebAPIs[0].remainingDelay).toBe(100)
   })
 })
