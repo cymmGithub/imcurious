@@ -3,7 +3,7 @@ import rehypePrettyCode from 'rehype-pretty-code'
 
 /** @type {import('rehype-pretty-code').Options} */
 const prettyCodeOptions = {
-  theme: 'vitesse-dark',
+  theme: 'nord',
   keepBackground: false,
 }
 

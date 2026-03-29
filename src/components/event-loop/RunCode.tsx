@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useEventLoopStore } from '@/stores/eventLoopStore'
 import { SCENARIOS } from '@/lib/scenarios'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface RunCodeProps {
   scenarioId: string
@@ -24,7 +25,7 @@ export function RunCode({ scenarioId }: RunCodeProps) {
     if (!scenario) return
     let cancelled = false
     import('shiki').then(({ codeToHtml }) =>
-      codeToHtml(scenario.code, { lang: 'javascript', theme: 'vitesse-dark' })
+      codeToHtml(scenario.code, { lang: 'javascript', theme: 'nord' })
     ).then((html) => {
       if (cancelled) return
       // Extract inner content from <pre><code>...</code></pre>
@@ -110,7 +111,7 @@ export function RunCode({ scenarioId }: RunCodeProps) {
               cursor: !isStepping || syncFrameIndex === 0 ? 'not-allowed' : 'pointer',
             }}
           >
-            ←
+            <ChevronLeft size={14} />
           </button>
           <span
             className="font-mono text-[10px]"
@@ -131,7 +132,7 @@ export function RunCode({ scenarioId }: RunCodeProps) {
             }}
             aria-label={isStepping ? (isLastStep ? 'Finish scenario' : 'Next step') : `Start ${scenarioId} scenario`}
           >
-            {isLastStep ? '→ finish' : '→'}
+            {isLastStep ? <><ChevronRight size={14} /> finish</> : <ChevronRight size={14} />}
           </button>
         </div>
       </div>
