@@ -38,7 +38,6 @@ export type SimulationState = {
   microtaskQueue: Task[]
   rAfCallbacks: Task[]
   pendingWebAPIs: PendingWebAPI[]
-  renderNeeded: boolean
   isPaused: boolean
   currentTask: Task | null
   executionTimer: number
@@ -74,7 +73,6 @@ export function createInitialState(): SimulationState {
     microtaskQueue: [],
     rAfCallbacks: [],
     pendingWebAPIs: [],
-    renderNeeded: false,
     isPaused: false,
     currentTask: null,
     executionTimer: 0,
@@ -187,7 +185,6 @@ export function stepForward(state: SimulationState): SimulationState {
       pendingWebAPIs: state.steppingFinalWebAPIs,
       steppingFinalWebAPIs: [],
       rAfCallbacks: [],
-      renderNeeded: state.steppingFinalWebAPIs.length > 0,
     }
   }
 
@@ -267,7 +264,6 @@ export function addTask(
   return {
     ...state,
     pendingWebAPIs: [...state.pendingWebAPIs, task],
-    renderNeeded: true,
     nextId: state.nextId + 1,
   }
 }
@@ -330,7 +326,7 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
       }
 
       if (prevPos < PIT_STOPS.render && newPos >= PIT_STOPS.render) {
-        if (s.renderNeeded) {
+        if (s.rAfCallbacks.length > 0) {
           return { ...s, cursorPosition: PIT_STOPS.render, cursorState: 'STOPPED_AT_RENDER', executionTimer: STOP_PAUSE }
         }
       }
@@ -425,7 +421,7 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
     case 'RENDERING': {
       const timer = s.executionTimer - dt
       if (timer <= 0) {
-        return { ...s, cursorState: 'ORBITING', renderNeeded: false, currentTask: null, executionTimer: 0 }
+        return { ...s, cursorState: 'ORBITING', currentTask: null, executionTimer: 0 }
       }
       return { ...s, executionTimer: timer }
     }

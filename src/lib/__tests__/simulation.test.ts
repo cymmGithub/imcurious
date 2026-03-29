@@ -23,8 +23,8 @@ describe('createInitialState', () => {
     expect(state.cursorState).toBe('ORBITING')
     expect(state.taskQueue).toEqual([])
     expect(state.microtaskQueue).toEqual([])
+    expect(state.rAfCallbacks).toEqual([])
     expect(state.pendingWebAPIs).toEqual([])
-    expect(state.renderNeeded).toBe(false)
     expect(state.isPaused).toBe(false)
     expect(state.currentTask).toBeNull()
     expect(state.executionTimer).toBe(0)
@@ -135,22 +135,22 @@ describe('nextState', () => {
     expect(next.currentTask).toBeNull()
   })
 
-  it('skips render stop when renderNeeded is false', () => {
+  it('skips render stop when rAfCallbacks is empty', () => {
     const state: SimulationState = {
       ...createInitialState(),
       cursorPosition: PIT_STOPS.render - 0.005,
-      renderNeeded: false,
+      rAfCallbacks: [],
     }
     const next = nextState(state, 100)
     expect(next.cursorState).toBe('ORBITING')
     expect(next.cursorPosition).toBeGreaterThan(PIT_STOPS.render)
   })
 
-  it('stops at render stop when renderNeeded is true', () => {
+  it('stops at render pit stop when rAfCallbacks is non-empty', () => {
     const state: SimulationState = {
       ...createInitialState(),
       cursorPosition: PIT_STOPS.render - 0.005,
-      renderNeeded: true,
+      rAfCallbacks: [{ id: '1', type: 'rAF' as const, label: 'requestAnimationFrame', color: '#ffffff' }],
     }
     const next = nextState(state, 100)
     expect(next.cursorState).toBe('STOPPED_AT_RENDER')
@@ -181,7 +181,6 @@ describe('addTask', () => {
     expect(state.pendingWebAPIs).toHaveLength(1)
     expect(state.pendingWebAPIs[0].type).toBe('setTimeout')
     expect(state.pendingWebAPIs[0].remainingDelay).toBe(500)
-    expect(state.renderNeeded).toBe(true)
   })
 
   it('with fetch adds a PendingWebAPI entry', () => {
@@ -189,7 +188,6 @@ describe('addTask', () => {
     expect(state.pendingWebAPIs).toHaveLength(1)
     expect(state.pendingWebAPIs[0].type).toBe('fetch')
     expect(state.pendingWebAPIs[0].remainingDelay).toBe(1000)
-    expect(state.renderNeeded).toBe(true)
   })
 })
 
@@ -487,8 +485,8 @@ describe('stepping with asyncEffect', () => {
     expect(state.pendingWebAPIs[0].type).toBe('setTimeout')
     expect(state.pendingWebAPIs[1].type).toBe('fetch')
     expect(state.steppingFinalWebAPIs).toEqual([])
-    // renderNeeded is set to true when steppingFinalWebAPIs had entries
-    expect(state.renderNeeded).toBe(true)
+    // rAfCallbacks is reset to [] when transitioning to ORBITING
+    expect(state.rAfCallbacks).toEqual([])
   })
 
   it('buildSyncSnapshots generates unique IDs starting from startId', () => {
