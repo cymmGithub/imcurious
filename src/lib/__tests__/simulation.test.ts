@@ -693,3 +693,44 @@ describe('rAF routing', () => {
     expect(next.microtaskQueue).toHaveLength(0)
   })
 })
+
+describe('render-step end-to-end', () => {
+  it('cursor visits callback queue, render station, then microtask queue in order', () => {
+    const scenario = SCENARIOS['render-step']
+    let state = startStepping(createInitialState(), scenario.syncOps!, 'render-step')
+
+    // Step through all 6 sync ops
+    for (let i = 0; i < scenario.syncOps!.length; i++) {
+      state = stepForward(state)
+    }
+    expect(state.cursorState).toBe('ORBITING')
+    // Should have 3 pending web APIs: rAF, setTimeout(0ms), fetch(placeholder)
+    expect(state.pendingWebAPIs).toHaveLength(3)
+
+    // Simulate fetch resolving (like the store does)
+    state = resolveFetch(state, 'fetch → "Luke"')
+
+    // Tick once to resolve pending APIs (rAF and setTimeout have 0ms delay)
+    state = nextState(state, 16)
+    // rAF(0ms) → rAfCallbacks, setTimeout(0ms) → taskQueue, fetch resolved → microtaskQueue
+    expect(state.rAfCallbacks).toHaveLength(1)
+    expect(state.taskQueue).toHaveLength(1)
+
+    // Advance cursor to visit all stations
+    // Cursor starts at 0, needs to reach 0.333 (task), 0.667 (render), wrap to 0 (microtask)
+    let statesVisited: string[] = []
+    for (let i = 0; i < 500; i++) {
+      state = nextState(state, 20)
+      if (!statesVisited.includes(state.cursorState)) {
+        statesVisited.push(state.cursorState)
+      }
+      if (statesVisited.length >= 7) break
+    }
+
+    // Should have visited these states (in order of first appearance):
+    expect(statesVisited).toContain('STOPPED_AT_TASK_QUEUE')
+    expect(statesVisited).toContain('EXECUTING_TASK')
+    expect(statesVisited).toContain('STOPPED_AT_RENDER')
+    expect(statesVisited).toContain('RENDERING')
+  })
+})
