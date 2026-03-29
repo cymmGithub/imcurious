@@ -5,9 +5,10 @@ import { CIRCLE, STATION_POSITIONS } from '@/lib/circlePath'
 interface CircleTrackProps {
   cursorPosition: number
   isExecuting: boolean
+  dotVisibilities?: { microtask: number; task: number; render: number }
 }
 
-export function CircleTrack({ cursorPosition, isExecuting }: CircleTrackProps) {
+export function CircleTrack({ cursorPosition, isExecuting, dotVisibilities }: CircleTrackProps) {
   const angle = cursorPosition * 2 * Math.PI
   const cx = CIRCLE.cx + CIRCLE.r * Math.sin(angle)
   const cy = CIRCLE.cy - CIRCLE.r * Math.cos(angle)
@@ -25,16 +26,20 @@ export function CircleTrack({ cursorPosition, isExecuting }: CircleTrackProps) {
       />
 
       {/* Anchor dots on the circle */}
-      {Object.values(STATION_POSITIONS).map((station) => (
-        <circle
-          key={station.label}
-          cx={station.anchor.x}
-          cy={station.anchor.y}
-          r={3}
-          fill={station.color}
-          opacity={0.4}
-        />
-      ))}
+      {(Object.keys(STATION_POSITIONS) as Array<keyof typeof STATION_POSITIONS>).map((key) => {
+        const station = STATION_POSITIONS[key]
+        const vis = dotVisibilities ? dotVisibilities[key] : 1
+        return (
+          <circle
+            key={station.label}
+            cx={station.anchor.x}
+            cy={station.anchor.y}
+            r={3}
+            fill={station.color}
+            opacity={0.4 * vis}
+          />
+        )
+      })}
 
       {/* Cursor */}
       <rect

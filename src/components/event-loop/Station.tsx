@@ -47,7 +47,7 @@ export function Station({
       height={foreignObjectHeight}
       overflow="visible"
       style={{
-        opacity: 0.3 + visibility * 0.7,
+        opacity: visibility,
         transition: 'opacity 0.3s ease',
       }}
     >

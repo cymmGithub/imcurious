@@ -18,7 +18,7 @@ export function WebApiBox({ pendingAPIs, visibility }: WebApiBoxProps) {
       height={120}
       overflow="visible"
       style={{
-        opacity: 0.3 + visibility * 0.7,
+        opacity: visibility,
         transition: 'opacity 0.3s ease',
       }}
     >

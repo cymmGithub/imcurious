@@ -60,6 +60,11 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           <CircleTrack
             cursorPosition={state.cursorPosition}
             isExecuting={isExecuting}
+            dotVisibilities={{
+              microtask: getStageVisibility(5),
+              task: getStageVisibility(4),
+              render: getStageVisibility(6),
+            }}
           />
 
           {/* Call Stack — center of circle */}
@@ -131,6 +136,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
             fontStyle="italic"
             fontSize={10}
             fill="var(--color-chalk-faint)"
+            opacity={getStageVisibility(6)}
           >
             one task per lap — all microtasks drain first
           </text>
