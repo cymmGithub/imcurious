@@ -114,12 +114,7 @@ export function buildSyncSnapshots(
   let nextId = startId
 
   for (let i = 0; i < ops.length; i++) {
-    snapshots.push({
-      callStackFrames: [...stack],
-      activeLine: ops[i].line ?? null,
-      pendingWebAPIs: [...webAPIs],
-    })
-    // Apply op to build stack for next snapshot
+    // Apply op first so snapshot reflects the result of this step
     const op = ops[i]
     if (op.action === 'push') {
       stack = [...stack, op.name]
@@ -138,6 +133,12 @@ export function buildSyncSnapshots(
     } else {
       stack = stack.slice(0, -1)
     }
+
+    snapshots.push({
+      callStackFrames: [...stack],
+      activeLine: ops[i].line ?? null,
+      pendingWebAPIs: [...webAPIs],
+    })
   }
   return { snapshots, finalWebAPIs: [...webAPIs], nextId }
 }

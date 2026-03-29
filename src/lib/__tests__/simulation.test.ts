@@ -13,6 +13,7 @@ import {
   type SimulationState,
   type SyncFrameOp,
 } from '../simulation'
+import { SCENARIOS } from '../scenarios'
 
 describe('createInitialState', () => {
   it('returns valid initial state', () => {
@@ -231,32 +232,32 @@ describe('stepping', () => {
     { action: 'pop', line: 6 },
   ]
 
-  it('buildSyncSnapshots produces correct stack at each step', () => {
+  it('buildSyncSnapshots produces correct stack at each step (after applying op)', () => {
     const { snapshots } = buildSyncSnapshots(syncOps, 0)
     expect(snapshots).toHaveLength(6)
 
-    // snapshot[0]: stack before any op applied, line from ops[0]
-    expect(snapshots[0].callStackFrames).toEqual([])
+    // snapshot[0]: after push welcome
+    expect(snapshots[0].callStackFrames).toEqual(['welcome()'])
     expect(snapshots[0].activeLine).toBe(1)
 
-    // snapshot[1]: after push welcome, line from ops[1]
-    expect(snapshots[1].callStackFrames).toEqual(['welcome()'])
+    // snapshot[1]: after push greet
+    expect(snapshots[1].callStackFrames).toEqual(['welcome()', 'greet()'])
     expect(snapshots[1].activeLine).toBe(2)
 
-    // snapshot[2]: after push greet, line from ops[2]
-    expect(snapshots[2].callStackFrames).toEqual(['welcome()', 'greet()'])
+    // snapshot[2]: after pop greet
+    expect(snapshots[2].callStackFrames).toEqual(['welcome()'])
     expect(snapshots[2].activeLine).toBe(3)
 
-    // snapshot[3]: after pop, line from ops[3]
-    expect(snapshots[3].callStackFrames).toEqual(['welcome()'])
+    // snapshot[3]: after push console.log
+    expect(snapshots[3].callStackFrames).toEqual(['welcome()', 'console.log()'])
     expect(snapshots[3].activeLine).toBe(4)
 
-    // snapshot[4]: after push console.log, line from ops[4]
-    expect(snapshots[4].callStackFrames).toEqual(['welcome()', 'console.log()'])
+    // snapshot[4]: after pop console.log
+    expect(snapshots[4].callStackFrames).toEqual(['welcome()'])
     expect(snapshots[4].activeLine).toBe(5)
 
-    // snapshot[5]: after pop, line from ops[5]
-    expect(snapshots[5].callStackFrames).toEqual(['welcome()'])
+    // snapshot[5]: after pop welcome — stack empty
+    expect(snapshots[5].callStackFrames).toEqual([])
     expect(snapshots[5].activeLine).toBe(6)
   })
 
@@ -268,13 +269,13 @@ describe('stepping', () => {
     expect(finalWebAPIs).toEqual([])
   })
 
-  it('startStepping sets cursorState to STEPPING_SYNC and applies first snapshot', () => {
+  it('startStepping sets cursorState to STEPPING_SYNC and applies first snapshot (after op)', () => {
     const initial = createInitialState()
     const state = startStepping(initial, syncOps, 'test-scenario')
 
     expect(state.cursorState).toBe('STEPPING_SYNC')
     expect(state.syncFrameIndex).toBe(0)
-    expect(state.callStackFrames).toEqual([])
+    expect(state.callStackFrames).toEqual(['welcome()'])
     expect(state.activeLine).toBe(1)
     expect(state.syncStepSnapshots).toHaveLength(6)
     expect(state.activeScenarioId).toBe('test-scenario')
@@ -289,7 +290,7 @@ describe('stepping', () => {
     const next = stepForward(stepping)
 
     expect(next.syncFrameIndex).toBe(1)
-    expect(next.callStackFrames).toEqual(['welcome()'])
+    expect(next.callStackFrames).toEqual(['welcome()', 'greet()'])
     expect(next.activeLine).toBe(2)
     expect(next.cursorState).toBe('STEPPING_SYNC')
   })
@@ -325,7 +326,7 @@ describe('stepping', () => {
     // Step back to index 1
     const back = stepBack(at2)
     expect(back.syncFrameIndex).toBe(1)
-    expect(back.callStackFrames).toEqual(['welcome()'])
+    expect(back.callStackFrames).toEqual(['welcome()', 'greet()'])
     expect(back.activeLine).toBe(2)
   })
 
@@ -378,27 +379,29 @@ describe('stepping with asyncEffect', () => {
     { action: 'pop', line: 7 },
   ]
 
-  it('buildSyncSnapshots tracks web APIs at correct steps', () => {
+  it('buildSyncSnapshots tracks web APIs at correct steps (after applying op)', () => {
     const { snapshots, finalWebAPIs, nextId } = buildSyncSnapshots(asyncOps, 0)
     expect(snapshots).toHaveLength(6)
 
-    // Steps 0-2: no web APIs yet (rAF push/pop, setTimeout push not yet applied)
+    // Steps 0-1: rAF push/pop — no asyncEffect
     expect(snapshots[0].pendingWebAPIs).toEqual([])
     expect(snapshots[1].pendingWebAPIs).toEqual([])
-    expect(snapshots[2].pendingWebAPIs).toEqual([])
 
-    // Step 3: setTimeout was pushed at step 2, so its web API appears here
+    // Step 2: after setTimeout push (has asyncEffect) — web API appears immediately
+    expect(snapshots[2].pendingWebAPIs).toHaveLength(1)
+    expect(snapshots[2].pendingWebAPIs[0].type).toBe('setTimeout')
+    expect(snapshots[2].pendingWebAPIs[0].remainingDelay).toBe(0)
+
+    // Step 3: after setTimeout pop — web API persists
     expect(snapshots[3].pendingWebAPIs).toHaveLength(1)
-    expect(snapshots[3].pendingWebAPIs[0].type).toBe('setTimeout')
-    expect(snapshots[3].pendingWebAPIs[0].remainingDelay).toBe(0)
 
-    // Step 4: fetch pushed at step 4, not yet applied — still only setTimeout
-    expect(snapshots[4].pendingWebAPIs).toHaveLength(1)
+    // Step 4: after fetch push (has asyncEffect) — both web APIs visible
+    expect(snapshots[4].pendingWebAPIs).toHaveLength(2)
+    expect(snapshots[4].pendingWebAPIs[1].type).toBe('fetch')
+    expect(snapshots[4].pendingWebAPIs[1].remainingDelay).toBe(999999)
 
-    // Step 5: fetch was pushed at step 4, so both web APIs appear
+    // Step 5: after fetch pop — both still visible
     expect(snapshots[5].pendingWebAPIs).toHaveLength(2)
-    expect(snapshots[5].pendingWebAPIs[1].type).toBe('fetch')
-    expect(snapshots[5].pendingWebAPIs[1].remainingDelay).toBe(999999)
 
     // Final state includes both web APIs
     expect(finalWebAPIs).toHaveLength(2)
@@ -409,11 +412,13 @@ describe('stepping with asyncEffect', () => {
     expect(nextId).toBe(2)
   })
 
-  it('startStepping with asyncEffect ops starts with empty web APIs', () => {
+  it('startStepping with asyncEffect ops starts with first snapshot state', () => {
     const initial = createInitialState()
     const state = startStepping(initial, asyncOps, 'render-step')
 
+    // First op is rAF push (no asyncEffect) — no web APIs yet
     expect(state.pendingWebAPIs).toEqual([])
+    expect(state.callStackFrames).toEqual(['requestAnimationFrame()'])
     expect(state.steppingFinalWebAPIs).toHaveLength(2)
     expect(state.nextId).toBe(2)
   })
@@ -422,24 +427,23 @@ describe('stepping with asyncEffect', () => {
     const initial = createInitialState()
     let state = startStepping(initial, asyncOps, 'render-step')
 
-    // Step 0 → 1: rAF pushed, no async effect
+    // Step 0 (initial): after rAF push — no async effect
+    expect(state.pendingWebAPIs).toEqual([])
+
+    // Step 0 → 1: after rAF pop — no async effect
     state = stepForward(state)
     expect(state.pendingWebAPIs).toEqual([])
 
-    // Step 1 → 2: rAF popped, no async effect
-    state = stepForward(state)
-    expect(state.pendingWebAPIs).toEqual([])
-
-    // Step 2 → 3: setTimeout pushed (has asyncEffect), web API appears
+    // Step 1 → 2: after setTimeout push (has asyncEffect) — web API appears
     state = stepForward(state)
     expect(state.pendingWebAPIs).toHaveLength(1)
     expect(state.pendingWebAPIs[0].type).toBe('setTimeout')
 
-    // Step 3 → 4: setTimeout popped, web API persists
+    // Step 2 → 3: after setTimeout pop — web API persists
     state = stepForward(state)
     expect(state.pendingWebAPIs).toHaveLength(1)
 
-    // Step 4 → 5: fetch pushed (has asyncEffect), both web APIs visible
+    // Step 3 → 4: after fetch push (has asyncEffect) — both web APIs visible
     state = stepForward(state)
     expect(state.pendingWebAPIs).toHaveLength(2)
     expect(state.pendingWebAPIs[1].type).toBe('fetch')
@@ -449,17 +453,21 @@ describe('stepping with asyncEffect', () => {
     const initial = createInitialState()
     let state = startStepping(initial, asyncOps, 'render-step')
 
-    // Advance to step 3 (setTimeout web API visible)
-    state = stepForward(state) // 1
-    state = stepForward(state) // 2
-    state = stepForward(state) // 3
+    // Advance to step 3 (after setTimeout pop — web API visible)
+    state = stepForward(state) // 1: after rAF pop
+    state = stepForward(state) // 2: after setTimeout push — web API appears
+    state = stepForward(state) // 3: after setTimeout pop — web API persists
     expect(state.pendingWebAPIs).toHaveLength(1)
 
-    // Step back to step 2 (setTimeout not yet registered)
+    // Step back to step 2 (after setTimeout push — web API still visible)
+    state = stepBack(state)
+    expect(state.pendingWebAPIs).toHaveLength(1)
+
+    // Step back to step 1 (after rAF pop — no web APIs)
     state = stepBack(state)
     expect(state.pendingWebAPIs).toEqual([])
 
-    // Step back to step 1
+    // Step back to step 0 (after rAF push — no web APIs)
     state = stepBack(state)
     expect(state.pendingWebAPIs).toEqual([])
   })
@@ -484,10 +492,120 @@ describe('stepping with asyncEffect', () => {
 
   it('buildSyncSnapshots generates unique IDs starting from startId', () => {
     const { snapshots, nextId } = buildSyncSnapshots(asyncOps, 42)
-    // First async effect at step 2 (push setTimeout) gets id "42"
-    expect(snapshots[3].pendingWebAPIs[0].id).toBe('42')
-    // Second async effect at step 4 (push fetch) gets id "43"
-    expect(snapshots[5].pendingWebAPIs[1].id).toBe('43')
+    // First async effect at step 2 (after setTimeout push) gets id "42"
+    expect(snapshots[2].pendingWebAPIs[0].id).toBe('42')
+    // Second async effect at step 4 (after fetch push) gets id "43"
+    expect(snapshots[4].pendingWebAPIs[1].id).toBe('43')
     expect(nextId).toBe(44)
+  })
+})
+
+describe('scenario step count alignment', () => {
+  // Each scenario's syncOps count must match the number of prose steps in the MDX.
+  // These tests guard against drift between code steps and explanatory text.
+
+  it('sync-callstack has 6 ops (push/push/pop/push/pop/pop)', () => {
+    const scenario = SCENARIOS['sync-callstack']
+    expect(scenario.syncOps).toHaveLength(6)
+    const { snapshots } = buildSyncSnapshots(scenario.syncOps!, 0)
+    expect(snapshots).toHaveLength(6)
+
+    // Step 0: push welcome → stack has welcome
+    expect(snapshots[0].callStackFrames).toEqual(['welcome()'])
+    // Step 1: push greet → stack has both
+    expect(snapshots[1].callStackFrames).toEqual(['welcome()', 'greet("world")'])
+    // Step 2: pop greet → back to welcome
+    expect(snapshots[2].callStackFrames).toEqual(['welcome()'])
+    // Step 3: push console.log
+    expect(snapshots[3].callStackFrames).toEqual(['welcome()', 'console.log()'])
+    // Step 4: pop console.log
+    expect(snapshots[4].callStackFrames).toEqual(['welcome()'])
+    // Step 5: pop welcome → empty
+    expect(snapshots[5].callStackFrames).toEqual([])
+  })
+
+  it('webapi-settimeout has 6 ops (3 push/pop pairs)', () => {
+    const scenario = SCENARIOS['webapi-settimeout']
+    expect(scenario.syncOps).toHaveLength(6)
+    const { snapshots } = buildSyncSnapshots(scenario.syncOps!, 0)
+
+    // Step 0: push console.log("Start")
+    expect(snapshots[0].callStackFrames).toEqual(['console.log("Start")'])
+    // Step 1: pop → empty
+    expect(snapshots[1].callStackFrames).toEqual([])
+    // Step 2: push setTimeout → web API appears
+    expect(snapshots[2].callStackFrames).toEqual(['setTimeout()'])
+    expect(snapshots[2].pendingWebAPIs).toHaveLength(1)
+    // Step 3: pop setTimeout → empty, web API persists
+    expect(snapshots[3].callStackFrames).toEqual([])
+    expect(snapshots[3].pendingWebAPIs).toHaveLength(1)
+    // Step 4: push console.log("End")
+    expect(snapshots[4].callStackFrames).toEqual(['console.log("End")'])
+    // Step 5: pop → empty
+    expect(snapshots[5].callStackFrames).toEqual([])
+  })
+
+  it('task-queue-ordering has 6 ops (3 push/pop pairs)', () => {
+    const scenario = SCENARIOS['task-queue-ordering']
+    expect(scenario.syncOps).toHaveLength(6)
+    const { snapshots } = buildSyncSnapshots(scenario.syncOps!, 0)
+
+    // Step 0: push setTimeout(A) → web API appears
+    expect(snapshots[0].callStackFrames).toEqual(['setTimeout(A)'])
+    expect(snapshots[0].pendingWebAPIs).toHaveLength(1)
+    // Step 1: pop
+    expect(snapshots[1].callStackFrames).toEqual([])
+    // Step 2: push setTimeout(B) → second web API
+    expect(snapshots[2].callStackFrames).toEqual(['setTimeout(B)'])
+    expect(snapshots[2].pendingWebAPIs).toHaveLength(2)
+    // Step 3: pop
+    expect(snapshots[3].callStackFrames).toEqual([])
+    // Step 4: push console.log("C")
+    expect(snapshots[4].callStackFrames).toEqual(['console.log("C")'])
+    // Step 5: pop → empty
+    expect(snapshots[5].callStackFrames).toEqual([])
+  })
+
+  it('microtask-priority has 6 ops (3 push/pop pairs)', () => {
+    const scenario = SCENARIOS['microtask-priority']
+    expect(scenario.syncOps).toHaveLength(6)
+    const { snapshots } = buildSyncSnapshots(scenario.syncOps!, 0)
+
+    // Step 0: push setTimeout → web API (callback queue)
+    expect(snapshots[0].callStackFrames).toEqual(['setTimeout()'])
+    expect(snapshots[0].pendingWebAPIs).toHaveLength(1)
+    // Step 1: pop
+    expect(snapshots[1].callStackFrames).toEqual([])
+    // Step 2: push fetch → web API (microtask queue)
+    expect(snapshots[2].callStackFrames).toEqual(['fetch()'])
+    expect(snapshots[2].pendingWebAPIs).toHaveLength(2)
+    // Step 3: pop
+    expect(snapshots[3].callStackFrames).toEqual([])
+    // Step 4: push console.log("Sync")
+    expect(snapshots[4].callStackFrames).toEqual(['console.log("Sync")'])
+    // Step 5: pop → empty
+    expect(snapshots[5].callStackFrames).toEqual([])
+  })
+
+  it('render-step has 6 ops (3 push/pop pairs)', () => {
+    const scenario = SCENARIOS['render-step']
+    expect(scenario.syncOps).toHaveLength(6)
+    const { snapshots } = buildSyncSnapshots(scenario.syncOps!, 0)
+
+    // Step 0: push rAF (no asyncEffect)
+    expect(snapshots[0].callStackFrames).toEqual(['requestAnimationFrame()'])
+    expect(snapshots[0].pendingWebAPIs).toEqual([])
+    // Step 1: pop
+    expect(snapshots[1].callStackFrames).toEqual([])
+    // Step 2: push setTimeout → web API
+    expect(snapshots[2].callStackFrames).toEqual(['setTimeout()'])
+    expect(snapshots[2].pendingWebAPIs).toHaveLength(1)
+    // Step 3: pop
+    expect(snapshots[3].callStackFrames).toEqual([])
+    // Step 4: push fetch → web API
+    expect(snapshots[4].callStackFrames).toEqual(['fetch()'])
+    expect(snapshots[4].pendingWebAPIs).toHaveLength(2)
+    // Step 5: pop → empty
+    expect(snapshots[5].callStackFrames).toEqual([])
   })
 })
