@@ -33,7 +33,7 @@ export function WebApiBox({ pendingAPIs, visibility }: WebApiBoxProps) {
           }}
         >
           <div
-            className="font-display text-[9px] font-bold tracking-[0.15em] uppercase"
+            className="font-sketch text-[11px] font-bold tracking-[0.08em] uppercase"
             style={{ color: 'var(--color-chalk-dim)', marginBottom: '5px' }}
           >
             Web APIs

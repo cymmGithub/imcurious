@@ -11,6 +11,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         display: ['var(--font-display)', 'serif'],
+        sketch: ['var(--font-sketch)', 'cursive'],
         body: ['var(--font-body)', 'sans-serif'],
         mono: ['var(--font-mono)', 'monospace'],
       },

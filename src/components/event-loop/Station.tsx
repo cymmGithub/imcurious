@@ -55,7 +55,7 @@ export function Station({
         style={{ textAlign: align }}
       >
         <div
-          className="font-mono text-[10px] font-bold tracking-wider uppercase inline-block"
+          className="font-sketch text-[12px] font-bold tracking-wider uppercase inline-block"
           style={{
             padding: '5px 14px',
             borderRadius: '20px',

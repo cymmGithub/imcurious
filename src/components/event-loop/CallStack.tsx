@@ -45,7 +45,7 @@ export function CallStack({
         style={{ textAlign: 'center' }}
       >
         <div
-          className="font-display text-[9px] font-bold tracking-[0.15em] uppercase"
+          className="font-sketch text-[11px] font-bold tracking-[0.08em] uppercase"
           style={{ color: 'var(--color-chalk)', marginBottom: '2px' }}
         >
           Call Stack

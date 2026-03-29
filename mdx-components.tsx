@@ -12,13 +12,13 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     Section,
     Callout,
     h1: (props: ComponentPropsWithoutRef<'h1'>) => (
-      <h1 className="font-display text-4xl font-bold tracking-tight text-[var(--color-chalk)] mb-8" {...props} />
+      <h1 className="font-sketch text-4xl font-bold tracking-tight uppercase text-[var(--color-chalk)] mb-8" {...props} />
     ),
     h2: (props: ComponentPropsWithoutRef<'h2'>) => (
-      <h2 className="font-display text-2xl font-bold tracking-tight text-[var(--color-chalk)] mt-16 mb-6" {...props} />
+      <h2 className="font-sketch text-2xl font-bold tracking-tight uppercase text-[var(--color-chalk)] mt-16 mb-6" {...props} />
     ),
     h3: (props: ComponentPropsWithoutRef<'h3'>) => (
-      <h3 className="font-display text-xl font-semibold text-[var(--color-chalk-dim)] mt-10 mb-4 italic" {...props} />
+      <h3 className="font-sketch text-xl font-semibold tracking-tight uppercase text-[var(--color-chalk-dim)] mt-10 mb-4 italic" {...props} />
     ),
     p: (props: ComponentPropsWithoutRef<'p'>) => (
       <p className="text-[var(--color-chalk)] leading-[1.85] mb-6 text-[15px] font-body" {...props} />
