@@ -8,15 +8,17 @@ type EventLoopContextValue = {
   state: SimulationState
   cursorHistory: React.RefObject<number[]>
   runScenario: (scenarioId: string) => void
+  stepForward: () => void
+  stepBack: () => void
 }
 
 const EventLoopContext = createContext<EventLoopContextValue | null>(null)
 
 export function EventLoopProvider({ children }: { children: React.ReactNode }) {
-  const { state, cursorHistory, runScenario } = useEventLoopSimulation()
+  const { state, cursorHistory, runScenario, stepForward, stepBack } = useEventLoopSimulation()
 
   return (
-    <EventLoopContext.Provider value={{ state, cursorHistory, runScenario }}>
+    <EventLoopContext.Provider value={{ state, cursorHistory, runScenario, stepForward, stepBack }}>
       {children}
     </EventLoopContext.Provider>
   )

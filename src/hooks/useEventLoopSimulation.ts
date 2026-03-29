@@ -5,7 +5,9 @@ import {
   createInitialState,
   nextState,
   addTask as addTaskPure,
-  startSyncExecution,
+  startStepping,
+  stepForward as stepForwardFn,
+  stepBack as stepBackFn,
   type SimulationState,
   type TaskType,
 } from '@/lib/simulation'
@@ -85,12 +87,20 @@ export function useEventLoopSimulation() {
 
       // Start sync execution if there are sync ops
       if (scenario.syncOps && scenario.syncOps.length > 0) {
-        s = startSyncExecution(s, scenario.syncOps, scenarioId)
+        s = startStepping(s, scenario.syncOps, scenarioId)
       }
 
       return s
     })
   }, [])
 
-  return { state, cursorHistory: cursorHistoryRef, togglePause, addTask, reset, runScenario }
+  const stepForward = useCallback(() => {
+    setState((prev) => stepForwardFn(prev))
+  }, [])
+
+  const stepBack = useCallback(() => {
+    setState((prev) => stepBackFn(prev))
+  }, [])
+
+  return { state, cursorHistory: cursorHistoryRef, togglePause, addTask, reset, runScenario, stepForward, stepBack }
 }
