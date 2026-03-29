@@ -43,47 +43,38 @@ export function CircleTrack({ cursorPosition, isExecuting, hasHiddenWork, dotVis
       })}
 
       {/* Heartbeat indicator — event loop working under the hood */}
-      {hasHiddenWork && (
-        <>
-          <g style={{
-            animation: 'spin-slow 12s linear infinite',
-            transformOrigin: `${CIRCLE.cx}px ${CIRCLE.cy}px`,
-          }}>
-            <circle
-              cx={CIRCLE.cx}
-              cy={CIRCLE.cy}
-              r={CIRCLE.r}
-              fill="none"
-              stroke="var(--color-chalk-dim)"
-              strokeWidth={1}
-              strokeDasharray="8 12"
-              style={{ animation: 'pulse-subtle 3s ease-in-out infinite' }}
-            />
-          </g>
-          <text
-            x={CIRCLE.cx}
-            y={CIRCLE.cy + CIRCLE.r + 28}
-            textAnchor="middle"
-            fill="var(--color-chalk-dim)"
-            fontSize={11}
-            fontFamily="var(--font-mono)"
+      <g style={{
+        opacity: hasHiddenWork ? 1 : 0,
+        transition: 'opacity 1.5s ease',
+        pointerEvents: 'none',
+      }}>
+        <g style={{
+          animation: 'spin-slow 12s linear infinite',
+          transformOrigin: `${CIRCLE.cx}px ${CIRCLE.cy}px`,
+        }}>
+          <circle
+            cx={CIRCLE.cx}
+            cy={CIRCLE.cy}
+            r={CIRCLE.r}
+            fill="none"
+            stroke="var(--color-chalk-dim)"
+            strokeWidth={1}
+            strokeDasharray="8 12"
             style={{ animation: 'pulse-subtle 3s ease-in-out infinite' }}
-          >
-            event loop running...
-          </text>
-          <text
-            x={CIRCLE.cx}
-            y={CIRCLE.cy + CIRCLE.r + 46}
-            textAnchor="middle"
-            fill="var(--color-chalk)"
-            fontSize={12}
-            fontFamily="var(--font-body)"
-            style={{ animation: 'bounce-hint 2s ease-in-out infinite' }}
-          >
-            ↓ scroll down to see what it&apos;s working on
-          </text>
-        </>
-      )}
+          />
+        </g>
+        <text
+          x={CIRCLE.cx}
+          y={CIRCLE.cy + CIRCLE.r + 46}
+          textAnchor="middle"
+          fill="var(--color-chalk)"
+          fontSize={12}
+          fontFamily="var(--font-body)"
+          style={{ animation: 'bounce-hint 2s ease-in-out infinite' }}
+        >
+          ↓ scroll down to see what it&apos;s working on
+        </text>
+      </g>
 
       {/* Cursor */}
       <rect

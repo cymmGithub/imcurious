@@ -48,18 +48,15 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
       ? 1 - state.executionTimer / EXECUTION_DURATION
       : 0
 
-  // Detect hidden work: simulation active but stations scrolled out of view
+  // Detect hidden work: cursor stopped/executing at a station that's scrolled out of view
   const microtaskVis = getStageVisibility(5)
   const taskVis = getStageVisibility(4)
   const renderVis = getStageVisibility(6)
-  const anyStationHidden = microtaskVis < 0.1 || taskVis < 0.1 || renderVis < 0.1
-  const hasActiveWork =
-    state.taskQueue.length > 0 ||
-    state.microtaskQueue.length > 0 ||
-    state.pendingWebAPIs.length > 0 ||
-    state.currentTask !== null ||
-    state.cursorState !== 'ORBITING'
-  const hasHiddenWork = anyStationHidden && hasActiveWork
+  const isStoppedAtHiddenStation =
+    (isAtMicrotask && microtaskVis < 0.1) ||
+    (isAtTask && taskVis < 0.1) ||
+    (isAtRender && renderVis < 0.1)
+  const hasHiddenWork = isStoppedAtHiddenStation
 
   const statusLabel = CURSOR_STATE_LABELS[state.cursorState] ?? 'Simulation running'
   const taskDetail = state.currentTask ? `: ${state.currentTask.label}` : ''
