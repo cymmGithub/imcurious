@@ -199,6 +199,24 @@ export function shouldStopAtPitStop(
   return prevPos < pitStopPos && newPos >= pitStopPos
 }
 
+export function resolveFetch(
+  state: SimulationState,
+  resultLabel: string
+): SimulationState {
+  // Resolve the first pending fetch (remainingDelay > 99000 = real-fetch placeholder)
+  let resolved = false
+  return {
+    ...state,
+    pendingWebAPIs: state.pendingWebAPIs.map((api) => {
+      if (!resolved && api.type === 'fetch' && api.remainingDelay > 99000) {
+        resolved = true
+        return { ...api, label: resultLabel, remainingDelay: 0 }
+      }
+      return api
+    }),
+  }
+}
+
 export function addTask(
   state: SimulationState,
   type: TaskType,

@@ -58,8 +58,11 @@ export function WebApiBox({ pendingAPIs, visibility }: WebApiBoxProps) {
                     border: '1px solid rgba(160, 154, 142, 0.12)',
                   }}
                 >
-                  {api.type === 'setTimeout' ? '⏱' : '↗'}{' '}
-                  {(api.remainingDelay / 1000).toFixed(1)}s
+                  {api.type === 'setTimeout' ? (
+                    <>⏱ {(api.remainingDelay / 1000).toFixed(1)}s</>
+                  ) : (
+                    <>↗ fetching...</>
+                  )}
                 </motion.div>
               ))
             )}

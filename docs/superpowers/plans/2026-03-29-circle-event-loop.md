@@ -910,19 +910,6 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
             pendingAPIs={state.pendingWebAPIs}
             visibility={getStageVisibility(3)}
           />
-
-          {/* Annotation */}
-          <text
-            x={300}
-            y={525}
-            textAnchor="middle"
-            fontFamily="'Playfair Display', serif"
-            fontStyle="italic"
-            fontSize={10}
-            fill="var(--color-chalk-faint)"
-          >
-            one task per lap — all microtasks drain first
-          </text>
         </svg>
       </div>
     </div>

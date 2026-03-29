@@ -116,15 +116,17 @@ The difference? The event loop **drains all microtasks** before it does anything
 
 <RunCode scenarioId="microtask-priority" />
 
-Even though `setTimeout` was called first, the Promise callback wins. Every time. Here is why:
+Even though `setTimeout` was called first, the fetch callback wins. Every time. Here is why:
 
 1. `setTimeout` callback enters the **callback queue**
-2. `Promise.resolve().then()` callback enters the **microtask queue**
+2. `fetch()` returns a Promise — its `.then()` callback enters the **microtask queue**
 3. `console.log("Sync")` runs immediately (synchronous)
 4. Global code is done. The event loop checks the microtask queue **first**
-5. "Microtask" prints
+5. The fetch result prints
 6. Microtask queue is empty. Now the event loop checks the callback queue
 7. "Task" prints
+
+Notice something subtle: the `fetch()` call itself fires **immediately** when the interpreter hits that line. It does not wait for the rest of your synchronous code to finish. The browser's network thread starts the HTTP request right away, in parallel. What *does* wait is the `.then()` callback — that only runs after the fetch resolves *and* the call stack is empty. So the request is already in-flight while `console.log("Sync")` executes. The `fetch()` function is synchronous; the *result handling* is asynchronous.
 
 <Callout>
 Microtasks run whenever the JavaScript stack empties. Not just between tasks — after every task, after every callback, after every event handler. The engine clears the entire microtask queue before moving on.

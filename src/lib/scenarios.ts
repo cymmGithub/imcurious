@@ -78,21 +78,22 @@ console.log("C");`,
     id: 'microtask-priority',
     code: `setTimeout(() => console.log("Task"), 0);
 
-Promise.resolve()
-  .then(() => console.log("Microtask"));
+fetch("/api/starwars")
+  .then(res => res.json())
+  .then(data => console.log(data.name));
 
 console.log("Sync");`,
     syncOps: [
       { action: 'push', name: 'setTimeout()', line: 0 },
       { action: 'pop', line: 0 },
-      { action: 'push', name: 'Promise.resolve().then()', line: 2 },
-      { action: 'pop', line: 3 },
-      { action: 'push', name: 'console.log("Sync")', line: 5 },
-      { action: 'pop', line: 5 },
+      { action: 'push', name: 'fetch()', line: 2 },
+      { action: 'pop', line: 4 },
+      { action: 'push', name: 'console.log("Sync")', line: 6 },
+      { action: 'pop', line: 6 },
     ],
     asyncSteps: [
       { type: 'setTimeout', delay: 0 },
-      { type: 'fetch', delay: 0 },
+      { type: 'fetch' },
     ],
   },
 
@@ -104,19 +105,19 @@ console.log("Sync");`,
 
 setTimeout(() => console.log("Task"), 0);
 
-Promise.resolve()
-  .then(() => console.log("Microtask"));`,
+fetch("/api/starwars")
+  .then(res => console.log(res.json()));`,
     syncOps: [
       { action: 'push', name: 'requestAnimationFrame()', line: 0 },
       { action: 'pop', line: 2 },
       { action: 'push', name: 'setTimeout()', line: 4 },
       { action: 'pop', line: 4 },
-      { action: 'push', name: 'Promise.resolve().then()', line: 6 },
+      { action: 'push', name: 'fetch()', line: 6 },
       { action: 'pop', line: 7 },
     ],
     asyncSteps: [
       { type: 'setTimeout', delay: 0 },
-      { type: 'fetch', delay: 0 },
+      { type: 'fetch' },
     ],
   },
 }

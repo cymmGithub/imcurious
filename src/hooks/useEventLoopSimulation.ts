@@ -5,6 +5,7 @@ import {
   createInitialState,
   nextState,
   addTask as addTaskPure,
+  resolveFetch,
   startStepping,
   stepForward as stepForwardFn,
   stepBack as stepBackFn,
@@ -81,7 +82,11 @@ export function useEventLoopSimulation() {
       // Inject async steps (additive — queue on top)
       if (scenario.asyncSteps) {
         for (const step of scenario.asyncSteps) {
-          s = addTaskPure(s, step.type, step.delay)
+          if (step.type === 'fetch') {
+            s = addTaskPure(s, 'fetch', 999999)
+          } else {
+            s = addTaskPure(s, step.type, step.delay)
+          }
         }
       }
 
@@ -92,6 +97,19 @@ export function useEventLoopSimulation() {
 
       return s
     })
+
+    // Fire real fetch for each fetch-type async step
+    if (scenario.asyncSteps) {
+      for (const step of scenario.asyncSteps) {
+        if (step.type === 'fetch') {
+          fetch('/api/starwars')
+            .then((res) => res.json())
+            .then((data: { name: string }) => {
+              setState((prev) => resolveFetch(prev, `fetch → "${data.name}"`))
+            })
+        }
+      }
+    }
   }, [])
 
   const stepForward = useCallback(() => {
