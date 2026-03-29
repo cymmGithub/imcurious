@@ -100,13 +100,6 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           visibility={getStageVisibility(4)}
         />
 
-        {/* Call Stack Dashboard */}
-        <CallStack
-          carState={state.carState}
-          currentTask={state.currentTask}
-          visibility={getStageVisibility(2)}
-        />
-
         {/* Render Pit Stop */}
         <PitStop
           label={PIT_STOP_POSITIONS.render.label}
@@ -119,6 +112,12 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           visibility={getStageVisibility(6)}
           renderSubSteps
           renderProgress={renderProgress}
+        />
+        {/* Call Stack Dashboard */}
+        <CallStack
+          carState={state.carState}
+          currentTask={state.currentTask}
+          visibility={getStageVisibility(2)}
         />
       </div>
 

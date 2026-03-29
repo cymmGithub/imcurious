@@ -92,6 +92,8 @@ This is the key insight Will Sentance drives home: `setTimeout` is not a JavaScr
 The JavaScript engine is just the car. The browser is the entire racing organization: the garage, the pit wall, the tire warmers, the telemetry. JavaScript gets to use all of it through these facade functions, but the work happens elsewhere.
 </Callout>
 
+Here is a distinction worth internalizing: the JavaScript engine itself is single-threaded, but the environment it lives in is not. The call stack belongs to the engine — that is the car. But the event loop, the queues, the timers, the network layer? Those belong to the environment. The browser is a multi-threaded runtime wrapping a single-threaded language. JavaScript does not "do" async. The environment does async *on its behalf*.
+
 So when the timer finishes, where does the callback go? It cannot just jump onto the call stack. That would break our "one car, one track" rule. It needs to wait its turn.
 
 </Section>
@@ -205,7 +207,7 @@ for (let i = 0; i < 2_000_000_000; i++) {
 requestAnimationFrame is synchronized with the display's refresh rate, while setTimeout is not. A setTimeout loop might fire too often (wasting CPU) or not often enough (causing visual stutters). For animations, always use requestAnimationFrame — it is the browser telling you "now is a good time to update visuals."
 </Callout>
 
-The rendering step is the final piece of the lap. After it completes (or gets skipped), the event loop starts a brand new lap: check the task queue, drain microtasks, maybe render. Around and around, forever, until you close the tab.
+The rendering step is the final piece of the lap. After it completes (or gets skipped), the event loop starts a brand new lap — or as it is often called, a new **tick**. Each tick is one full pass: check the task queue, drain microtasks, maybe render. Around and around, forever, until you close the tab.
 
 </Section>
 

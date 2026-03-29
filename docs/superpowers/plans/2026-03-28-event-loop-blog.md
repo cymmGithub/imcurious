@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build an interactive, F1-themed blog post at `imcurious.how/the-event-loop-works` that teaches the JavaScript event loop through a figure-eight track visualization with pit stops.
+**Goal:** Build an interactive, F1-themed blog post at `imcurious.how/the-js-event-loop-works` that teaches the JavaScript event loop through a figure-eight track visualization with pit stops.
 
 **Architecture:** Separated engine + presentation. Pure simulation logic in `simulation.ts` (no React), React hook `useEventLoopSimulation` for the tick loop, Framer Motion `useScroll` for scroll-linked progressive reveal. SVG track with HTML overlay pit stops.
 
@@ -156,7 +156,7 @@ git commit -m "feat: scaffold Next.js project with Tailwind, Framer Motion, MDX,
 
 **Files:**
 - Modify: `next.config.mjs`
-- Create: `src/components/mdx/MDXProvider.tsx`, `src/components/mdx/Section.tsx`, `src/app/[slug]/page.tsx`, `src/posts/the-event-loop-works.mdx`
+- Create: `src/components/mdx/MDXProvider.tsx`, `src/components/mdx/Section.tsx`, `src/app/[slug]/page.tsx`, `src/posts/the-js-event-loop-works.mdx`
 
 - [ ] **Step 1: Configure Next.js for MDX**
 
@@ -256,7 +256,7 @@ import { MDXProvider } from '@/components/mdx/MDXProvider'
 
 // Map of valid slugs to their MDX imports
 const posts: Record<string, () => Promise<{ default: React.ComponentType }>> = {
-  'the-event-loop-works': () => import('@/posts/the-event-loop-works.mdx'),
+  'the-js-event-loop-works': () => import('@/posts/the-js-event-loop-works.mdx'),
 }
 
 export function generateStaticParams() {
@@ -265,9 +265,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  if (slug === 'the-event-loop-works') {
+  if (slug === 'the-js-event-loop-works') {
     return {
-      title: 'How the Event Loop Works | imcurious.how',
+      title: 'How the JS Event Loop Works | imcurious.how',
       description:
         'An interactive, F1-themed guide to the JavaScript event loop. Watch a race car navigate task queues, microtasks, and rendering.',
     }
@@ -294,10 +294,10 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
 - [ ] **Step 5: Create stub MDX post**
 
-Create `src/posts/the-event-loop-works.mdx`:
+Create `src/posts/the-js-event-loop-works.mdx`:
 
 ```mdx
-# How the Event Loop Works
+# How the JS Event Loop Works
 
 An interactive, F1-themed guide to the JavaScript event loop.
 
@@ -340,7 +340,7 @@ const components = {
 npm run dev
 ```
 
-Navigate to `http://localhost:3000/the-event-loop-works`. Expected: the post renders with styled headings and body text.
+Navigate to `http://localhost:3000/the-js-event-loop-works`. Expected: the post renders with styled headings and body text.
 
 - [ ] **Step 8: Commit**
 
@@ -1248,10 +1248,10 @@ export default function Home() {
       <h1 className="font-orbitron text-4xl font-bold mb-4">imcurious.how</h1>
       <p className="text-gray-400 mb-8">Interactive explorations of how things work.</p>
       <Link
-        href="/the-event-loop-works"
+        href="/the-js-event-loop-works"
         className="text-[var(--color-neon-cyan)] hover:underline"
       >
-        How the Event Loop Works →
+        How the JS Event Loop Works →
       </Link>
     </main>
   )
@@ -2053,7 +2053,7 @@ const components = {
 
 - [ ] **Step 3: Update the MDX post stub to use ScrollStage**
 
-Update `src/posts/the-event-loop-works.mdx`:
+Update `src/posts/the-js-event-loop-works.mdx`:
 
 ```mdx
 <ScrollStage>
@@ -2123,7 +2123,7 @@ All pieces are on the track. Add tasks, watch them flow through the queues, and 
 npm run dev
 ```
 
-Navigate to `http://localhost:3000/the-event-loop-works`. Expected:
+Navigate to `http://localhost:3000/the-js-event-loop-works`. Expected:
 - Desktop: track sticky on the left, text scrolling on the right
 - Mobile: track sticky at top, text scrolling below
 - Scrolling reveals pit stops progressively
@@ -2133,7 +2133,7 @@ Navigate to `http://localhost:3000/the-event-loop-works`. Expected:
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/components/event-loop/ScrollStage.tsx src/components/mdx/MDXProvider.tsx src/posts/the-event-loop-works.mdx
+git add src/components/event-loop/ScrollStage.tsx src/components/mdx/MDXProvider.tsx src/posts/the-js-event-loop-works.mdx
 git commit -m "feat: ScrollStage layout with sticky visualization and progressive reveal"
 ```
 
@@ -2142,11 +2142,11 @@ git commit -m "feat: ScrollStage layout with sticky visualization and progressiv
 ### Task 13: Full Blog Post Content
 
 **Files:**
-- Modify: `src/posts/the-event-loop-works.mdx`
+- Modify: `src/posts/the-js-event-loop-works.mdx`
 
 - [ ] **Step 1: Write full educational content for all 7 sections**
 
-Replace `src/posts/the-event-loop-works.mdx` with the full post. The content should draw from the research materials in the project root (`jake-archibald-video-summary.md`, `event-loop-will-sentance.md`, `callback-queue.md`, `microtask-queue.md`, `promises-and-fetch-api.md`, etc.).
+Replace `src/posts/the-js-event-loop-works.mdx` with the full post. The content should draw from the research materials in the project root (`jake-archibald-video-summary.md`, `event-loop-will-sentance.md`, `callback-queue.md`, `microtask-queue.md`, `promises-and-fetch-api.md`, etc.).
 
 Read these source files for educational accuracy:
 - `jake-archibald-video-summary.md` — event loop mechanics, rendering, microtask behavior
@@ -2184,7 +2184,7 @@ Scroll through the entire post. Each section should trigger the corresponding pi
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/posts/the-event-loop-works.mdx
+git add src/posts/the-js-event-loop-works.mdx
 git commit -m "feat: full educational blog post content across 7 sections"
 ```
 
@@ -2333,7 +2333,7 @@ npm run dev
 ```
 
 Test checklist:
-1. Navigate to `/the-event-loop-works`
+1. Navigate to `/the-js-event-loop-works`
 2. Scroll through all 7 sections — pit stops appear progressively
 3. Car animates continuously around the figure-eight
 4. Click "Pause" — car stops, click "Play" — car resumes

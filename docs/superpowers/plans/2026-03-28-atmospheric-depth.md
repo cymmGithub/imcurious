@@ -120,7 +120,7 @@ export function Section({ stage, children }: SectionProps) {
 
 - [ ] **Step 2: Verify in browser**
 
-Visit `http://localhost:3000/the-event-loop-works` and scroll through sections.
+Visit `http://localhost:3000/the-js-event-loop-works` and scroll through sections.
 Expected: Gradient cyan-to-pink divider lines appear between sections. Content fades in as you scroll down.
 
 - [ ] **Step 3: Commit**
@@ -204,7 +204,7 @@ Place it right after the `Section` entry in the components object.
 
 - [ ] **Step 3: Verify in browser**
 
-Visit `http://localhost:3000/the-event-loop-works`. The `<Callout>` component won't appear yet (it's not used in the MDX), but the page should still load without errors.
+Visit `http://localhost:3000/the-js-event-loop-works`. The `<Callout>` component won't appear yet (it's not used in the MDX), but the page should still load without errors.
 
 - [ ] **Step 4: Commit**
 
@@ -305,7 +305,7 @@ Note: The `li` override destructures `children` from props and wraps them, so it
 
 - [ ] **Step 2: Verify in browser**
 
-Visit `http://localhost:3000/the-event-loop-works` and scroll to sections with code blocks and lists.
+Visit `http://localhost:3000/the-js-event-loop-works` and scroll to sections with code blocks and lists.
 Expected: Code blocks have traffic light header chrome and scanline overlay. Lists have glowing colored dots instead of default bullets. Inline `code` has a cyan left border.
 
 - [ ] **Step 3: Commit**
@@ -320,7 +320,7 @@ git commit -m "feat: styled code blocks with chrome, glowing list markers, inlin
 ### Task 5: Add Callout Blocks to MDX Content
 
 **Files:**
-- Modify: `src/posts/the-event-loop-works.mdx`
+- Modify: `src/posts/the-js-event-loop-works.mdx`
 
 Wrap the key quotes and insights with the `<Callout>` component.
 
@@ -378,13 +378,13 @@ requestAnimationFrame is synchronized with the display's refresh rate, while set
 
 - [ ] **Step 2: Verify in browser**
 
-Visit `http://localhost:3000/the-event-loop-works` and scroll to sections 3-6.
+Visit `http://localhost:3000/the-js-event-loop-works` and scroll to sections 3-6.
 Expected: Key insights appear in styled Pit Wall Radio callout cards with gradient background, scanlines, pink label, and italic text.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/posts/the-event-loop-works.mdx
+git add src/posts/the-js-event-loop-works.mdx
 git commit -m "feat: add Pit Wall Radio callout blocks to key article insights"
 ```
 
@@ -448,7 +448,7 @@ Change `opacity={0.04}` to `opacity={0.06}`.
 
 - [ ] **Step 2: Verify in browser**
 
-Visit `http://localhost:3000/the-event-loop-works`.
+Visit `http://localhost:3000/the-js-event-loop-works`.
 Expected: Track has a richer, double-pulse glow effect. A small checkered pattern is visible at the center crossing point of the figure-eight.
 
 - [ ] **Step 3: Commit**
@@ -718,7 +718,7 @@ export function Car({ pathRef, position, isExecuting, positionHistory }: CarProp
 
 - [ ] **Step 4: Verify in browser**
 
-Visit `http://localhost:3000/the-event-loop-works` and scroll to stage 1 (where the car is visible).
+Visit `http://localhost:3000/the-js-event-loop-works` and scroll to stage 1 (where the car is visible).
 Expected: The car has a subtle shadow underneath it. When driving, small cyan dots trail behind the car and pulse gently. When the car stops at a pit stop, the trail disappears.
 
 - [ ] **Step 5: Commit**
@@ -897,7 +897,7 @@ export function PitStop({
 
 - [ ] **Step 2: Verify in browser**
 
-Visit `http://localhost:3000/the-event-loop-works`, scroll to see pit stops, and add tasks.
+Visit `http://localhost:3000/the-js-event-loop-works`, scroll to see pit stops, and add tasks.
 Expected: Pit stops have a subtle bordered container instead of just a radial gradient. When the car stops at a pit stop, two beacon rings pulse outward from the center.
 
 - [ ] **Step 3: Commit**
@@ -962,7 +962,7 @@ rm -rf src/app/sampler
 
 - [ ] **Step 2: Final visual verification**
 
-Visit `http://localhost:3000/the-event-loop-works` and scroll through the entire article. Verify:
+Visit `http://localhost:3000/the-js-event-loop-works` and scroll through the entire article. Verify:
 - Gradient dividers appear between sections (not before section 1)
 - Content fades in on scroll
 - Pit Wall Radio callouts appear in sections 3, 4, 5, and 6

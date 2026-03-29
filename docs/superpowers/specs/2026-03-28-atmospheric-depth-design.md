@@ -134,7 +134,7 @@ Add a top-edge glow to the controls container:
 | `src/components/mdx/Section.tsx` | Add gradient divider, wrap children in motion.div for fade-in |
 | `src/components/mdx/Callout.tsx` | **New file** — Pit Wall Radio callout component |
 | `src/components/mdx/MDXProvider.tsx` | Register Callout, update `pre`/`code`/`ul`/`li`/`strong` styles |
-| `src/posts/the-event-loop-works.mdx` | Add `<Callout>` blocks around key quotes/insights |
+| `src/posts/the-js-event-loop-works.mdx` | Add `<Callout>` blocks around key quotes/insights |
 | `src/hooks/useEventLoopSimulation.ts` | Add `positionHistory` to state, update on tick |
 | `src/components/event-loop/Car.tsx` | Render exhaust trail circles, add car shadow |
 | `src/components/event-loop/Track.tsx` | Enhance glow, add start/finish checkered line |

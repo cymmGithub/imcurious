@@ -1,4 +1,4 @@
-# Design: imcurious.how/the-event-loop-works
+# Design: imcurious.how/the-js-event-loop-works
 
 An interactive, F1-themed blog post explaining the JavaScript event loop. A single F1 car (the main thread) races around a figure-eight track, making pit stops at task/microtask queues and the rendering pipeline. Built with Next.js, MDX, Framer Motion, and Tailwind CSS.
 
@@ -40,7 +40,7 @@ imcurious/
 │   │   └── [slug]/
 │   │       └── page.tsx              # MDX post renderer
 │   ├── posts/
-│   │   └── the-event-loop-works.mdx  # Blog post content
+│   │   └── the-js-event-loop-works.mdx  # Blog post content
 │   ├── components/
 │   │   ├── mdx/                      # MDX provider + custom elements
 │   │   └── event-loop/               # Event loop visualization
@@ -231,7 +231,7 @@ Play/pause and task buttons live inside the track pane, pinned to the bottom. Al
 ### Post Structure
 
 ```mdx
-export const metadata = { title: '...', description: '...', slug: 'the-event-loop-works' }
+export const metadata = { title: '...', description: '...', slug: 'the-js-event-loop-works' }
 
 <ScrollStage>
   <EventLoopViz slot="visualization" />
@@ -272,7 +272,7 @@ export const metadata = { title: '...', description: '...', slug: 'the-event-loo
 - Simplified render stop (one stop, sub-step labels)
 - Hybrid sticky layout (desktop side-by-side, mobile top-sticky)
 - Full educational text across 7 sections
-- Deployed to Vercel at imcurious.how/the-event-loop-works
+- Deployed to Vercel at imcurious.how/the-js-event-loop-works
 
 ### v2
 - Console/log panel showing execution order
