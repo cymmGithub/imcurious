@@ -32,9 +32,9 @@ export function CallStack({
   return (
     <foreignObject
       x={CIRCLE.cx - 80}
-      y={CIRCLE.cy - 50}
+      y={CIRCLE.cy - 80}
       width={160}
-      height={120}
+      height={180}
       overflow="visible"
       style={{
         opacity: visibility,
@@ -57,7 +57,10 @@ export function CallStack({
             margin: '0 auto',
             width: 'fit-content',
             minWidth: '80px',
-            minHeight: '24px',
+            minHeight: '100px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
             background: 'var(--color-surface-card)',
             border: `1px ${frames.length > 0 ? 'solid' : 'dashed'} rgba(232, 228, 220, 0.2)`,
           }}
