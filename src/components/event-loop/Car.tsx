@@ -1,48 +1,52 @@
 'use client'
 
-import { useRef, useEffect, type RefObject } from 'react'
+import { useRef, useEffect, useCallback, type RefObject } from 'react'
 import { useReducedMotion } from 'framer-motion'
 
 interface CarProps {
   pathRef: RefObject<SVGPathElement | null>
   position: number
   isExecuting: boolean
-  positionHistory: RefObject<number[]>
+  cursorHistory: RefObject<number[]>
 }
 
-export function Car({ pathRef, position, isExecuting, positionHistory }: CarProps) {
+export function Car({ pathRef, position, isExecuting, cursorHistory }: CarProps) {
   const carRef = useRef<HTMLDivElement>(null)
   const trailRef = useRef<HTMLDivElement>(null)
   const layoutCache = useRef<{ scaleX: number; scaleY: number; totalLength: number } | null>(null)
+  const readyRef = useRef(false)
   const prefersReducedMotion = useReducedMotion()
 
+  const updateLayout = useCallback(() => {
+    const p = pathRef.current
+    if (!p) return
+    const svg = p.ownerSVGElement
+    if (!svg) return
+    const svgRect = svg.getBoundingClientRect()
+    const viewBox = svg.viewBox.baseVal
+    if (viewBox.width === 0 || viewBox.height === 0) return
+    layoutCache.current = {
+      scaleX: svgRect.width / viewBox.width,
+      scaleY: svgRect.height / viewBox.height,
+      totalLength: p.getTotalLength(),
+    }
+  }, [pathRef])
+
+  // Watch for SVG resize
   useEffect(() => {
     const path = pathRef.current
     if (!path) return
 
-    function updateCache() {
-      const p = pathRef.current
-      if (!p) return
-      const svg = p.ownerSVGElement
-      if (!svg) return
-      const svgRect = svg.getBoundingClientRect()
-      const viewBox = svg.viewBox.baseVal
-      layoutCache.current = {
-        scaleX: svgRect.width / viewBox.width,
-        scaleY: svgRect.height / viewBox.height,
-        totalLength: p.getTotalLength(),
-      }
-    }
+    updateLayout()
 
-    updateCache()
-
-    const observer = new ResizeObserver(updateCache)
+    const observer = new ResizeObserver(updateLayout)
     const svg = path.ownerSVGElement
     if (svg) observer.observe(svg)
 
     return () => observer.disconnect()
-  }, [pathRef])
+  }, [pathRef, updateLayout])
 
+  // Position the car — runs every frame via position prop changes
   useEffect(() => {
     const path = pathRef.current
     const car = carRef.current
@@ -62,10 +66,16 @@ export function Car({ pathRef, position, isExecuting, positionHistory }: CarProp
 
     car.style.transform = `translate(${screenX}px, ${screenY}px) rotate(${degrees}deg)`
 
+    // Show car once we have a valid position
+    if (!readyRef.current) {
+      readyRef.current = true
+      car.style.opacity = '1'
+    }
+
     // Update trail positions
     const trail = trailRef.current
-    const history = positionHistory.current
-    if (trail && cache && history.length > 0) {
+    const history = cursorHistory.current
+    if (trail && history.length > 0) {
       const dots = trail.children
       for (let i = 0; i < dots.length; i++) {
         const dot = dots[i] as HTMLElement
@@ -84,7 +94,7 @@ export function Car({ pathRef, position, isExecuting, positionHistory }: CarProp
         dot.style.opacity = String(Math.max(0, opacity))
       }
     }
-  }, [pathRef, position, positionHistory])
+  }, [pathRef, position, cursorHistory])
 
   return (
     <>
@@ -105,11 +115,11 @@ export function Car({ pathRef, position, isExecuting, positionHistory }: CarProp
         </div>
       )}
 
-      {/* Car */}
+      {/* Car — hidden until first valid position */}
       <div
         ref={carRef}
         className="absolute top-0 left-0 pointer-events-none"
-        style={{ willChange: 'transform' }}
+        style={{ willChange: 'transform', opacity: 0 }}
       >
         <img
           src="/f1-car.png"

@@ -5,15 +5,17 @@ import {
   createInitialState,
   nextState,
   addTask as addTaskPure,
+  startSyncExecution,
   type SimulationState,
   type TaskType,
 } from '@/lib/simulation'
+import { SCENARIOS, type Scenario } from '@/lib/scenarios'
 
 export function useEventLoopSimulation() {
   const [state, setState] = useState<SimulationState>(createInitialState)
   const rafRef = useRef<number>(0)
   const lastTimeRef = useRef<number>(0)
-  const positionHistoryRef = useRef<number[]>([])
+  const cursorHistoryRef = useRef<number[]>([])
 
   useEffect(() => {
     function tick(timestamp: number) {
@@ -27,15 +29,15 @@ export function useEventLoopSimulation() {
       setState((prev) => {
         const next = nextState(prev, dt)
         // Sample position history for exhaust trail (every other frame to keep it sparse)
-        if (next.carState === 'DRIVING') {
-          const history = positionHistoryRef.current
+        if (next.cursorState === 'ORBITING') {
+          const history = cursorHistoryRef.current
           const last = history[history.length - 1]
-          if (last === undefined || Math.abs(next.carPosition - last) > 0.005) {
-            history.push(next.carPosition)
+          if (last === undefined || Math.abs(next.cursorPosition - last) > 0.005) {
+            history.push(next.cursorPosition)
             if (history.length > 10) history.shift()
           }
         } else {
-          positionHistoryRef.current = []
+          cursorHistoryRef.current = []
         }
         return next
       })
@@ -60,8 +62,35 @@ export function useEventLoopSimulation() {
   const reset = useCallback(() => {
     setState(createInitialState)
     lastTimeRef.current = 0
-    positionHistoryRef.current = []
+    cursorHistoryRef.current = []
   }, [])
 
-  return { state, positionHistory: positionHistoryRef, togglePause, addTask, reset }
+  const runScenario = useCallback((scenarioId: string) => {
+    const scenario = SCENARIOS[scenarioId]
+    if (!scenario) return
+
+    setState((prev) => {
+      let s = prev
+      // Unpause if paused
+      if (s.isPaused) {
+        s = { ...s, isPaused: false }
+      }
+
+      // Inject async steps (additive — queue on top)
+      if (scenario.asyncSteps) {
+        for (const step of scenario.asyncSteps) {
+          s = addTaskPure(s, step.type, step.delay)
+        }
+      }
+
+      // Start sync execution if there are sync ops
+      if (scenario.syncOps && scenario.syncOps.length > 0) {
+        s = startSyncExecution(s, scenario.syncOps, scenarioId)
+      }
+
+      return s
+    })
+  }, [])
+
+  return { state, cursorHistory: cursorHistoryRef, togglePause, addTask, reset, runScenario }
 }

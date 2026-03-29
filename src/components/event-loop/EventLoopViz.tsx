@@ -5,9 +5,8 @@ import { Track } from './Track'
 import { Car } from './Car'
 import { PitStop } from './PitStop'
 import { Garage } from './Garage'
-import { Controls } from './Controls'
 import { CallStack } from './CallStack'
-import { useEventLoopSimulation } from '@/hooks/useEventLoopSimulation'
+import { useEventLoop } from '@/contexts/EventLoopContext'
 import { PIT_STOP_POSITIONS, GARAGE_POSITION } from '@/lib/trackPath'
 import { EXECUTION_DURATION } from '@/lib/simulation'
 
@@ -23,11 +22,12 @@ const CAR_STATE_LABELS: Record<string, string> = {
   EXECUTING_TASK: 'Executing task',
   STOPPED_AT_RENDER: 'Car stopped at render step',
   RENDERING: 'Rendering in progress',
+  EXECUTING_SYNC: 'Executing synchronous code',
 }
 
 export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
   const pathRef = useRef<SVGPathElement>(null)
-  const { state, positionHistory, togglePause, addTask, reset } = useEventLoopSimulation()
+  const { state, cursorHistory } = useEventLoop()
 
   const isAtMicrotask =
     state.carState === 'STOPPED_AT_MICROTASK_QUEUE' ||
@@ -41,7 +41,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
   const isExecuting =
     state.carState === 'EXECUTING_TASK' ||
     state.carState === 'EXECUTING_MICROTASK' ||
-    state.carState === 'RENDERING'
+    state.carState === 'RENDERING' ||
+    state.carState === 'EXECUTING_SYNC'
 
   // Render sub-step progress (0–1)
   const renderProgress =
@@ -67,7 +68,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           pathRef={pathRef}
           position={state.carPosition}
           isExecuting={isExecuting}
-          positionHistory={positionHistory}
+          cursorHistory={cursorHistory}
         />
 
         <Garage
@@ -117,18 +118,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
         <CallStack
           carState={state.carState}
           currentTask={state.currentTask}
+          callStackFrames={state.callStackFrames}
           visibility={getStageVisibility(2)}
-        />
-      </div>
-
-      {/* Controls — pinned to bottom */}
-      <div className="flex-shrink-0 p-3">
-        <Controls
-          isPaused={state.isPaused}
-          onTogglePause={togglePause}
-          onAddTask={addTask}
-          onReset={reset}
-          visibility={getStageVisibility(4)}
         />
       </div>
     </div>
