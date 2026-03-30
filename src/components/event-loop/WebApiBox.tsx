@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
+import { PaintBucket } from 'lucide-react'
 import type { PendingWebAPI } from '@/lib/simulation'
 import { WEB_API_POSITION } from '@/lib/circlePath'
 
@@ -61,7 +62,7 @@ export function WebApiBox({ pendingAPIs, visibility }: WebApiBoxProps) {
                   {api.type === 'setTimeout' ? (
                     <>⏱ {(api.remainingDelay / 1000).toFixed(1)}s</>
                   ) : api.type === 'rAF' ? (
-                    <>🎨 rAF</>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><PaintBucket size={8} /> rAF</span>
                   ) : (
                     <>↗ fetching...</>
                   )}

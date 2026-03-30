@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
+import { PaintBucket } from 'lucide-react'
 import type { CursorState, Task } from '@/lib/simulation'
 import { CIRCLE } from '@/lib/circlePath'
 
@@ -95,7 +96,9 @@ export function CallStack({
                     border: '1px solid rgba(232, 228, 220, 0.12)',
                   }}
                 >
-                  {frame}
+                  {frame.startsWith('rAF') ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><PaintBucket size={8} /> {frame}</span>
+                  ) : frame}
                 </motion.div>
               ))
             )}

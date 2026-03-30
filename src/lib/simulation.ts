@@ -125,7 +125,7 @@ export function buildSyncSnapshots(
         webAPIs = [...webAPIs, {
           id: String(nextId++),
           type,
-          label: type === 'rAF' ? '🎨 rAF' : type === 'setTimeout' ? `setTimeout(${resolvedDelay}ms)` : 'fetch()',
+          label: type === 'rAF' ? 'rAF' : type === 'setTimeout' ? `setTimeout(${resolvedDelay}ms)` : 'fetch()',
           delay: resolvedDelay,
           color: COLOR_MAP[type],
           remainingDelay: resolvedDelay,

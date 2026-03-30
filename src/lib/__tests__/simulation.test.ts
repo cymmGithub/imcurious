@@ -150,7 +150,7 @@ describe('nextState', () => {
     const state: SimulationState = {
       ...createInitialState(),
       cursorPosition: PIT_STOPS.render - 0.005,
-      rAfCallbacks: [{ id: '1', type: 'rAF' as const, label: '🎨 rAF', color: '#ffffff' }],
+      rAfCallbacks: [{ id: '1', type: 'rAF' as const, label: 'rAF', color: '#ffffff' }],
     }
     const next = nextState(state, 100)
     expect(next.cursorState).toBe('STOPPED_AT_RENDER')
@@ -370,7 +370,7 @@ describe('stepping', () => {
 describe('stepping with asyncEffect', () => {
   // Simulates the render-step scenario: rAF (async), setTimeout (async), fetch (async)
   const asyncOps: SyncFrameOp[] = [
-    { action: 'push', name: '🎨 rAF()', line: 0, asyncEffect: { type: 'rAF' } },
+    { action: 'push', name: 'rAF()', line: 0, asyncEffect: { type: 'rAF' } },
     { action: 'pop', line: 2 },
     { action: 'push', name: 'setTimeout()', line: 4, asyncEffect: { type: 'setTimeout', delay: 0 } },
     { action: 'pop', line: 4 },
@@ -422,7 +422,7 @@ describe('stepping with asyncEffect', () => {
     // First op is rAF push (has asyncEffect) — web API appears immediately
     expect(state.pendingWebAPIs).toHaveLength(1)
     expect(state.pendingWebAPIs[0].type).toBe('rAF')
-    expect(state.callStackFrames).toEqual(['🎨 rAF()'])
+    expect(state.callStackFrames).toEqual(['rAF()'])
     expect(state.steppingFinalWebAPIs).toHaveLength(3)
     expect(state.nextId).toBe(3)
   })
@@ -603,7 +603,7 @@ describe('scenario step count alignment', () => {
     const { snapshots } = buildSyncSnapshots(scenario.syncOps!, 0)
 
     // Step 0: push rAF (has asyncEffect) — rAF web API appears
-    expect(snapshots[0].callStackFrames).toEqual(['🎨 rAF()'])
+    expect(snapshots[0].callStackFrames).toEqual(['rAF()'])
     expect(snapshots[0].pendingWebAPIs).toHaveLength(1)
     expect(snapshots[0].pendingWebAPIs[0].type).toBe('rAF')
     // Step 1: pop
@@ -629,7 +629,7 @@ describe('render-step rAF asyncEffect', () => {
     // Step 0: after rAF push — web API appears (rAF type)
     expect(snapshots[0].pendingWebAPIs).toHaveLength(1)
     expect(snapshots[0].pendingWebAPIs[0].type).toBe('rAF')
-    expect(snapshots[0].pendingWebAPIs[0].label).toBe('🎨 rAF')
+    expect(snapshots[0].pendingWebAPIs[0].label).toBe('rAF')
 
     // finalWebAPIs should have 3 entries: rAF, setTimeout, fetch
     expect(finalWebAPIs).toHaveLength(3)
@@ -641,7 +641,7 @@ describe('render-step rAF asyncEffect', () => {
 
 describe('rAF dequeue during RENDERING', () => {
   it('transitions from STOPPED_AT_RENDER to RENDERING with first rAF callback as currentTask', () => {
-    const rAfTask = { id: '1', type: 'rAF' as const, label: '🎨 rAF', color: '#ffffff' }
+    const rAfTask = { id: '1', type: 'rAF' as const, label: 'rAF', color: '#ffffff' }
     const state: SimulationState = {
       ...createInitialState(),
       cursorPosition: PIT_STOPS.render,
@@ -656,7 +656,7 @@ describe('rAF dequeue during RENDERING', () => {
   })
 
   it('RENDERING completes and transitions to ORBITING with empty rAfCallbacks', () => {
-    const rAfTask = { id: '1', type: 'rAF' as const, label: '🎨 rAF', color: '#ffffff' }
+    const rAfTask = { id: '1', type: 'rAF' as const, label: 'rAF', color: '#ffffff' }
     const state: SimulationState = {
       ...createInitialState(),
       cursorPosition: PIT_STOPS.render,
@@ -679,7 +679,7 @@ describe('rAF routing', () => {
       pendingWebAPIs: [{
         id: '1',
         type: 'rAF',
-        label: '🎨 rAF',
+        label: 'rAF',
         delay: 0,
         color: '#ffffff',
         remainingDelay: 0,
@@ -688,7 +688,7 @@ describe('rAF routing', () => {
     const next = nextState(state, 16)
     expect(next.pendingWebAPIs).toHaveLength(0)
     expect(next.rAfCallbacks).toHaveLength(1)
-    expect(next.rAfCallbacks[0].label).toBe('🎨 rAF')
+    expect(next.rAfCallbacks[0].label).toBe('rAF')
     expect(next.taskQueue).toHaveLength(0)
     expect(next.microtaskQueue).toHaveLength(0)
   })

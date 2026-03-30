@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
+import { PaintBucket } from 'lucide-react'
 import type { Task } from '@/lib/simulation'
 
 interface StationProps {
@@ -15,11 +16,8 @@ interface StationProps {
   foreignObjectWidth: number
   foreignObjectHeight: number
   align?: 'left' | 'center' | 'right'
-  renderSubSteps?: boolean
-  renderProgress?: number
+  showQueueOrder?: boolean
 }
-
-const RENDER_STEPS = ['rAF', 'Style', 'Layout', 'Paint']
 
 export function Station({
   label,
@@ -33,11 +31,9 @@ export function Station({
   foreignObjectWidth,
   foreignObjectHeight,
   align = 'left',
-  renderSubSteps,
-  renderProgress = 0,
+  showQueueOrder = true,
 }: StationProps) {
   const allTasks = currentTask ? [currentTask, ...tasks] : tasks
-  const activeStep = renderSubSteps ? Math.floor(renderProgress * RENDER_STEPS.length) : -1
 
   return (
     <foreignObject
@@ -65,7 +61,7 @@ export function Station({
             marginBottom: '6px',
           }}
         >
-          {label}{!renderSubSteps && (
+          {label}{showQueueOrder && (
             <span
               className="font-mono text-[7px] tracking-wider uppercase"
               style={{ color: `${color}66`, marginLeft: '6px' }}
@@ -75,7 +71,7 @@ export function Station({
           )}
         </div>
 
-        {(allTasks.length > 0 || renderSubSteps) && (
+        {allTasks.length > 0 && (
           <div
             className="font-mono text-[9px] rounded-md"
             style={{
@@ -88,42 +84,27 @@ export function Station({
             }}
           >
             <AnimatePresence mode="popLayout">
-              {renderSubSteps
-                ? RENDER_STEPS.map((step, i) => (
-                    <div
-                      key={step}
-                      className="font-mono text-[9px] rounded-sm"
-                      style={{
-                        padding: '2px 6px',
-                        marginTop: i > 0 ? '3px' : 0,
-                        background: `${color}12`,
-                        color,
-                        border: `1px solid ${color}1f`,
-                        opacity: i <= activeStep ? 1 : 0.4,
-                      }}
-                    >
-                      {step}
-                    </div>
-                  ))
-                : allTasks.map((task) => (
-                    <motion.div
-                      key={task.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      className="font-mono text-[9px] rounded-sm"
-                      style={{
-                        padding: '2px 6px',
-                        marginTop: '3px',
-                        background: `${color}12`,
-                        color,
-                        border: `1px solid ${color}1f`,
-                      }}
-                    >
-                      {task.label}
-                    </motion.div>
-                  ))}
+              {allTasks.map((task) => (
+                <motion.div
+                  key={task.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="font-mono text-[9px] rounded-sm"
+                  style={{
+                    padding: '2px 6px',
+                    marginTop: '3px',
+                    background: `${color}12`,
+                    color,
+                    border: `1px solid ${color}1f`,
+                  }}
+                >
+                  {task.type === 'rAF' ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}><PaintBucket size={8} /> {task.label}</span>
+                  ) : task.label}
+                </motion.div>
+              ))}
             </AnimatePresence>
           </div>
         )}
