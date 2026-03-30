@@ -71,7 +71,6 @@ export function CallStack({
             background: 'var(--color-surface-card)',
             border: `1px ${frames.length > 0 ? 'solid' : 'dashed'} rgba(232, 228, 220, 0.2)`,
           }}
-          role="list"
           aria-label="Call stack frames"
         >
           <AnimatePresence mode="popLayout">
