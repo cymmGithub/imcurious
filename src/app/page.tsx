@@ -11,7 +11,8 @@ export default function Home() {
       <div className="flex flex-col items-center">
         <Link
           href="/the-js-event-loop-works"
-          className="group text-[var(--color-chalk)] hover:text-white transition-colors font-body inline-flex items-center gap-1.5"
+          className="group text-[var(--color-chalk)] hover:text-white transition-colors font-body inline-flex items-center gap-1.5 rounded-sm"
+          aria-label="How the JavaScript Event Loop Works"
         >
           <span className="relative">
             <span className="relative">

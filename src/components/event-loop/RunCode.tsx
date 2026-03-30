@@ -76,6 +76,7 @@ export function RunCode({ scenarioId }: RunCodeProps) {
                 paddingRight: i === currentActiveLine ? '1rem' : '0',
               }}
             >
+              {/* Safe: highlightedLines come from Shiki processing hardcoded SCENARIOS — not user input */}
               {highlightedLines[i]
                 ? <span dangerouslySetInnerHTML={{ __html: highlightedLines[i] }} />
                 : (line || '\u00A0')}
@@ -96,7 +97,8 @@ export function RunCode({ scenarioId }: RunCodeProps) {
           <button
             onClick={isStepping ? stepBack : undefined}
             disabled={!isStepping || syncFrameIndex === 0}
-            className="font-mono text-xs px-2 py-1 rounded"
+            aria-label="Previous step"
+            className="font-mono text-xs min-w-9 min-h-9 inline-flex items-center justify-center rounded"
             style={{
               color: 'var(--color-chalk)',
               background: 'var(--color-surface-card)',
@@ -117,7 +119,7 @@ export function RunCode({ scenarioId }: RunCodeProps) {
           </span>
           <button
             onClick={() => isStepping ? stepForward() : runScenario(scenarioId)}
-            className="font-mono text-xs px-2 py-1 rounded inline-flex items-center gap-0.5"
+            className="font-mono text-xs min-w-9 min-h-9 px-2 rounded inline-flex items-center justify-center gap-0.5"
             style={{
               color: '#000',
               background: 'var(--color-chalk)',

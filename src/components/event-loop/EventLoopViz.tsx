@@ -67,7 +67,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
   const taskDetail = currentTask ? `: ${currentTask.label}` : ''
 
   return (
-    <div className="relative w-full h-full flex flex-col" role="application" aria-label="Event loop visualization">
+    <div className="relative w-full h-full flex flex-col" role="img" aria-label="Event loop visualization — an animated diagram showing a cursor orbiting through the call stack, task queue, microtask queue, and render steps">
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {statusLabel}{taskDetail}
       </div>

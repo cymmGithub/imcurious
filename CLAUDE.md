@@ -25,3 +25,7 @@ Use `bun` for all commands — not `npm`, `npx`, or `yarn`.
 - Build: `bun run build`
 - Tests: `bun run test`
 - Lint: `bun run lint`
+
+## Verification
+
+Always run `bun run test` after completing changes, in addition to visual verification with Playwright screenshots.

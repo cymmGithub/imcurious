@@ -76,11 +76,24 @@ h1, h2, h3, h4, h5, h6 {
   50% { transform: translateY(3px); }
 }
 
-/* Reduced motion: disable decorative animations */
+/* Focus indicators — visible on dark backgrounds */
+:focus-visible {
+  outline: 2px solid var(--color-chalk);
+  outline-offset: 2px;
+}
+
+/* Reduced motion: disable decorative animations but preserve state transitions */
 @media (prefers-reduced-motion: reduce) {
+  .spin-slow,
+  .pulse-subtle,
+  .bounce-hint {
+    animation: none !important;
+  }
+
+  /* Kill decorative animations globally, but allow short transitions for state changes */
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0.1s !important;
   }
 }

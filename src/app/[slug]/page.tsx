@@ -36,15 +36,17 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
   return (
     <main className="lg:grid lg:grid-cols-[1fr_56px]">
-      <Link
-        href="/"
-        className="fixed top-4 left-4 z-50 group flex items-center gap-1 text-[var(--color-chalk-faint)] hover:text-[var(--color-chalk)] transition-colors"
-        aria-label="Back to home"
-      >
-        <ArrowLeft size={16} className="transition-transform duration-200 ease-out group-hover:-translate-x-0.5" />
-        <span className="font-sketch text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">home</span>
-      </Link>
-      <article className="mx-auto">
+      <nav aria-label="Page">
+        <Link
+          href="/"
+          className="fixed top-4 left-4 z-50 group flex items-center gap-1 text-[var(--color-chalk-faint)] hover:text-[var(--color-chalk)] transition-colors rounded-sm min-w-11 min-h-11 justify-center"
+          aria-label="Back to home"
+        >
+          <ArrowLeft size={16} className="transition-transform duration-200 ease-out group-hover:-translate-x-0.5" />
+          <span className="font-sketch text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200">home</span>
+        </Link>
+      </nav>
+      <article id="main-content" className="mx-auto">
         <MDXProvider>
           <Post />
         </MDXProvider>
