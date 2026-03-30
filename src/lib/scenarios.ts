@@ -108,7 +108,7 @@ setTimeout(() => console.log("Task"), 0);
 fetch("/api/starwars")
   .then(res => console.log(res.json()));`,
     syncOps: [
-      { action: 'push', name: 'requestAnimationFrame()', line: 0, asyncEffect: { type: 'rAF' } },
+      { action: 'push', name: '🎨 rAF()', line: 0, asyncEffect: { type: 'rAF' } },
       { action: 'pop', line: 2 },
       { action: 'push', name: 'setTimeout()', line: 4, asyncEffect: { type: 'setTimeout', delay: 0 } },
       { action: 'pop', line: 4 },
