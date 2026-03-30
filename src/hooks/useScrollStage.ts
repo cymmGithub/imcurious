@@ -39,8 +39,12 @@ export function useScrollStage(): ScrollStageResult {
   const getStageVisibility = useCallback(
     (stage: number): number => {
       const scrollProgress = scrollProgressRef.current
-      const stageStart = (stage - 1) / (TOTAL_STAGES - 1)
-      const transitionWidth = 1.0 / (TOTAL_STAGES - 1)
+      const stageWidth = 1.0 / (TOTAL_STAGES - 1)
+      // Reach 100% opacity slightly before the stage boundary so the
+      // viz element is fully visible by the time the section title appears.
+      const earlyOffset = stageWidth * 0.15
+      const stageStart = (stage - 1) / (TOTAL_STAGES - 1) - earlyOffset
+      const transitionWidth = stageWidth - earlyOffset
 
       if (scrollProgress >= stageStart) return 1
       if (scrollProgress >= stageStart - transitionWidth) {
