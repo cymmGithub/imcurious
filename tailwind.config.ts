@@ -17,15 +17,15 @@ const config: Config = {
       },
       colors: {
         chalk: {
-          DEFAULT: '#e8e4dc',
-          dim: '#a09a8e',
-          faint: '#5a554d',
+          DEFAULT: 'var(--color-chalk)',
+          dim: 'var(--color-chalk-dim)',
+          faint: 'var(--color-chalk-faint)',
         },
         surface: {
-          DEFAULT: '#000000',
-          card: '#0a0a0a',
+          DEFAULT: 'var(--color-surface)',
+          card: 'var(--color-surface-card)',
         },
-        accent: '#c0b8a8',
+        accent: 'var(--color-accent)',
       },
     },
   },

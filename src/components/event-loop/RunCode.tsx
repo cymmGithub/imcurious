@@ -1,9 +1,26 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useEventLoopStore } from '@/stores/eventLoopStore'
 import { SCENARIOS } from '@/lib/scenarios'
-import { SCENARIO_HIGHLIGHTS } from '@/lib/__generated__/scenarioHighlights'
+import { SCENARIO_HIGHLIGHTS_DARK, SCENARIO_HIGHLIGHTS_LIGHT } from '@/lib/__generated__/scenarioHighlights'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+
+function useTheme(): 'dark' | 'light' {
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+
+  useEffect(() => {
+    const html = document.documentElement
+    const read = () => (html.dataset.theme === 'light' ? 'light' : 'dark')
+    setTheme(read())
+
+    const observer = new MutationObserver(() => setTheme(read()))
+    observer.observe(html, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => observer.disconnect()
+  }, [])
+
+  return theme
+}
 
 interface RunCodeProps {
   scenarioId: string
@@ -18,8 +35,10 @@ export function RunCode({ scenarioId }: RunCodeProps) {
   const runScenario = useEventLoopStore((s) => s.runScenario)
   const stepForward = useEventLoopStore((s) => s.stepForward)
   const stepBack = useEventLoopStore((s) => s.stepBack)
+  const theme = useTheme()
   const scenario = SCENARIOS[scenarioId]
-  const highlightedLines = SCENARIO_HIGHLIGHTS[scenarioId] ?? []
+  const highlights = theme === 'light' ? SCENARIO_HIGHLIGHTS_LIGHT : SCENARIO_HIGHLIGHTS_DARK
+  const highlightedLines = highlights[scenarioId] ?? []
 
   if (!scenario) return null
 
@@ -48,7 +67,7 @@ export function RunCode({ scenarioId }: RunCodeProps) {
                 ...(currentActiveLine !== null && i !== currentActiveLine
                   ? { opacity: 0.3 }
                   : {}),
-                backgroundColor: i === currentActiveLine ? 'rgba(232, 228, 220, 0.08)' : 'transparent',
+                backgroundColor: i === currentActiveLine ? 'color-mix(in srgb, var(--color-chalk) 8%, transparent)' : 'transparent',
                 marginLeft: i === currentActiveLine ? '-1rem' : '0',
                 paddingLeft: i === currentActiveLine ? 'calc(1rem - 2px)' : '0',
                 borderLeft: i === currentActiveLine ? '2px solid var(--color-chalk)' : '2px solid transparent',
@@ -101,7 +120,7 @@ export function RunCode({ scenarioId }: RunCodeProps) {
             onClick={() => isStepping ? stepForward() : runScenario(scenarioId)}
             className="font-mono text-xs min-w-9 min-h-9 px-2 rounded inline-flex items-center justify-center gap-0.5"
             style={{
-              color: '#000',
+              color: 'var(--color-surface)',
               background: 'var(--color-chalk)',
               border: 'none',
               cursor: 'pointer',

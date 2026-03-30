@@ -54,9 +54,9 @@ export function WebApiBox({ pendingAPIs, visibility }: WebApiBoxProps) {
                   style={{
                     padding: '2px 6px',
                     marginTop: '3px',
-                    background: 'rgba(160, 154, 142, 0.07)',
+                    background: 'color-mix(in srgb, var(--color-chalk-dim) 7%, transparent)',
                     color: 'var(--color-chalk-dim)',
-                    border: '1px solid rgba(160, 154, 142, 0.12)',
+                    border: '1px solid color-mix(in srgb, var(--color-chalk-dim) 12%, transparent)',
                   }}
                 >
                   {api.type === 'setTimeout' ? (

@@ -15,6 +15,17 @@
   --color-accent: #c0b8a8;
 }
 
+/* Light theme: "ink on warm paper" */
+[data-theme="light"] {
+  --color-chalk: #2a2520;
+  --color-chalk-dim: #6b6358;
+  --color-chalk-faint: #c8c1b6;
+  --color-grid: #e8e3da;
+  --color-surface: #f5f0e8;
+  --color-surface-card: #ece7de;
+  --color-accent: #8a7e6e;
+}
+
 body {
   font-family: var(--font-body), sans-serif;
   background-color: var(--color-surface);
@@ -53,7 +64,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Selection color */
 ::selection {
   background: color-mix(in srgb, var(--color-accent) 25%, transparent);
-  color: white;
+  color: var(--color-chalk);
 }
 
 /* Heartbeat indicator — event loop working under the hood */

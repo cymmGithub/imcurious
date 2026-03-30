@@ -36,7 +36,7 @@ export function CircleTrack({ cursorPosition, isExecuting, hasHiddenWork, dotVis
             cx={station.anchor.x}
             cy={station.anchor.y}
             r={3}
-            fill={station.color}
+            fill="var(--color-chalk)"
             opacity={0.4 * vis}
           />
         )
@@ -87,7 +87,7 @@ export function CircleTrack({ cursorPosition, isExecuting, hasHiddenWork, dotVis
         opacity={0.9}
         style={{
           filter: isExecuting
-            ? 'drop-shadow(0 0 6px rgba(232, 228, 220, 0.5))'
+            ? 'drop-shadow(0 0 6px color-mix(in srgb, var(--color-chalk) 50%, transparent))'
             : 'none',
         }}
       />

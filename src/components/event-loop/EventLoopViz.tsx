@@ -99,7 +99,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
             y1={STATION_POSITIONS.microtask.anchor.y}
             x2={248}
             y2={48}
-            stroke={STATION_POSITIONS.microtask.color}
+            stroke="var(--color-chalk)"
             strokeWidth={1}
             strokeDasharray="4 4"
             opacity={0.3 * microtaskVis}
@@ -109,7 +109,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
             y1={STATION_POSITIONS.task.anchor.y}
             x2={510}
             y2={402}
-            stroke={STATION_POSITIONS.task.color}
+            stroke="var(--color-chalk)"
             strokeWidth={1}
             strokeDasharray="4 4"
             opacity={0.3 * taskVis}
@@ -119,7 +119,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
             y1={STATION_POSITIONS.render.anchor.y}
             x2={90}
             y2={402}
-            stroke={STATION_POSITIONS.render.color}
+            stroke="var(--color-chalk)"
             strokeWidth={1}
             strokeDasharray="4 4"
             opacity={0.3 * renderVis}
@@ -128,7 +128,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           {/* Microtask Queue — 12 o'clock */}
           <Station
             label={STATION_POSITIONS.microtask.label}
-            color={STATION_POSITIONS.microtask.color}
+            color={'var(--color-chalk)'}
             tasks={microtaskQueue}
             currentTask={isAtMicrotask ? currentTask : null}
             isActive={isAtMicrotask}
@@ -143,7 +143,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           {/* Task Queue — ~5 o'clock */}
           <Station
             label={STATION_POSITIONS.task.label}
-            color={STATION_POSITIONS.task.color}
+            color={'var(--color-chalk)'}
             tasks={taskQueue}
             currentTask={isAtTask ? currentTask : null}
             isActive={isAtTask}
@@ -157,7 +157,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
           {/* Render — ~7 o'clock */}
           <Station
             label={STATION_POSITIONS.render.label}
-            color={STATION_POSITIONS.render.color}
+            color={'var(--color-chalk)'}
             tasks={rAfCallbacks}
             currentTask={isAtRender ? currentTask : null}
             isActive={isAtRender}

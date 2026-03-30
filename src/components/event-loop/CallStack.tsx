@@ -69,7 +69,7 @@ export function CallStack({
             flexDirection: 'column',
             justifyContent: 'flex-end',
             background: 'var(--color-surface-card)',
-            border: `1px ${frames.length > 0 ? 'solid' : 'dashed'} rgba(232, 228, 220, 0.2)`,
+            border: `1px ${frames.length > 0 ? 'solid' : 'dashed'} color-mix(in srgb, var(--color-chalk) 20%, transparent)`,
           }}
           aria-label="Call stack frames"
         >
@@ -90,9 +90,9 @@ export function CallStack({
                     padding: '2px 6px',
                     marginTop: i > 0 ? '3px' : 0,
                     borderRadius: '3px',
-                    background: 'rgba(232, 228, 220, 0.07)',
+                    background: 'color-mix(in srgb, var(--color-chalk) 7%, transparent)',
                     color: 'var(--color-chalk)',
-                    border: '1px solid rgba(232, 228, 220, 0.12)',
+                    border: '1px solid color-mix(in srgb, var(--color-chalk) 12%, transparent)',
                   }}
                 >
                   {frame.startsWith('rAF') ? (
