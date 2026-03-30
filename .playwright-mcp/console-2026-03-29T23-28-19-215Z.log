@@ -1,0 +1,287 @@
+[     253ms] [ERROR] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <LoadingBoundary name="/" loading={null}>
+      <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+        <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} unauthorized={undefined} ...>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+                <SegmentViewNode type="page" pagePath="page.tsx">
+                  <SegmentTrieNode>
+                  <Home>
+                    <main className="flex min-h...">
+                      <div className="mb-4">
+                        <SketchTitle>
+                          <h1 className="font-sketc...">
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span initial={{opacity:0,scale:0}} animate={{opacity:1,scale:1}} ...>
+                              <span
++                               className="inline-block text-red-400 origin-bottom relative top-[3px]"
+-                               className="inline-block text-red-400 origin-bottom"
+                                style={{opacity:0,transform:"scale(0)"}}
+                                ref={function useMotionRef.useCallback}
+                              >
++                               .
+                            ...
+                      ...
+                ...
+              ...
+ @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[     357ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/favicon.ico:0
+[   62623ms] [ERROR] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <LoadingBoundary name="/" loading={null}>
+      <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+        <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} unauthorized={undefined} ...>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+                <SegmentViewNode type="page" pagePath="page.tsx">
+                  <SegmentTrieNode>
+                  <Home>
+                    <main className="flex min-h...">
+                      <div className="mb-4">
+                        <SketchTitle>
+                          <h1 className="font-sketc...">
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span initial={{opacity:0,scale:0}} animate={{opacity:1,scale:1}} ...>
+                              <span
++                               className="inline-block text-red-400 origin-bottom relative top-[3px]"
+-                               className="inline-block text-red-400 origin-bottom"
+                                style={{opacity:0,transform:"scale(0)"}}
+                                ref={function useMotionRef.useCallback}
+                              >
++                               .
+                            <motion.span initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} ...>
+                              <span
++                               className="inline-block top-[3px]"
+-                               className="inline-block"
+                                style={{opacity:0,transform:"translateY..."}}
+                                ref={function useMotionRef.useCallback}
+                              >
++                               h
+                            <motion.span initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} ...>
+                              <span
++                               className="inline-block top-[3px]"
+-                               className="inline-block"
+                                style={{opacity:0,transform:"translateY..."}}
+                                ref={function useMotionRef.useCallback}
+                              >
++                               o
+                            <motion.span initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} ...>
+                              <span
++                               className="inline-block top-[3px]"
+-                               className="inline-block"
+                                style={{opacity:0,transform:"translateY..."}}
+                                ref={function useMotionRef.useCallback}
+                              >
++                               w
+                      ...
+                ...
+              ...
+ @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[   74037ms] [ERROR] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <LoadingBoundary name="/" loading={null}>
+      <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+        <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} unauthorized={undefined} ...>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+                <SegmentViewNode type="page" pagePath="page.tsx">
+                  <SegmentTrieNode>
+                  <Home>
+                    <main className="flex min-h...">
+                      <div className="mb-4">
+                        <SketchTitle>
+                          <h1 className="font-sketc...">
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span initial={{opacity:0,scale:0}} animate={{opacity:1,scale:1}} ...>
+                              <span
++                               className="inline-block text-red-400 origin-bottom relative top-[3px]"
+-                               className="inline-block text-red-400 origin-bottom"
+                                style={{opacity:0,transform:"scale(0)"}}
+                                ref={function useMotionRef.useCallback}
+                              >
++                               .
+                            ...
+                      ...
+                ...
+              ...
+ @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[   84550ms] [ERROR] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <LoadingBoundary name="/" loading={null}>
+      <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+        <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} unauthorized={undefined} ...>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+                <SegmentViewNode type="page" pagePath="page.tsx">
+                  <SegmentTrieNode>
+                  <Home>
+                    <main className="flex min-h...">
+                      <div className="mb-4">
+                        <SketchTitle>
+                          <h1 className="font-sketc...">
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span initial={{opacity:0,scale:0}} animate={{opacity:1,scale:1}} ...>
+                              <span
++                               className="inline-block text-red-400 origin-bottom relative top-[3px]"
+-                               className="inline-block text-red-400 origin-bottom"
+                                style={{opacity:0,transform:"scale(0)"}}
+                                ref={function useMotionRef.useCallback}
+                              >
++                               .
+                            ...
+                      ...
+                ...
+              ...
+ @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[   86608ms] [ERROR] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <LoadingBoundary name="/" loading={null}>
+      <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+        <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} unauthorized={undefined} ...>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+                <SegmentViewNode type="page" pagePath="page.tsx">
+                  <SegmentTrieNode>
+                  <Home>
+                    <main className="flex min-h...">
+                      <div className="mb-4">
+                        <SketchTitle>
+                          <h1 className="font-sketc...">
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span>
+                            <motion.span initial={{opacity:0,scale:0}} animate={{opacity:1,scale:1}} ...>
+                              <span
++                               className="inline-block text-red-400 origin-bottom relative top-[3px]"
+-                               className="inline-block text-red-400 origin-bottom"
+                                style={{opacity:0,transform:"scale(0)"}}
+                                ref={function useMotionRef.useCallback}
+                              >
++                               .
+                            ...
+                      ...
+                ...
+              ...
+ @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[   86665ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/favicon.ico:0
+[   94098ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=1l6eItTpTPaB45mGuteXl' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[   95100ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=1l6eItTpTPaB45mGuteXl' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[   96101ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=1l6eItTpTPaB45mGuteXl' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[   97102ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=1l6eItTpTPaB45mGuteXl' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[   98103ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=1l6eItTpTPaB45mGuteXl' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[  103105ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=1l6eItTpTPaB45mGuteXl' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[  149277ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=zAWa-cKSCwPmfYHz082Xj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[  150278ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=zAWa-cKSCwPmfYHz082Xj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[  151280ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=zAWa-cKSCwPmfYHz082Xj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[  160547ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=BQ273H9J4hsa2RjqiJwzu' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[ 2409253ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QAgyZXk-fHE5R4kZHUkzs' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[ 2410254ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QAgyZXk-fHE5R4kZHUkzs' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[ 2411256ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QAgyZXk-fHE5R4kZHUkzs' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[ 2412257ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QAgyZXk-fHE5R4kZHUkzs' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[ 2413259ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QAgyZXk-fHE5R4kZHUkzs' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[ 2418263ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QAgyZXk-fHE5R4kZHUkzs' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[ 2423273ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QAgyZXk-fHE5R4kZHUkzs' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[ 2428293ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QAgyZXk-fHE5R4kZHUkzs' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[ 2433328ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QAgyZXk-fHE5R4kZHUkzs' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[ 2438397ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QAgyZXk-fHE5R4kZHUkzs' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[ 2443441ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QAgyZXk-fHE5R4kZHUkzs' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[ 2448557ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=QAgyZXk-fHE5R4kZHUkzs' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
