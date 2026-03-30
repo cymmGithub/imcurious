@@ -29,6 +29,10 @@ const caveat = Caveat({
 export const metadata: Metadata = {
   title: 'imcurious.how',
   description: 'Interactive explorations of how things work',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/apple-icon',
+  },
 }
 
 export default function RootLayout({
