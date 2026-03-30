@@ -16,7 +16,7 @@ export default function Home() {
         >
           <span className="relative">
             <span className="relative">
-              the <img src="/js-logo.png" alt="JavaScript" className="inline h-[1em] align-[-0.1em] rounded-[3px]" /> Event Loop Works?
+              the <img src="/js-logo.png" alt="JavaScript" width={16} height={16} className="inline h-[1em] align-[-0.1em] rounded-[3px]" /> Event Loop Works?
             </span>
             <span className="absolute left-0 -bottom-0.5 w-0 h-px bg-white/60 transition-all duration-300 ease-out group-hover:w-full" />
           </span>

@@ -36,7 +36,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
   return (
     <main className="lg:grid lg:grid-cols-[1fr_56px]">
-      <nav aria-label="Page">
+      <nav aria-label="Page" className="contents">
         <Link
           href="/"
           className="fixed top-4 left-4 z-50 group flex items-center gap-1 text-[var(--color-chalk-faint)] hover:text-[var(--color-chalk)] transition-colors rounded-sm min-w-11 min-h-11 justify-center"

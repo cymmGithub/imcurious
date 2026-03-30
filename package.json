@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "prebuild": "bun scripts/highlight-scenarios.ts",
+    "build": "bun run prebuild && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",

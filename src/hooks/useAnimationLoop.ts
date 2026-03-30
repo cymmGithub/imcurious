@@ -10,6 +10,7 @@ export function useAnimationLoop() {
 
   useEffect(() => {
     let rafId = 0
+    let visible = !document.hidden
 
     function frame(timestamp: number) {
       if (lastTimeRef.current === 0) lastTimeRef.current = timestamp
@@ -19,7 +20,29 @@ export function useAnimationLoop() {
       rafId = requestAnimationFrame(frame)
     }
 
-    rafId = requestAnimationFrame(frame)
-    return () => cancelAnimationFrame(rafId)
+    function start() {
+      if (!visible) return
+      lastTimeRef.current = 0
+      rafId = requestAnimationFrame(frame)
+    }
+
+    function stop() {
+      cancelAnimationFrame(rafId)
+      rafId = 0
+    }
+
+    function onVisibilityChange() {
+      visible = !document.hidden
+      if (visible) start()
+      else stop()
+    }
+
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    start()
+
+    return () => {
+      stop()
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
   }, [tick])
 }

@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useEventLoopStore } from '@/stores/eventLoopStore'
 import { SCENARIOS } from '@/lib/scenarios'
+import { SCENARIO_HIGHLIGHTS } from '@/lib/__generated__/scenarioHighlights'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface RunCodeProps {
@@ -19,27 +19,7 @@ export function RunCode({ scenarioId }: RunCodeProps) {
   const stepForward = useEventLoopStore((s) => s.stepForward)
   const stepBack = useEventLoopStore((s) => s.stepBack)
   const scenario = SCENARIOS[scenarioId]
-  const [highlightedLines, setHighlightedLines] = useState<string[]>([])
-
-  useEffect(() => {
-    if (!scenario) return
-    let cancelled = false
-    import('shiki').then(({ codeToHtml }) =>
-      codeToHtml(scenario.code, { lang: 'javascript', theme: 'nord' })
-    ).then((html) => {
-      if (cancelled) return
-      // Extract inner content from <pre><code>...</code></pre>
-      const codeMatch = html.match(/<code[^>]*>([\s\S]*)<\/code>/)
-      if (!codeMatch) return
-      // Split by line spans — shiki wraps each line in <span class="line">
-      const lineHtmls = codeMatch[1]
-        .split(/<span class="line">/)
-        .filter(Boolean)
-        .map((l) => l.replace(/<\/span>$/, ''))
-      setHighlightedLines(lineHtmls)
-    })
-    return () => { cancelled = true }
-  }, [scenario])
+  const highlightedLines = SCENARIO_HIGHLIGHTS[scenarioId] ?? []
 
   if (!scenario) return null
 
