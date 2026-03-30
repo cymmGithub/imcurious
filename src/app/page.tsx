@@ -12,7 +12,7 @@ export default function Home() {
         href="/the-js-event-loop-works"
         className="text-[var(--color-chalk)] hover:text-white transition-colors font-body inline-flex items-center gap-1"
       >
-        the <img src="/js-logo.png" alt="JavaScript" className="inline h-[1em] align-[-0.1em] rounded-[3px]" /> Event Loop Works <ArrowRight size={16} />
+        the <img src="/js-logo.png" alt="JavaScript" className="inline h-[1em] align-[-0.1em] rounded-[3px]" /> Event Loop Works?
       </Link>
     </main>
   )

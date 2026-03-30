@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   if (slug === 'the-js-event-loop-works') {
     return {
-      title: 'How the JS Event Loop Works | imcurious.how',
+      title: 'How the JS Event Loop Works? | imcurious.how',
       description:
         'An interactive guide to the JavaScript event loop. Watch tasks navigate queues, microtasks, and rendering.',
     }
