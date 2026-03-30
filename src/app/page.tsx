@@ -4,15 +4,21 @@ import SketchTitle from '@/components/SketchTitle'
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
+    <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,transparent_0%,rgba(0,0,0,0.85)_100%)]">
       <div className="mb-4">
         <SketchTitle />
       </div>
       <Link
         href="/the-js-event-loop-works"
-        className="text-[var(--color-chalk)] hover:text-white transition-colors font-body inline-flex items-center gap-1"
+        className="group text-[var(--color-chalk)] hover:text-white transition-colors font-body inline-flex items-center gap-1.5"
       >
-        the <img src="/js-logo.png" alt="JavaScript" className="inline h-[1em] align-[-0.1em] rounded-[3px]" /> Event Loop Works?
+        <span className="relative">
+          <span className="relative">
+            the <img src="/js-logo.png" alt="JavaScript" className="inline h-[1em] align-[-0.1em] rounded-[3px]" /> Event Loop Works?
+          </span>
+          <span className="absolute left-0 -bottom-0.5 w-0 h-px bg-white/60 transition-all duration-300 ease-out group-hover:w-full" />
+        </span>
+        <ArrowRight size={16} className="opacity-60 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:translate-x-1 group-hover:opacity-100" />
       </Link>
     </main>
   )
