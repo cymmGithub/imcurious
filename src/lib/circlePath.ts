@@ -42,8 +42,8 @@ export const STATION_POSITIONS = {
 // SVG path for animateMotion (starts at top, clockwise)
 export const ORBIT_PATH = `M ${CIRCLE.cx} ${CIRCLE.cy - CIRCLE.r} A ${CIRCLE.r} ${CIRCLE.r} 0 1 1 ${CIRCLE.cx - 0.01} ${CIRCLE.cy - CIRCLE.r} Z`
 
-// Web APIs box position (top-right corner)
+// Web APIs box position (top-right, within viewBox bounds)
 export const WEB_API_POSITION = {
   x: 450,
-  y: -55,
+  y: 5,
 }

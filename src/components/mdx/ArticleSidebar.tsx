@@ -6,6 +6,15 @@ interface ArticleSidebarProps {
 
 export function ArticleSidebar({ category, date, pageNumber = '01' }: ArticleSidebarProps) {
   return (
+    <>
+    {/* Mobile metadata bar */}
+    <aside className="lg:hidden flex items-center justify-center gap-4 py-3 px-4 text-[var(--color-chalk-dim)] select-none border-t border-[var(--color-chalk-faint)]">
+      <span className="font-display text-xs tracking-wider">{category}</span>
+      <span className="w-px h-3 bg-[var(--color-chalk-faint)]" aria-hidden="true" />
+      <span className="font-mono text-[10px] tracking-wider">{date}</span>
+    </aside>
+
+    {/* Desktop vertical sidebar */}
     <aside className="hidden lg:flex flex-col items-center justify-between sticky top-0 h-screen py-8 w-14 select-none">
       {/* Page number */}
       <span
@@ -33,5 +42,6 @@ export function ArticleSidebar({ category, date, pageNumber = '01' }: ArticleSid
       {/* Bottom spacer for visual balance */}
       <div className="w-6 border-t border-[var(--color-chalk-faint)]" />
     </aside>
+    </>
   )
 }
