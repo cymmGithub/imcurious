@@ -60,6 +60,8 @@ export function WebApiBox({ pendingAPIs, visibility }: WebApiBoxProps) {
                 >
                   {api.type === 'setTimeout' ? (
                     <>⏱ {(api.remainingDelay / 1000).toFixed(1)}s</>
+                  ) : api.type === 'rAF' ? (
+                    <>🎨 rAF</>
                   ) : (
                     <>↗ fetching...</>
                   )}
