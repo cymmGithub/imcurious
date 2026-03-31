@@ -107,10 +107,11 @@ export function Station({
 												gap: '3px',
 											}}
 										>
-											<PaintBucket size={8} /> {task.label}
+											<PaintBucket size={8} />{' '}
+											{task.callbackLabel ?? task.label}
 										</span>
 									) : (
-										task.label
+										task.callbackLabel ?? task.label
 									)}
 								</motion.div>
 							))}

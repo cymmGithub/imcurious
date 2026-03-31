@@ -89,6 +89,8 @@ When a timer finishes or a click happens, the browser does not slam the callback
 
 Think of it as a staging station. Tasks line up, single file, waiting for their chance to enter the loop. And the event loop — our loop marshal — enforces one strict rule: **one task per cycle**.
 
+Here is something most tutorials skip: the script you write is _itself_ a task. When the browser first loads your `<script>`, it schedules that entire script as one task. Every line of synchronous code — every variable declaration, every function call — runs as part of that single task. Nothing else can enter the call stack until the script finishes.
+
 <RunCode scenarioId="task-queue-ordering" />
 
 Even though A's timer is shorter, neither callback runs until all synchronous code finishes. Here is the full sequence:
@@ -133,7 +135,7 @@ The difference? After each task executes, the event loop **drains all microtasks
 
 <RunCode scenarioId="microtask-priority" />
 
-Even though `setTimeout` was called first, the fetch callback wins. Every time. Here is why:
+In this example, the fetch callback runs before the setTimeout callback. But not _because_ microtasks magically jump the queue — it is because the network response arrives before the 2000ms timer fires. The fetch `.then()` enters the microtask queue first, and gets drained first. Here is the full sequence:
 
 <StepList scenarioId="microtask-priority">
 1. `setTimeout` is called — hands its callback to the browser's timer (2000ms). It will enter the **task queue**
@@ -141,7 +143,7 @@ Even though `setTimeout` was called first, the fetch callback wins. Every time. 
 3. `fetch("/api/starwars")` is called — sends a network request via the browser. Its `.then()` will enter the **microtask queue** when the response arrives
 4. `fetch` returns a Promise immediately — popped off. The request is now in-flight
 5. `console.log("Sync")` is pushed onto the stack and runs
-6. It returns — popped off. Now the event loop drains the microtask queue completely, then picks the next task
+6. It returns — popped off. The initial script task is done. The cursor resumes orbiting — both queues are still empty because the fetch is in-flight and the timer is counting down. When the fetch resolves, its `.then()` enters the microtask queue and gets drained. Later, when the 2000ms timer fires, its callback enters the task queue
 </StepList>
 
 Notice something subtle: the `fetch()` call itself fires **immediately** when the interpreter hits that line. It does not wait for the rest of your synchronous code to finish. The browser's network thread starts the HTTP request right away, in parallel. What _does_ wait is the `.then()` callback — that only runs after the fetch resolves _and_ the call stack is empty. So the request is already in-flight while `console.log("Sync")` executes. The `fetch()` function is synchronous; the _result handling_ is asynchronous.
