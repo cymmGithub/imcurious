@@ -60,7 +60,7 @@ export type SimulationState = {
 	steppingFinalWebAPIs: PendingWebAPI[]
 }
 
-export const PIT_STOPS = { microtask: 0, task: 1 / 3, render: 2 / 3 } as const
+export const PIT_STOPS = { task: 0, microtask: 1 / 3, render: 2 / 3 } as const
 
 const CURSOR_SPEED = 0.0001
 export const EXECUTION_DURATION = 600
@@ -210,7 +210,7 @@ export function startStarve(state: SimulationState): SimulationState {
 	return {
 		...state,
 		cursorState: 'STARVED_MICROTASK',
-		cursorPosition: 0,
+		cursorPosition: PIT_STOPS.microtask,
 		executionTimer: STARVE_DURATION,
 		syncFrameIndex: 0,
 		callStackFrames: ['forever()', 'Promise.then(forever)'],
@@ -442,14 +442,14 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 			const prevPos = s.cursorPosition
 			let newPos = prevPos + CURSOR_SPEED * dt
 
-			// Check task and render pit stops (at 0.333 and 0.667 — no wrap issues)
+			// Check microtask and render pit stops (at 0.333 and 0.667 — no wrap issues)
 			// Use exact crossing check (no threshold) to avoid visible cursor snapping
-			if (prevPos < PIT_STOPS.task && newPos >= PIT_STOPS.task) {
-				if (s.taskQueue.length > 0) {
+			if (prevPos < PIT_STOPS.microtask && newPos >= PIT_STOPS.microtask) {
+				if (s.microtaskQueue.length > 0) {
 					return {
 						...s,
-						cursorPosition: PIT_STOPS.task,
-						cursorState: 'STOPPED_AT_TASK_QUEUE',
+						cursorPosition: PIT_STOPS.microtask,
+						cursorState: 'STOPPED_AT_MICROTASK_QUEUE',
 						executionTimer: STOP_PAUSE,
 					}
 				}
@@ -469,12 +469,12 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 			// Wrap position
 			if (newPos >= 1.0) {
 				newPos = newPos - 1.0
-				// Check microtask stop after wrap (position 0)
-				if (s.microtaskQueue.length > 0) {
+				// Check task queue stop after wrap (position 0)
+				if (s.taskQueue.length > 0) {
 					return {
 						...s,
 						cursorPosition: 0,
-						cursorState: 'STOPPED_AT_MICROTASK_QUEUE',
+						cursorState: 'STOPPED_AT_TASK_QUEUE',
 						executionTimer: STOP_PAUSE,
 					}
 				}

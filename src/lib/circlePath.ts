@@ -19,15 +19,15 @@ function stationAnchor(angleDeg: number) {
 }
 
 export const STATION_POSITIONS = {
-	microtask: {
+	task: {
 		pathT: 0,
-		label: 'Microtask Queue',
+		label: 'Task Queue',
 		anchor: stationAnchor(0), // (300, 120) — 12 o'clock
 		color: '#ffffff',
 	},
-	task: {
+	microtask: {
 		pathT: 1 / 3,
-		label: 'Callback Queue',
+		label: 'Microtask Queue',
 		anchor: stationAnchor(120), // (456, 390) — ~5 o'clock
 		color: '#ffffff',
 	},

@@ -16,7 +16,7 @@ const CURSOR_STATE_LABELS: Record<string, string> = {
 	ORBITING: 'Cursor orbiting the event loop',
 	STOPPED_AT_MICROTASK_QUEUE: 'Stopped at microtask queue',
 	EXECUTING_MICROTASK: 'Executing microtask',
-	STOPPED_AT_TASK_QUEUE: 'Stopped at callback queue',
+	STOPPED_AT_TASK_QUEUE: 'Stopped at task queue',
 	EXECUTING_TASK: 'Executing task',
 	STOPPED_AT_RENDER: 'Stopped at render step',
 	RENDERING: 'Rendering in progress',
@@ -111,24 +111,24 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 
 					{/* Dashed connector lines from anchor dots to stations */}
 					<line
-						x1={STATION_POSITIONS.microtask.anchor.x}
-						y1={STATION_POSITIONS.microtask.anchor.y}
+						x1={STATION_POSITIONS.task.anchor.x}
+						y1={STATION_POSITIONS.task.anchor.y}
 						x2={248}
 						y2={48}
 						stroke="var(--color-chalk)"
 						strokeWidth={1}
 						strokeDasharray="4 4"
-						opacity={0.3 * microtaskVis}
+						opacity={0.3 * taskVis}
 					/>
 					<line
-						x1={STATION_POSITIONS.task.anchor.x}
-						y1={STATION_POSITIONS.task.anchor.y}
+						x1={STATION_POSITIONS.microtask.anchor.x}
+						y1={STATION_POSITIONS.microtask.anchor.y}
 						x2={510}
 						y2={402}
 						stroke="var(--color-chalk)"
 						strokeWidth={1}
 						strokeDasharray="4 4"
-						opacity={0.3 * taskVis}
+						opacity={0.3 * microtaskVis}
 					/>
 					<line
 						x1={STATION_POSITIONS.render.anchor.x}
@@ -141,22 +141,7 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 						opacity={0.3 * renderVis}
 					/>
 
-					{/* Microtask Queue — 12 o'clock */}
-					<Station
-						label={STATION_POSITIONS.microtask.label}
-						color={'var(--color-chalk)'}
-						tasks={microtaskQueue}
-						currentTask={isAtMicrotask ? currentTask : null}
-						isActive={isAtMicrotask}
-						visibility={getStageVisibility(5)}
-						foreignObjectX={70}
-						foreignObjectY={10}
-						foreignObjectWidth={200}
-						foreignObjectHeight={90}
-						align="right"
-					/>
-
-					{/* Task Queue — ~5 o'clock */}
+					{/* Task Queue — 12 o'clock */}
 					<Station
 						label={STATION_POSITIONS.task.label}
 						color={'var(--color-chalk)'}
@@ -164,6 +149,21 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 						currentTask={isAtTask ? currentTask : null}
 						isActive={isAtTask}
 						visibility={getStageVisibility(4)}
+						foreignObjectX={70}
+						foreignObjectY={10}
+						foreignObjectWidth={200}
+						foreignObjectHeight={90}
+						align="right"
+					/>
+
+					{/* Microtask Queue — ~5 o'clock */}
+					<Station
+						label={STATION_POSITIONS.microtask.label}
+						color={'var(--color-chalk)'}
+						tasks={microtaskQueue}
+						currentTask={isAtMicrotask ? currentTask : null}
+						isActive={isAtMicrotask}
+						visibility={getStageVisibility(5)}
 						foreignObjectX={510}
 						foreignObjectY={380}
 						foreignObjectWidth={180}

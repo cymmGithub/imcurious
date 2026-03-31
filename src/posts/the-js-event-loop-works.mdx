@@ -83,11 +83,11 @@ So when the timer finishes, where does the callback go? It cannot just jump onto
 
 <Section stage={4}>
 
-## The Callback Queue
+## The Task Queue
 
-When a timer finishes or a click happens, the browser does not slam the callback onto the call stack. That would be chaos — imagine a background worker cutting into the cursor's orbit. Instead, the callback goes into a **waiting area**: the callback queue.
+When a timer finishes or a click happens, the browser does not slam the callback onto the call stack. That would be chaos — imagine a background worker cutting into the cursor's orbit. Instead, the callback goes into a **waiting area**: the **task queue**.
 
-Think of it as a staging station. Callbacks line up, single file, waiting for their chance to enter the loop. And the event loop — our loop marshal — enforces one strict rule: **one task per cycle**.
+Think of it as a staging station. Tasks line up, single file, waiting for their chance to enter the loop. And the event loop — our loop marshal — enforces one strict rule: **one task per cycle**.
 
 <RunCode scenarioId="task-queue-ordering" />
 
@@ -103,13 +103,21 @@ Even though A's timer is shorter, neither callback runs until all synchronous co
 </StepList>
 
 <Callout>
-	The callback queue does not run until all global code has finished. You could
+	The task queue does not run until all global code has finished. You could
 	have a million console.log statements after setTimeout(fn, 0), and every
-	single one would execute before that callback gets its chance. The event loop
+	single one would execute before that task gets its chance. The event loop
 	is strict. Predictable. No exceptions.
 </Callout>
 
 We could have a million console logs, and still, everything would be left until after. That is not a bug. That is the design. Predictability over speed, every time.
+
+<Callout>
+	The spec defines each event loop iteration precisely: _"During each iteration,
+	it runs at most one pending JavaScript task, then any pending microtasks, then
+	performs any needed rendering and painting before looping again."_ Only that
+	one already-pending task gets precedence. After it executes, microtasks
+	completely dominate — they all drain before the next task is even looked at.
+</Callout>
 
 </Section>
 
@@ -119,21 +127,21 @@ We could have a million console logs, and still, everything would be left until 
 
 Now here is the plot twist. There is not just one staging station. There are **two**. And one of them has priority access.
 
-When you use Promises — `.then()`, `.catch()`, or `async/await` — the callbacks do not go into the regular callback queue. They go into a separate, higher-priority lane called the **microtask queue**.
+When you use Promises — `.then()`, `.catch()`, or `async/await` — the callbacks do not go into the regular task queue. They go into a separate, higher-priority lane called the **microtask queue**.
 
-The difference? The event loop **drains all microtasks** before it does anything else. Not one per cycle. All of them.
+The difference? After each task executes, the event loop **drains all microtasks** before moving on. Not one per cycle. All of them — including any new ones added during the drain.
 
 <RunCode scenarioId="microtask-priority" />
 
 Even though `setTimeout` was called first, the fetch callback wins. Every time. Here is why:
 
 <StepList scenarioId="microtask-priority">
-1. `setTimeout` is called — hands its callback to the browser's timer (2000ms). It will enter the **callback queue**
+1. `setTimeout` is called — hands its callback to the browser's timer (2000ms). It will enter the **task queue**
 2. It returns — popped off
 3. `fetch("/api/starwars")` is called — sends a network request via the browser. Its `.then()` will enter the **microtask queue** when the response arrives
 4. `fetch` returns a Promise immediately — popped off. The request is now in-flight
 5. `console.log("Sync")` is pushed onto the stack and runs
-6. It returns — popped off. Now the event loop checks the microtask queue **first**, then the callback queue
+6. It returns — popped off. Now the event loop drains the microtask queue completely, then picks the next task
 </StepList>
 
 Notice something subtle: the `fetch()` call itself fires **immediately** when the interpreter hits that line. It does not wait for the rest of your synchronous code to finish. The browser's network thread starts the HTTP request right away, in parallel. What _does_ wait is the `.then()` callback — that only runs after the fetch resolves _and_ the call stack is empty. So the request is already in-flight while `console.log("Sync")` executes. The `fetch()` function is synchronous; the _result handling_ is asynchronous.
@@ -149,6 +157,14 @@ And here is the dangerous part: if a microtask queues another microtask, that on
 <DemoCode id="infinite-microtasks" />
 
 The cursor never completes its cycle. The priority station has an infinite queue. The loop marshal keeps sending the cursor through it, and the loop never gets to repaint.
+
+<Callout>
+	A note on terminology: the spec calls them **tasks** and **microtasks**. You
+	will see tutorials use "callback queue" or "macrotask queue" — those are
+	informal names. The official terms are _task queue_ (`setTimeout`,
+	`setInterval`, event handlers) and _microtask queue_ (`Promise.then()`,
+	`queueMicrotask()`, `MutationObserver`).
+</Callout>
 
 </Section>
 
@@ -179,7 +195,7 @@ This is why long-running tasks cause jank. If your JavaScript takes 200ms to run
 	update visuals."
 </Callout>
 
-The rendering step is the final piece of the cycle. After it completes (or gets skipped), the event loop starts a brand new cycle — or as it is often called, a new **tick**. Each tick is one full pass: check the callback queue, drain microtasks, maybe render. Around and around, forever, until you close the tab.
+The rendering step is the final piece of the cycle. After it completes (or gets skipped), the event loop starts a brand new cycle — or as it is often called, a new **tick**. Each tick is one full pass: run one task, drain the microtask queue, maybe render. Around and around, forever, until you close the tab.
 
 </Section>
 
