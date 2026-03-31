@@ -1,110 +1,145 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --font-display: var(--font-display), serif;
-  --font-sketch: var(--font-sketch), cursive;
-  --font-body: var(--font-body), sans-serif;
-  --font-mono: var(--font-mono), monospace;
+	--font-display: var(--font-display), serif;
+	--font-sketch: var(--font-sketch), cursive;
+	--font-body: var(--font-body), sans-serif;
+	--font-mono: var(--font-mono), monospace;
 
-  --color-chalk: #e8e4dc;
-  --color-chalk-dim: #a09a8e;
-  --color-chalk-faint: #5a554d;
-  --color-grid: #141414;
-  --color-surface: #000000;
-  --color-surface-card: #0a0a0a;
-  --color-accent: #c0b8a8;
+	--color-chalk: #e8e4dc;
+	--color-chalk-dim: #a09a8e;
+	--color-chalk-faint: #5a554d;
+	--color-grid: #141414;
+	--color-surface: #000000;
+	--color-surface-card: #0a0a0a;
+	--color-accent: #c0b8a8;
 }
 
 /* Light theme: "ink on warm paper" */
-[data-theme="light"] {
-  --color-chalk: #2a2520;
-  --color-chalk-dim: #6b6358;
-  --color-chalk-faint: #c8c1b6;
-  --color-grid: #e8e3da;
-  --color-surface: #f5f0e8;
-  --color-surface-card: #ece7de;
-  --color-accent: #8a7e6e;
+[data-theme='light'] {
+	--color-chalk: #2a2520;
+	--color-chalk-dim: #6b6358;
+	--color-chalk-faint: #c8c1b6;
+	--color-grid: #e8e3da;
+	--color-surface: #f5f0e8;
+	--color-surface-card: #ece7de;
+	--color-accent: #8a7e6e;
 }
 
 body {
-  font-family: var(--font-body), sans-serif;
-  background-color: var(--color-surface);
-  background-image:
-    repeating-linear-gradient(0deg, transparent, transparent 79px, var(--color-grid) 79px, var(--color-grid) 80px),
-    repeating-linear-gradient(90deg, transparent, transparent 79px, var(--color-grid) 79px, var(--color-grid) 80px);
+	font-family: var(--font-body), sans-serif;
+	background-color: var(--color-surface);
+	background-image:
+		repeating-linear-gradient(
+			0deg,
+			transparent,
+			transparent 79px,
+			var(--color-grid) 79px,
+			var(--color-grid) 80px
+		),
+		repeating-linear-gradient(
+			90deg,
+			transparent,
+			transparent 79px,
+			var(--color-grid) 79px,
+			var(--color-grid) 80px
+		);
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sketch), cursive;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--font-sketch), cursive;
 }
 
 /* Scrollbar styling */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-chalk-faint) var(--color-surface);
+	scrollbar-width: thin;
+	scrollbar-color: var(--color-chalk-faint) var(--color-surface);
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
+	width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-surface);
+	background: var(--color-surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-chalk-faint);
-  border-radius: 3px;
+	background: var(--color-chalk-faint);
+	border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-chalk-dim);
+	background: var(--color-chalk-dim);
 }
 
 /* Selection color */
 ::selection {
-  background: color-mix(in srgb, var(--color-accent) 25%, transparent);
-  color: var(--color-chalk);
+	background: color-mix(in srgb, var(--color-accent) 25%, transparent);
+	color: var(--color-chalk);
 }
 
 /* Heartbeat indicator — event loop working under the hood */
 @keyframes sketch-draw {
-  to { stroke-dashoffset: 0; }
+	to {
+		stroke-dashoffset: 0;
+	}
 }
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
 }
 
 @keyframes pulse-subtle {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.6; }
+	0%,
+	100% {
+		opacity: 0.2;
+	}
+	50% {
+		opacity: 0.6;
+	}
 }
 
 @keyframes bounce-hint {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(3px); }
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(3px);
+	}
 }
 
 /* Focus indicators — visible on dark backgrounds */
 :focus-visible {
-  outline: 2px solid var(--color-chalk);
-  outline-offset: 2px;
+	outline: 2px solid var(--color-chalk);
+	outline-offset: 2px;
 }
 
 /* Reduced motion: disable decorative animations but preserve state transitions */
 @media (prefers-reduced-motion: reduce) {
-  .spin-slow,
-  .pulse-subtle,
-  .bounce-hint {
-    animation: none !important;
-  }
+	.spin-slow,
+	.pulse-subtle,
+	.bounce-hint {
+		animation: none !important;
+	}
 
-  /* Kill decorative animations globally, but allow short transitions for state changes */
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.1s !important;
-  }
+	/* Kill decorative animations globally, but allow short transitions for state changes */
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.1s !important;
+	}
 }
