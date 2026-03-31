@@ -5,6 +5,7 @@ import { RunCode } from '@/components/event-loop/RunCode'
 import { Section } from '@/components/mdx/Section'
 import { Callout } from '@/components/mdx/Callout'
 import { StepList } from '@/components/mdx/StepList'
+import { StaticCode } from '@/components/mdx/StaticCode'
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
@@ -13,6 +14,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     Section,
     Callout,
     StepList,
+    StaticCode,
     h1: (props: ComponentPropsWithoutRef<'h1'>) => (
       <h1 className="font-sketch text-4xl font-bold tracking-tight text-[var(--color-chalk)] mb-8" {...props} />
     ),
