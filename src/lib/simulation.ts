@@ -8,6 +8,8 @@ export type CursorState =
 	| 'RENDERING'
 	| 'EXECUTING_SYNC'
 	| 'STEPPING_SYNC'
+	| 'FROZEN_SYNC'
+	| 'STARVED_MICROTASK'
 
 export type TaskType = 'setTimeout' | 'fetch' | 'rAF'
 
@@ -63,6 +65,11 @@ const CURSOR_SPEED = 0.0001
 export const EXECUTION_DURATION = 600
 const STOP_PAUSE = 200
 const SYNC_FRAME_DURATION = 800
+
+const FREEZE_DURATION = 3000
+const STARVE_DURATION = 3000
+const STARVE_ADD_INTERVAL = 400
+const STARVE_MAX_VISIBLE = 8
 
 const COLOR_MAP: Record<TaskType, string> = {
 	setTimeout: '#888888',
@@ -183,6 +190,39 @@ export function startStepping(
 		activeScenarioId: scenarioId,
 		executionTimer: 0,
 		nextId,
+	}
+}
+
+export function startFreeze(state: SimulationState): SimulationState {
+	return {
+		...state,
+		cursorState: 'FROZEN_SYNC',
+		executionTimer: FREEZE_DURATION,
+		callStackFrames: ['while (Date.now() < …)'],
+		activeScenarioId: 'blocking-while-loop',
+		activeLine: null,
+	}
+}
+
+export function startStarve(state: SimulationState): SimulationState {
+	return {
+		...state,
+		cursorState: 'STARVED_MICROTASK',
+		cursorPosition: 0,
+		executionTimer: STARVE_DURATION,
+		syncFrameIndex: 0,
+		callStackFrames: ['forever()', 'Promise.then(forever)'],
+		activeScenarioId: 'infinite-microtasks',
+		activeLine: null,
+		microtaskQueue: [
+			{
+				id: String(state.nextId),
+				type: 'fetch',
+				label: 'forever()',
+				color: COLOR_MAP.fetch,
+			},
+		],
+		nextId: state.nextId + 1,
 	}
 }
 
@@ -330,6 +370,60 @@ function tickWebAPIs(state: SimulationState, dt: number): SimulationState {
 export function nextState(state: SimulationState, dt: number): SimulationState {
 	if (state.isPaused) return state
 	if (state.cursorState === 'STEPPING_SYNC') return state
+
+	// Demo states bypass web API ticking — total freeze / starvation
+	if (state.cursorState === 'FROZEN_SYNC') {
+		const timer = state.executionTimer - dt
+		if (timer <= 0) {
+			return {
+				...state,
+				cursorState: 'ORBITING',
+				callStackFrames: [],
+				activeScenarioId: null,
+				executionTimer: 0,
+			}
+		}
+		return { ...state, executionTimer: timer }
+	}
+
+	if (state.cursorState === 'STARVED_MICROTASK') {
+		const timer = state.executionTimer - dt
+		if (timer <= 0) {
+			return {
+				...state,
+				cursorState: 'ORBITING',
+				callStackFrames: [],
+				activeScenarioId: null,
+				executionTimer: 0,
+				microtaskQueue: [],
+				syncFrameIndex: 0,
+			}
+		}
+		let accumulator = state.syncFrameIndex + dt
+		let queue = state.microtaskQueue
+		let nextId = state.nextId
+		if (accumulator >= STARVE_ADD_INTERVAL) {
+			accumulator -= STARVE_ADD_INTERVAL
+			if (queue.length < STARVE_MAX_VISIBLE) {
+				queue = [
+					...queue,
+					{
+						id: String(nextId++),
+						type: 'fetch',
+						label: 'forever()',
+						color: COLOR_MAP.fetch,
+					},
+				]
+			}
+		}
+		return {
+			...state,
+			executionTimer: timer,
+			syncFrameIndex: accumulator,
+			microtaskQueue: queue,
+			nextId,
+		}
+	}
 
 	// Always tick web APIs
 	let s = tickWebAPIs(state, dt)

@@ -19,7 +19,12 @@ export function CallStack({
 	visibility,
 }: CallStackProps) {
 	let frames: string[] = []
-	if (cursorState === 'EXECUTING_SYNC' || cursorState === 'STEPPING_SYNC') {
+	if (
+		cursorState === 'EXECUTING_SYNC' ||
+		cursorState === 'STEPPING_SYNC' ||
+		cursorState === 'FROZEN_SYNC' ||
+		cursorState === 'STARVED_MICROTASK'
+	) {
 		frames = callStackFrames
 	} else if (
 		cursorState === 'EXECUTING_TASK' ||

@@ -6,6 +6,8 @@ import {
 	addTask as addTaskPure,
 	resolveFetch,
 	startStepping,
+	startFreeze,
+	startStarve,
 	stepForward as stepForwardFn,
 	stepBack as stepBackFn,
 	type SimulationState,
@@ -18,6 +20,7 @@ type EventLoopActions = {
 	togglePause: () => void
 	addTask: (type: TaskType, delay?: number) => void
 	reset: () => void
+	runDemo: (demoId: string) => void
 	runScenario: (scenarioId: string) => void
 	stepForward: () => void
 	stepBack: () => void
@@ -35,6 +38,15 @@ export const useEventLoopStore = create<EventLoopStore>()((set, get) => ({
 	addTask: (type, delay) => set((s) => addTaskPure(s, type, delay)),
 
 	reset: () => set(createInitialState()),
+
+	runDemo: (demoId) => {
+		set((s) => {
+			const state = s.isPaused ? { ...s, isPaused: false } : s
+			if (demoId === 'blocking-while-loop') return startFreeze(state)
+			if (demoId === 'infinite-microtasks') return startStarve(state)
+			return state
+		})
+	},
 
 	runScenario: (scenarioId) => {
 		const scenario = SCENARIOS[scenarioId]

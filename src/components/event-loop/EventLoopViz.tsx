@@ -22,6 +22,8 @@ const CURSOR_STATE_LABELS: Record<string, string> = {
 	RENDERING: 'Rendering in progress',
 	EXECUTING_SYNC: 'Executing synchronous code',
 	STEPPING_SYNC: 'Stepping through synchronous code',
+	FROZEN_SYNC: 'Main thread blocked — cursor frozen',
+	STARVED_MICROTASK: 'Microtask starvation — cursor trapped',
 }
 
 export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
@@ -47,7 +49,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 
 	const isAtMicrotask =
 		cursorState === 'STOPPED_AT_MICROTASK_QUEUE' ||
-		cursorState === 'EXECUTING_MICROTASK'
+		cursorState === 'EXECUTING_MICROTASK' ||
+		cursorState === 'STARVED_MICROTASK'
 	const isAtTask =
 		cursorState === 'STOPPED_AT_TASK_QUEUE' || cursorState === 'EXECUTING_TASK'
 	const isAtRender =
@@ -57,7 +60,9 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 		cursorState === 'EXECUTING_MICROTASK' ||
 		cursorState === 'RENDERING' ||
 		cursorState === 'EXECUTING_SYNC' ||
-		cursorState === 'STEPPING_SYNC'
+		cursorState === 'STEPPING_SYNC' ||
+		cursorState === 'FROZEN_SYNC' ||
+		cursorState === 'STARVED_MICROTASK'
 
 	// Detect hidden work: cursor stopped/executing at a station that's scrolled out of view
 	const microtaskVis = getStageVisibility(5)

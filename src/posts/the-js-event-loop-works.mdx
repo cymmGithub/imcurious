@@ -10,7 +10,7 @@ That is JavaScript. It is a **single-threaded** language. It has one call stack,
 
 This sounds limiting, right? And it is! If your cursor stops mid-loop to wait at a station, the entire cycle grinds to a halt. No rendering, no click handlers, no animations. The browser tab freezes. Users rage.
 
-<StaticCode id="blocking-while-loop" />
+<DemoCode id="blocking-while-loop" />
 
 But here is the thing: this constraint is also a superpower. Because JavaScript only does one thing at a time, your code is **predictable**. You never have to worry about two functions fighting over the same variable, or a callback sneaking in mid-execution. The order is deterministic.
 
@@ -109,7 +109,7 @@ Even with a delay of 0 milliseconds, those callbacks do not run immediately. Her
 	is strict. Predictable. No exceptions.
 </Callout>
 
-We could have a million console logs, and still, everything would be left until after." That is not a bug. That is the design. Predictability over speed, every time.
+We could have a million console logs, and still, everything would be left until after. That is not a bug. That is the design. Predictability over speed, every time.
 
 </Section>
 
@@ -146,7 +146,7 @@ Notice something subtle: the `fetch()` call itself fires **immediately** when th
 
 And here is the dangerous part: if a microtask queues another microtask, that one runs too, before any task or rendering gets a chance. Microtasks can **starve everything else**:
 
-<StaticCode id="infinite-microtasks" />
+<DemoCode id="infinite-microtasks" />
 
 The cursor never completes its cycle. The priority station has an infinite queue. The loop marshal keeps sending the cursor through it, and the loop never gets to repaint.
 
