@@ -8,3 +8,5 @@ npm-debug.log*
 .worktrees/
 .DS_Store
 *.tsbuildinfo
+docs/
+.playwright-mcp/

@@ -3,6 +3,7 @@
 ## Session Learnings (2026-03-29)
 
 ### What worked well
+
 - **Brainstorming with visual companion**: Using the browser-based mockup server to iterate on circle layout designs before writing any React code — user could see and tweak positioning in real-time
 - **User-driven design corrections**: User correctly identified that Web APIs and Call Stack don't belong ON the event loop circle — they're external/internal to it. This made the design more technically accurate
 - **Subagent parallelism**: Dispatching 5 independent component tasks simultaneously (CircleTrack, Station, WebApiBox, CallStack rewrite, hooks/context) saved significant time
@@ -10,6 +11,7 @@
 - **Step-by-step execution**: Precomputed snapshots via `buildSyncSnapshots()` made forward/backward stepping instant — no need to replay from scratch
 
 ### What went wrong
+
 - **CSS offset-path drift**: First cursor implementation used CSS `offset-path: circle()` with hardcoded pixel values that didn't match the responsive circle div — two separate coordinate systems that drifted apart. Should have used SVG from the start
 - **foreignObject xmlns attribute**: Included `xmlns="http://www.w3.org/1999/xhtml"` on divs inside foreignObject — valid in raw SVG but TypeScript/React rejects it. Had to strip it from 3 files after build failed
 - **Hydration mismatch from trig**: `Math.sin()`/`Math.cos()` produced slightly different floating point results between Node.js (SSR) and browser (hydration). Fixed by rounding anchor coordinates to integers
