@@ -111,7 +111,7 @@ export function Station({
 											{task.callbackLabel ?? task.label}
 										</span>
 									) : (
-										task.callbackLabel ?? task.label
+										(task.callbackLabel ?? task.label)
 									)}
 								</motion.div>
 							))}
