@@ -31,10 +31,12 @@ Every time you call a function, it gets **pushed** onto the stack. When the func
 Walk through this step by step:
 
 <StepList scenarioId="sync-callstack">
-	1. `welcome()` is called — pushed onto the stack 2. Inside `welcome`, we call
-	`greet("world")` — pushed on top 3. `greet` returns `"Hello, world!"` — popped
-	off 4. `console.log(message)` is pushed onto the stack 5. `console.log`
-	returns — popped off 6. `welcome` finishes — popped off. The stack is empty.
+1. `welcome()` is called — pushed onto the stack
+2. Inside `welcome`, we call `greet("world")` — pushed on top
+3. `greet` returns `"Hello, world!"` — popped off
+4. `console.log(message)` is pushed onto the stack
+5. `console.log` returns — popped off
+6. `welcome` finishes — popped off. The stack is empty.
 </StepList>
 
 The critical rule: the cursor **cannot move forward** until the current function on top of the stack finishes. If you call a function that calls a function that calls a function, they all pile up. The cursor does not come back to the main loop until every nested call has returned.
@@ -56,13 +58,12 @@ When you call `setTimeout`, `fetch`, or add an event listener, you are not runni
 Here is what actually happens:
 
 <StepList scenarioId="webapi-settimeout">
-	1. `console.log("Start")` is pushed onto the call stack — it runs immediately
-	2. It returns — popped off the stack 3. `setTimeout` is called — it hands the
-	callback and 1000ms delay to the browser's timer API 4. `setTimeout` returns
-	immediately — popped off. The browser is now counting down in the background
-	5. `console.log("End")` is pushed onto the stack and runs 6. It returns —
-	popped off. All synchronous code is done, but the timer callback is still
-	waiting...
+1. `console.log("Start")` is pushed onto the call stack — it runs immediately
+2. It returns — popped off the stack
+3. `setTimeout` is called — it hands the callback and 1000ms delay to the browser's timer API
+4. `setTimeout` returns immediately — popped off. The browser is now counting down in the background
+5. `console.log("End")` is pushed onto the stack and runs
+6. It returns — popped off. All synchronous code is done, but the timer callback is still waiting...
 </StepList>
 
 `setTimeout` is not a JavaScript function in any meaningful sense. It is a label, a facade, for browser functionality that lives entirely outside the JavaScript engine. Same with `fetch` (network requests), `document` (the DOM), and even `console` (dev tools).
@@ -93,13 +94,12 @@ Think of it as a staging station. Callbacks line up, single file, waiting for th
 Even with a delay of 0 milliseconds, those callbacks do not run immediately. Here is the full sequence:
 
 <StepList scenarioId="task-queue-ordering">
-	1. `setTimeout(A)` is called — hands callback A to the browser's timer (0ms
-	means immediately complete) 2. It returns — popped off. Callback A enters the
-	callback queue 3. `setTimeout(B)` is called — hands callback B to the
-	browser's timer 4. It returns — popped off. Callback B enters the queue behind
-	A 5. `console.log("C")` is pushed onto the stack — runs synchronously, prints
-	`C` 6. It returns — popped off. All synchronous code is done. `A` and `B` are
-	still waiting in the callback queue
+1. `setTimeout(A)` is called — hands callback A to the browser's timer (0ms means immediately complete)
+2. It returns — popped off. Callback A enters the callback queue
+3. `setTimeout(B)` is called — hands callback B to the browser's timer
+4. It returns — popped off. Callback B enters the queue behind A
+5. `console.log("C")` is pushed onto the stack — runs synchronously, prints `C`
+6. It returns — popped off. All synchronous code is done. `A` and `B` are still waiting in the callback queue
 </StepList>
 
 <Callout>
@@ -128,14 +128,12 @@ The difference? The event loop **drains all microtasks** before it does anything
 Even though `setTimeout` was called first, the fetch callback wins. Every time. Here is why:
 
 <StepList scenarioId="microtask-priority">
-	1. `setTimeout` is called — hands its callback to the browser's timer (0ms).
-	It will enter the **callback queue** 2. It returns — popped off 3.
-	`fetch("/api/starwars")` is called — sends a network request via the browser.
-	Its `.then()` will enter the **microtask queue** when the response arrives 4.
-	`fetch` returns a Promise immediately — popped off. The request is now
-	in-flight 5. `console.log("Sync")` is pushed onto the stack and runs 6. It
-	returns — popped off. Now the event loop checks the microtask queue **first**,
-	then the callback queue
+1. `setTimeout` is called — hands its callback to the browser's timer (0ms). It will enter the **callback queue**
+2. It returns — popped off
+3. `fetch("/api/starwars")` is called — sends a network request via the browser. Its `.then()` will enter the **microtask queue** when the response arrives
+4. `fetch` returns a Promise immediately — popped off. The request is now in-flight
+5. `console.log("Sync")` is pushed onto the stack and runs
+6. It returns — popped off. Now the event loop checks the microtask queue **first**, then the callback queue
 </StepList>
 
 Notice something subtle: the `fetch()` call itself fires **immediately** when the interpreter hits that line. It does not wait for the rest of your synchronous code to finish. The browser's network thread starts the HTTP request right away, in parallel. What _does_ wait is the `.then()` callback — that only runs after the fetch resolves _and_ the call stack is empty. So the request is already in-flight while `console.log("Sync")` executes. The `fetch()` function is synchronous; the _result handling_ is asynchronous.
