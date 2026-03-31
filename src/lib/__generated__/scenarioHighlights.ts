@@ -37,7 +37,7 @@ export const SCENARIO_HIGHLIGHTS_DARK: Record<string, string[]> = {
   ],
   "render-step": [
     "<span style=\"color:#88C0D0\">requestAnimationFrame</span><span style=\"color:#D8DEE9FF\">(</span><span style=\"color:#ECEFF4\">()</span><span style=\"color:#81A1C1\"> =></span><span style=\"color:#ECEFF4\"> {</span>",
-    "<span style=\"color:#D8DEE9\">  document</span><span style=\"color:#ECEFF4\">.</span><span style=\"color:#D8DEE9\">body</span><span style=\"color:#ECEFF4\">.</span><span style=\"color:#D8DEE9\">style</span><span style=\"color:#ECEFF4\">.</span><span style=\"color:#D8DEE9\">background</span><span style=\"color:#81A1C1\"> =</span><span style=\"color:#ECEFF4\"> \"</span><span style=\"color:#A3BE8C\">blue</span><span style=\"color:#ECEFF4\">\"</span><span style=\"color:#81A1C1\">;</span>",
+    "<span style=\"color:#D8DEE9\">  document</span><span style=\"color:#ECEFF4\">.</span><span style=\"color:#D8DEE9\">body</span><span style=\"color:#ECEFF4\">.</span><span style=\"color:#D8DEE9\">style</span><span style=\"color:#ECEFF4\">.</span><span style=\"color:#D8DEE9\">background</span><span style=\"color:#81A1C1\"> =</span><span style=\"color:#ECEFF4\"> \"</span><span style=\"color:#A3BE8C\">red</span><span style=\"color:#ECEFF4\">\"</span><span style=\"color:#81A1C1\">;</span>",
     "<span style=\"color:#ECEFF4\">}</span><span style=\"color:#D8DEE9FF\">)</span><span style=\"color:#81A1C1\">;</span>",
     "",
     "<span style=\"color:#88C0D0\">setTimeout</span><span style=\"color:#D8DEE9FF\">(</span><span style=\"color:#ECEFF4\">()</span><span style=\"color:#81A1C1\"> =></span><span style=\"color:#D8DEE9\"> console</span><span style=\"color:#ECEFF4\">.</span><span style=\"color:#88C0D0\">log</span><span style=\"color:#D8DEE9FF\">(</span><span style=\"color:#ECEFF4\">\"</span><span style=\"color:#A3BE8C\">Task</span><span style=\"color:#ECEFF4\">\"</span><span style=\"color:#D8DEE9FF\">)</span><span style=\"color:#ECEFF4\">,</span><span style=\"color:#B48EAD\"> 1000</span><span style=\"color:#D8DEE9FF\">)</span><span style=\"color:#81A1C1\">;</span>",
@@ -85,7 +85,7 @@ export const SCENARIO_HIGHLIGHTS_LIGHT: Record<string, string[]> = {
   ],
   "render-step": [
     "<span style=\"color:#6F42C1\">requestAnimationFrame</span><span style=\"color:#24292E\">(() </span><span style=\"color:#D73A49\">=></span><span style=\"color:#24292E\"> {</span>",
-    "<span style=\"color:#24292E\">  document.body.style.background </span><span style=\"color:#D73A49\">=</span><span style=\"color:#032F62\"> \"blue\"</span><span style=\"color:#24292E\">;</span>",
+    "<span style=\"color:#24292E\">  document.body.style.background </span><span style=\"color:#D73A49\">=</span><span style=\"color:#032F62\"> \"red\"</span><span style=\"color:#24292E\">;</span>",
     "<span style=\"color:#24292E\">});</span>",
     "",
     "<span style=\"color:#6F42C1\">setTimeout</span><span style=\"color:#24292E\">(() </span><span style=\"color:#D73A49\">=></span><span style=\"color:#24292E\"> console.</span><span style=\"color:#6F42C1\">log</span><span style=\"color:#24292E\">(</span><span style=\"color:#032F62\">\"Task\"</span><span style=\"color:#24292E\">), </span><span style=\"color:#005CC5\">1000</span><span style=\"color:#24292E\">);</span>",

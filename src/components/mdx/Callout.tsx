@@ -1,3 +1,5 @@
+import { Info } from 'lucide-react'
+
 interface CalloutProps {
 	children: React.ReactNode
 }
@@ -5,13 +7,19 @@ interface CalloutProps {
 export function Callout({ children }: CalloutProps) {
 	return (
 		<div
-			className="relative my-8 rounded-sm pl-5 py-4 pr-4"
+			className="relative my-8 rounded-sm pl-8 py-4 pr-4"
 			style={{
 				borderLeft: '2px solid var(--color-chalk-faint)',
 				background: 'var(--color-surface-card)',
 			}}
 		>
-			<div className="text-[var(--color-chalk-dim)] text-sm leading-relaxed italic font-body [&>p]:mb-0">
+			<Info
+				size={18}
+				className="absolute left-2.5 top-[18px] text-yellow-400"
+				aria-hidden="true"
+				strokeWidth={2.5}
+			/>
+			<div className="text-[var(--color-chalk-dim)] text-sm leading-relaxed italic font-body [&>p]:mb-0 p-2">
 				{children}
 			</div>
 		</div>

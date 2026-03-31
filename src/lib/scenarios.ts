@@ -138,7 +138,7 @@ console.log("Sync");`,
 	'render-step': {
 		id: 'render-step',
 		code: `requestAnimationFrame(() => {
-  document.body.style.background = "blue";
+  document.body.style.background = "red";
 });
 
 setTimeout(() => console.log("Task"), 1000);
@@ -152,7 +152,7 @@ fetch("/api/starwars")
 				line: 0,
 				asyncEffect: {
 					type: 'rAF',
-					callbackLabel: 'style.background = "blue"',
+					callbackLabel: 'style.background = "red"',
 				},
 			},
 			{ action: 'pop', line: 2 },

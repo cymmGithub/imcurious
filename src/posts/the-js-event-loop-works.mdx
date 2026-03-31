@@ -87,6 +87,13 @@ So when the timer finishes, where does the callback go? It cannot just jump onto
 
 When a timer finishes or a click happens, the browser does not slam the callback onto the call stack. That would be chaos — imagine a background worker cutting into the cursor's orbit. Instead, the callback goes into a **waiting area**: the **task queue**.
 
+<Callout>
+	A note on naming: the spec calls this the **task queue**. You will see tutorials
+	call it the "callback queue" or "macrotask queue" — those are informal names
+	that stuck. They all refer to the same thing: the queue where `setTimeout`,
+	`setInterval`, and event handler callbacks wait their turn.
+</Callout>
+
 Think of it as a staging station. Tasks line up, single file, waiting for their chance to enter the loop. And the event loop — our loop marshal — enforces one strict rule: **one task per cycle**.
 
 Here is something most tutorials skip: the script you write is _itself_ a task. When the browser first loads your `<script>`, it schedules that entire script as one task. Every line of synchronous code — every variable declaration, every function call — runs as part of that single task. Nothing else can enter the call stack until the script finishes.
@@ -103,13 +110,6 @@ Even though A's timer is shorter, neither callback runs until all synchronous co
 5. `console.log("C")` is pushed onto the stack — runs synchronously, prints `C`
 6. It returns — popped off. All synchronous code is done. `A` and `B` are still waiting for their timers to expire
 </StepList>
-
-<Callout>
-	The task queue does not run until all global code has finished. You could
-	have a million console.log statements after setTimeout(fn, 0), and every
-	single one would execute before that task gets its chance. The event loop
-	is strict. Predictable. No exceptions.
-</Callout>
 
 We could have a million console logs, and still, everything would be left until after. That is not a bug. That is the design. Predictability over speed, every time.
 
@@ -159,14 +159,6 @@ And here is the dangerous part: if a microtask queues another microtask, that on
 <DemoCode id="infinite-microtasks" />
 
 The cursor never completes its cycle. The priority station has an infinite queue. The loop marshal keeps sending the cursor through it, and the loop never gets to repaint.
-
-<Callout>
-	A note on terminology: the spec calls them **tasks** and **microtasks**. You
-	will see tutorials use "callback queue" or "macrotask queue" — those are
-	informal names. The official terms are _task queue_ (`setTimeout`,
-	`setInterval`, event handlers) and _microtask queue_ (`Promise.then()`,
-	`queueMicrotask()`, `MutationObserver`).
-</Callout>
 
 </Section>
 

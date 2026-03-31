@@ -133,8 +133,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 					<line
 						x1={STATION_POSITIONS.render.anchor.x}
 						y1={STATION_POSITIONS.render.anchor.y}
-						x2={90}
-						y2={402}
+						x2={110}
+						y2={430}
 						stroke="var(--color-chalk)"
 						strokeWidth={1}
 						strokeDasharray="4 4"
@@ -149,8 +149,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 						currentTask={isAtTask ? currentTask : null}
 						isActive={isAtTask}
 						visibility={getStageVisibility(4)}
-						foreignObjectX={70}
-						foreignObjectY={10}
+						foreignObjectX={60}
+						foreignObjectY={30}
 						foreignObjectWidth={200}
 						foreignObjectHeight={90}
 						align="right"
@@ -164,8 +164,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 						currentTask={isAtMicrotask ? currentTask : null}
 						isActive={isAtMicrotask}
 						visibility={getStageVisibility(5)}
-						foreignObjectX={510}
-						foreignObjectY={380}
+						foreignObjectX={500}
+						foreignObjectY={390}
 						foreignObjectWidth={180}
 						foreignObjectHeight={100}
 					/>
@@ -178,8 +178,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 						currentTask={isAtRender ? currentTask : null}
 						isActive={isAtRender}
 						visibility={getStageVisibility(6)}
-						foreignObjectX={-95}
-						foreignObjectY={380}
+						foreignObjectX={-40}
+						foreignObjectY={430}
 						foreignObjectWidth={180}
 						foreignObjectHeight={100}
 						align="right"

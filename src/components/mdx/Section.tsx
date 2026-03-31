@@ -14,7 +14,7 @@ export function Section({ stage, children }: SectionProps) {
 				<div
 					className="mb-12"
 					style={{
-						borderTop: '1px dashed var(--color-chalk-faint)',
+						borderTop: '1px dashed var(--color-border-section)',
 					}}
 				/>
 			)}

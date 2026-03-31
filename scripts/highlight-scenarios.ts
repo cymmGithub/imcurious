@@ -40,7 +40,7 @@ fetch("/api/starwars")
 console.log("Sync");`,
 
 	'render-step': `requestAnimationFrame(() => {
-  document.body.style.background = "blue";
+  document.body.style.background = "red";
 });
 
 setTimeout(() => console.log("Task"), 1000);
