@@ -239,6 +239,48 @@ describe('nextState', () => {
 		expect(next.pendingWebAPIs).toHaveLength(0)
 		expect(next.microtaskQueue).toHaveLength(1)
 	})
+
+	it('setTimeout task in queue carries callbackLabel from scenario', () => {
+		const scenario = SCENARIOS['microtask-priority']
+		let state = startStepping(
+			createInitialState(),
+			scenario.syncOps!,
+			'microtask-priority',
+		)
+		// Step through all sync ops to register web APIs
+		for (let i = 0; i < scenario.syncOps!.length; i++) {
+			state = stepForward(state)
+		}
+		// setTimeout should be pending with callbackLabel
+		const pending = state.pendingWebAPIs.find((a) => a.type === 'setTimeout')
+		expect(pending).toBeDefined()
+		expect(pending!.label).toBe('setTimeout(2000ms)')
+		expect(pending!.callbackLabel).toBe('console.log("Task")')
+
+		// Advance past the 2000ms delay to move it into the task queue
+		state = nextState(state, 2100)
+		const task = state.taskQueue.find((t) => t.type === 'setTimeout')
+		expect(task).toBeDefined()
+		expect(task!.callbackLabel).toBe('console.log("Task")')
+	})
+
+	it('fetch task in microtask queue carries callbackLabel from scenario', () => {
+		const scenario = SCENARIOS['microtask-priority']
+		let state = startStepping(
+			createInitialState(),
+			scenario.syncOps!,
+			'microtask-priority',
+		)
+		for (let i = 0; i < scenario.syncOps!.length; i++) {
+			state = stepForward(state)
+		}
+		// Resolve fetch and advance to move it into microtask queue
+		state = resolveFetch(state, 'fetch → "Luke"')
+		state = nextState(state, 16)
+		const microtask = state.microtaskQueue.find((t) => t.type === 'fetch')
+		expect(microtask).toBeDefined()
+		expect(microtask!.callbackLabel).toBe('console.log(data.name)')
+	})
 })
 
 describe('addTask', () => {
