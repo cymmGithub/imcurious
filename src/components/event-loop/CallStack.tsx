@@ -70,7 +70,7 @@ export function CallStack({
 						padding: '6px 10px',
 						margin: '0 auto',
 						width: 'fit-content',
-						minWidth: '120px',
+						minWidth: '160px',
 						minHeight: '100px',
 						display: 'flex',
 						flexDirection: 'column',
