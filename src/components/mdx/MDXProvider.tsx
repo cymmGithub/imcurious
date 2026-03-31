@@ -53,7 +53,7 @@ const components = {
 	),
 	p: (props: ComponentPropsWithoutRef<'p'>) => (
 		<p
-			className="text-[var(--color-chalk)] leading-relaxed mb-4 font-body"
+			className="text-[var(--color-chalk)] leading-[1.6] mb-6 text-[17px] font-body"
 			{...props}
 		/>
 	),
@@ -96,11 +96,11 @@ const components = {
 	),
 	li: ({ children, ...rest }: ComponentPropsWithoutRef<'li'>) => (
 		<li
-			className="flex items-start gap-3 text-[var(--color-chalk)] text-sm leading-relaxed"
+			className="flex items-start gap-3 text-[var(--color-chalk)] text-[17px] leading-[1.6]"
 			{...rest}
 		>
 			<span
-				className="mt-[7px] flex-shrink-0 w-1.5 h-1.5 rounded-full bg-[var(--color-chalk-dim)]"
+				className="mt-[10px] flex-shrink-0 w-1.5 h-1.5 rounded-full bg-[var(--color-chalk-dim)]"
 				aria-hidden="true"
 			/>
 			<span>{children}</span>

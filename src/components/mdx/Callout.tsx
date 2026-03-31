@@ -19,7 +19,7 @@ export function Callout({ children }: CalloutProps) {
 				aria-hidden="true"
 				strokeWidth={2.5}
 			/>
-			<div className="text-[var(--color-chalk-dim)] text-sm leading-relaxed italic font-body [&>p]:mb-0 p-2">
+			<div className="text-[var(--color-chalk-dim)] text-[15px] leading-[1.6] italic font-body [&>p]:mb-0 p-2">
 				{children}
 			</div>
 		</div>
