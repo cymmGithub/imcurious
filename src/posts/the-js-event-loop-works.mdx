@@ -2,7 +2,7 @@
 
 <Section stage={1}>
 
-## How the <img src="/js-logo.png" alt="JavaScript" style={{display: 'inline', height: '1em', verticalAlign: '-0.1em', borderRadius: '3px'}} /> Event Loop Works
+# How the <img src="/js-logo.png" alt="JavaScript" style={{display: 'inline', height: '0.8em', verticalAlign: '-0.1em', borderRadius: '3px'}} /> Event Loop Works? <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--color-chalk-faint)', letterSpacing: '0.03em', fontWeight: 'normal'}}>// runtime: browser</span>
 
 Imagine a loop with a single rule: only one cursor can orbit it at a time. No skipping ahead, no parallel paths. Just one cursor, one loop, one cycle at a time.
 
@@ -10,12 +10,7 @@ That is JavaScript. It is a **single-threaded** language. It has one call stack,
 
 This sounds limiting, right? And it is! If your cursor stops mid-loop to wait at a station, the entire cycle grinds to a halt. No rendering, no click handlers, no animations. The browser tab freezes. Users rage.
 
-```js
-// This blocks EVERYTHING for ~3 seconds
-while (Date.now() < Date.now() + 3000) {
-  // The cursor is stuck. Nothing else can run.
-}
-```
+<StaticCode id="blocking-while-loop" />
 
 But here is the thing: this constraint is also a superpower. Because JavaScript only does one thing at a time, your code is **predictable**. You never have to worry about two functions fighting over the same variable, or a callback sneaking in mid-execution. The order is deterministic.
 
@@ -35,12 +30,12 @@ Every time you call a function, it gets **pushed** onto the stack. When the func
 
 Walk through this step by step:
 
-1. `welcome()` is called — pushed onto the stack
-2. Inside `welcome`, we call `greet("world")` — pushed on top
-3. `greet` returns `"Hello, world!"` — popped off
-4. `console.log(message)` runs — pushed, then popped
-5. `welcome` finishes — popped off
-6. The stack is empty. The cursor has completed the cycle.
+<StepList scenarioId="sync-callstack">
+	1. `welcome()` is called — pushed onto the stack 2. Inside `welcome`, we call
+	`greet("world")` — pushed on top 3. `greet` returns `"Hello, world!"` — popped
+	off 4. `console.log(message)` is pushed onto the stack 5. `console.log`
+	returns — popped off 6. `welcome` finishes — popped off. The stack is empty.
+</StepList>
 
 The critical rule: the cursor **cannot move forward** until the current function on top of the stack finishes. If you call a function that calls a function that calls a function, they all pile up. The cursor does not come back to the main loop until every nested call has returned.
 
@@ -60,18 +55,26 @@ When you call `setTimeout`, `fetch`, or add an event listener, you are not runni
 
 Here is what actually happens:
 
-1. `console.log("Start")` runs immediately on the call stack
-2. `setTimeout` is called — but it is a **facade function**. It does not do the timing in JavaScript. It hands the job to the browser's timer feature and immediately returns
-3. `console.log("End")` runs while the browser counts down in the background
-4. After 1000ms, the browser's timer finishes. But the callback does not jump straight onto the call stack...
+<StepList scenarioId="webapi-settimeout">
+	1. `console.log("Start")` is pushed onto the call stack — it runs immediately
+	2. It returns — popped off the stack 3. `setTimeout` is called — it hands the
+	callback and 1000ms delay to the browser's timer API 4. `setTimeout` returns
+	immediately — popped off. The browser is now counting down in the background
+	5. `console.log("End")` is pushed onto the stack and runs 6. It returns —
+	popped off. All synchronous code is done, but the timer callback is still
+	waiting...
+</StepList>
 
-This is the key insight Will Sentance drives home: `setTimeout` is not a JavaScript function in any meaningful sense. It is a label, a facade, for browser functionality that lives entirely outside the JavaScript engine. Same with `fetch` (network requests), `document` (the DOM), and even `console` (dev tools).
+`setTimeout` is not a JavaScript function in any meaningful sense. It is a label, a facade, for browser functionality that lives entirely outside the JavaScript engine. Same with `fetch` (network requests), `document` (the DOM), and even `console` (dev tools).
 
 <Callout>
-The JavaScript engine is just the cursor. The browser is the entire runtime organization: the background workers, the timer system, the network layer, the telemetry. JavaScript gets to use all of it through these facade functions, but the work happens elsewhere.
+	The JavaScript engine is just the cursor. The browser is the entire runtime
+	organization: the background workers, the timer system, the network layer, the
+	telemetry. JavaScript gets to use all of it through these facade functions,
+	but the work happens elsewhere.
 </Callout>
 
-Here is a distinction worth internalizing: the JavaScript engine itself is single-threaded, but the environment it lives in is not. The call stack belongs to the engine — that is the cursor. But the event loop, the queues, the timers, the network layer? Those belong to the environment. The browser is a multi-threaded runtime wrapping a single-threaded language. JavaScript does not "do" async. The environment does async *on its behalf*.
+Here is a distinction worth internalizing: the JavaScript engine itself is single-threaded, but the environment it lives in is not. The call stack belongs to the engine — that is the cursor. But the event loop, the queues, the timers, the network layer? Those belong to the environment. The browser is a multi-threaded runtime wrapping a single-threaded language. JavaScript does not "do" async. The environment does async _on its behalf_.
 
 So when the timer finishes, where does the callback go? It cannot just jump onto the call stack. That would break our "one cursor, one loop" rule. It needs to wait its turn.
 
@@ -89,18 +92,24 @@ Think of it as a staging station. Callbacks line up, single file, waiting for th
 
 Even with a delay of 0 milliseconds, those callbacks do not run immediately. Here is the full sequence:
 
-1. Both `setTimeout` calls hand their callbacks to the browser's timer (0ms means "immediately complete")
-2. Both callbacks enter the callback queue — `A` first, then `B`
-3. `console.log("C")` runs because it is synchronous, still on the call stack
-4. All global code finishes. The call stack is empty.
-5. The event loop checks: "Call stack empty? All global code done? Anything in the queue?" Yes! It grabs `A` and puts it on the stack
-6. `A` finishes. The event loop goes around the loop again, then picks up `B`
+<StepList scenarioId="task-queue-ordering">
+	1. `setTimeout(A)` is called — hands callback A to the browser's timer (0ms
+	means immediately complete) 2. It returns — popped off. Callback A enters the
+	callback queue 3. `setTimeout(B)` is called — hands callback B to the
+	browser's timer 4. It returns — popped off. Callback B enters the queue behind
+	A 5. `console.log("C")` is pushed onto the stack — runs synchronously, prints
+	`C` 6. It returns — popped off. All synchronous code is done. `A` and `B` are
+	still waiting in the callback queue
+</StepList>
 
 <Callout>
-The callback queue does not run until all global code has finished. You could have a million console.log statements after setTimeout(fn, 0), and every single one would execute before that callback gets its chance. The event loop is strict. Predictable. No exceptions.
+	The callback queue does not run until all global code has finished. You could
+	have a million console.log statements after setTimeout(fn, 0), and every
+	single one would execute before that callback gets its chance. The event loop
+	is strict. Predictable. No exceptions.
 </Callout>
 
-As Will Sentance puts it: "You could have a million console logs, and still, everything would be left until after." That is not a bug. That is the design. Predictability over speed, every time.
+We could have a million console logs, and still, everything would be left until after." That is not a bug. That is the design. Predictability over speed, every time.
 
 </Section>
 
@@ -118,29 +127,28 @@ The difference? The event loop **drains all microtasks** before it does anything
 
 Even though `setTimeout` was called first, the fetch callback wins. Every time. Here is why:
 
-1. `setTimeout` callback enters the **callback queue**
-2. `fetch()` returns a Promise — its `.then()` callback enters the **microtask queue**
-3. `console.log("Sync")` runs immediately (synchronous)
-4. Global code is done. The event loop checks the microtask queue **first**
-5. The fetch result prints
-6. Microtask queue is empty. Now the event loop checks the callback queue
-7. "Task" prints
+<StepList scenarioId="microtask-priority">
+	1. `setTimeout` is called — hands its callback to the browser's timer (0ms).
+	It will enter the **callback queue** 2. It returns — popped off 3.
+	`fetch("/api/starwars")` is called — sends a network request via the browser.
+	Its `.then()` will enter the **microtask queue** when the response arrives 4.
+	`fetch` returns a Promise immediately — popped off. The request is now
+	in-flight 5. `console.log("Sync")` is pushed onto the stack and runs 6. It
+	returns — popped off. Now the event loop checks the microtask queue **first**,
+	then the callback queue
+</StepList>
 
-Notice something subtle: the `fetch()` call itself fires **immediately** when the interpreter hits that line. It does not wait for the rest of your synchronous code to finish. The browser's network thread starts the HTTP request right away, in parallel. What *does* wait is the `.then()` callback — that only runs after the fetch resolves *and* the call stack is empty. So the request is already in-flight while `console.log("Sync")` executes. The `fetch()` function is synchronous; the *result handling* is asynchronous.
+Notice something subtle: the `fetch()` call itself fires **immediately** when the interpreter hits that line. It does not wait for the rest of your synchronous code to finish. The browser's network thread starts the HTTP request right away, in parallel. What _does_ wait is the `.then()` callback — that only runs after the fetch resolves _and_ the call stack is empty. So the request is already in-flight while `console.log("Sync")` executes. The `fetch()` function is synchronous; the _result handling_ is asynchronous.
 
 <Callout>
-Microtasks run whenever the JavaScript stack empties. Not just between tasks — after every task, after every callback, after every event handler. The engine clears the entire microtask queue before moving on.
+	Microtasks run whenever the JavaScript stack empties. Not just between tasks —
+	after every task, after every callback, after every event handler. The engine
+	clears the entire microtask queue before moving on.
 </Callout>
 
 And here is the dangerous part: if a microtask queues another microtask, that one runs too, before any task or rendering gets a chance. Microtasks can **starve everything else**:
 
-```js
-// DON'T DO THIS — infinite microtasks block rendering forever
-function forever() {
-  Promise.resolve().then(forever);
-}
-forever();
-```
+<StaticCode id="infinite-microtasks" />
 
 The cursor never completes its cycle. The priority station has an infinite queue. The loop marshal keeps sending the cursor through it, and the loop never gets to repaint.
 
@@ -166,7 +174,11 @@ The key word there is **may**. The browser is smart. If nothing visual has chang
 This is why long-running tasks cause jank. If your JavaScript takes 200ms to run, the browser cannot render for that entire duration. The user sees a frozen screen, unresponsive buttons, choppy animations. The cursor is hogging the loop and the paint crew cannot get in to refresh the visuals.
 
 <Callout>
-requestAnimationFrame is synchronized with the display's refresh rate, while setTimeout is not. A setTimeout loop might fire too often (wasting CPU) or not often enough (causing visual stutters). For animations, always use requestAnimationFrame — it is the browser telling you "now is a good time to update visuals."
+	requestAnimationFrame is synchronized with the display's refresh rate, while
+	setTimeout is not. A setTimeout loop might fire too often (wasting CPU) or not
+	often enough (causing visual stutters). For animations, always use
+	requestAnimationFrame — it is the browser telling you "now is a good time to
+	update visuals."
 </Callout>
 
 The rendering step is the final piece of the cycle. After it completes (or gets skipped), the event loop starts a brand new cycle — or as it is often called, a new **tick**. Each tick is one full pass: check the callback queue, drain microtasks, maybe render. Around and around, forever, until you close the tab.

@@ -5,5 +5,8 @@ build/
 .env*.local
 npm-debug.log*
 .superpowers/
+.worktrees/
 .DS_Store
 *.tsbuildinfo
+docs/
+.playwright-mcp/
