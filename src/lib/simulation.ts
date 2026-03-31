@@ -289,6 +289,7 @@ export function shouldStopAtPitStop(
 export function resolveFetch(
 	state: SimulationState,
 	resultLabel: string,
+	resolvedCallbackLabel?: string,
 ): SimulationState {
 	// Resolve the first pending fetch (remainingDelay > 99000 = real-fetch placeholder)
 	let resolved = false
@@ -297,7 +298,12 @@ export function resolveFetch(
 		pendingWebAPIs: state.pendingWebAPIs.map((api) => {
 			if (!resolved && api.type === 'fetch' && api.remainingDelay > 99000) {
 				resolved = true
-				return { ...api, label: resultLabel, remainingDelay: 0 }
+				return {
+					...api,
+					label: resultLabel,
+					callbackLabel: resolvedCallbackLabel ?? api.callbackLabel,
+					remainingDelay: 0,
+				}
 			}
 			return api
 		}),

@@ -272,7 +272,7 @@ describe('stepping', () => {
 		{ action: 'push', name: 'welcome()', line: 1 },
 		{ action: 'push', name: 'greet()', line: 2 },
 		{ action: 'pop', line: 3 },
-		{ action: 'push', name: 'console.log()', line: 4 },
+		{ action: 'push', name: 'console.log("Hello, world!")', line: 4 },
 		{ action: 'pop', line: 5 },
 		{ action: 'pop', line: 6 },
 	]
@@ -294,7 +294,10 @@ describe('stepping', () => {
 		expect(snapshots[2].activeLine).toBe(3)
 
 		// snapshot[3]: after push console.log
-		expect(snapshots[3].callStackFrames).toEqual(['welcome()', 'console.log()'])
+		expect(snapshots[3].callStackFrames).toEqual([
+			'welcome()',
+			'console.log("Hello, world!")',
+		])
 		expect(snapshots[3].activeLine).toBe(4)
 
 		// snapshot[4]: after pop console.log
@@ -586,7 +589,10 @@ describe('scenario step count alignment', () => {
 		// Step 2: pop greet → back to welcome
 		expect(snapshots[2].callStackFrames).toEqual(['welcome()'])
 		// Step 3: push console.log
-		expect(snapshots[3].callStackFrames).toEqual(['welcome()', 'console.log()'])
+		expect(snapshots[3].callStackFrames).toEqual([
+			'welcome()',
+			'console.log("Hello, world!")',
+		])
 		// Step 4: pop console.log
 		expect(snapshots[4].callStackFrames).toEqual(['welcome()'])
 		// Step 5: pop welcome → empty
@@ -807,5 +813,79 @@ describe('render-step end-to-end', () => {
 		expect(statesVisited).toContain('EXECUTING_TASK')
 		expect(statesVisited).toContain('STOPPED_AT_RENDER')
 		expect(statesVisited).toContain('RENDERING')
+	})
+})
+
+describe('resolveFetch callbackLabel', () => {
+	it('updates callbackLabel with resolved value on microtask-priority scenario', () => {
+		const scenario = SCENARIOS['microtask-priority']
+		let state = startStepping(
+			createInitialState(),
+			scenario.syncOps!,
+			'microtask-priority',
+		)
+
+		// Step through all sync ops
+		for (let i = 0; i < scenario.syncOps!.length; i++) {
+			state = stepForward(state)
+		}
+
+		// Fetch should be pending with static callbackLabel
+		const pendingFetch = state.pendingWebAPIs.find((a) => a.type === 'fetch')
+		expect(pendingFetch).toBeDefined()
+		expect(pendingFetch!.callbackLabel).toBe('console.log(data.name)')
+
+		// Resolve with actual data (like the store does)
+		state = resolveFetch(
+			state,
+			'fetch → "Luke Skywalker"',
+			'console.log("Luke Skywalker")',
+		)
+
+		// callbackLabel should now reflect the real value
+		const resolvedFetch = state.pendingWebAPIs.find((a) => a.type === 'fetch')
+		expect(resolvedFetch!.callbackLabel).toBe('console.log("Luke Skywalker")')
+		expect(resolvedFetch!.label).toBe('fetch → "Luke Skywalker"')
+	})
+
+	it('carries resolved callbackLabel through to microtask queue task', () => {
+		const scenario = SCENARIOS['microtask-priority']
+		let state = startStepping(
+			createInitialState(),
+			scenario.syncOps!,
+			'microtask-priority',
+		)
+
+		for (let i = 0; i < scenario.syncOps!.length; i++) {
+			state = stepForward(state)
+		}
+
+		state = resolveFetch(state, 'fetch → "Yoda"', 'console.log("Yoda")')
+
+		// Tick to move resolved fetch from pendingWebAPIs into microtaskQueue
+		state = nextState(state, 16)
+
+		const microtask = state.microtaskQueue.find((t) => t.type === 'fetch')
+		expect(microtask).toBeDefined()
+		expect(microtask!.callbackLabel).toBe('console.log("Yoda")')
+	})
+
+	it('preserves existing callbackLabel when resolvedCallbackLabel is not provided', () => {
+		const scenario = SCENARIOS['microtask-priority']
+		let state = startStepping(
+			createInitialState(),
+			scenario.syncOps!,
+			'microtask-priority',
+		)
+
+		for (let i = 0; i < scenario.syncOps!.length; i++) {
+			state = stepForward(state)
+		}
+
+		// Resolve without providing callbackLabel
+		state = resolveFetch(state, 'fetch → "Han Solo"')
+
+		const resolvedFetch = state.pendingWebAPIs.find((a) => a.type === 'fetch')
+		expect(resolvedFetch!.callbackLabel).toBe('console.log(data.name)')
 	})
 })

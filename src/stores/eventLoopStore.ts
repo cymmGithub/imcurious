@@ -79,7 +79,13 @@ export const useEventLoopStore = create<EventLoopStore>()((set, get) => ({
 							fetch('/api/starwars')
 								.then((res) => res.json())
 								.then((data: { name: string }) => {
-									set((s) => resolveFetch(s, `fetch → "${data.name}"`))
+									set((s) =>
+										resolveFetch(
+											s,
+											`fetch → "${data.name}"`,
+											`console.log("${data.name}")`,
+										),
+									)
 								})
 						}
 					}
