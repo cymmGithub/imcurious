@@ -24,7 +24,7 @@ export type SyncFrameOp =
 			action: 'push'
 			name: string
 			line?: number
-			asyncEffect?: { type: TaskType; delay?: number }
+			asyncEffect?: { type: TaskType; delay?: number; callbackLabel?: string }
 	  }
 	| { action: 'pop'; line?: number }
 
@@ -32,6 +32,7 @@ export type Task = {
 	id: string
 	type: TaskType
 	label: string
+	callbackLabel?: string
 	delay?: number
 	color: string
 }
@@ -136,7 +137,7 @@ export function buildSyncSnapshots(
 		if (op.action === 'push') {
 			stack = [...stack, op.name]
 			if (op.asyncEffect) {
-				const { type, delay: d } = op.asyncEffect
+				const { type, delay: d, callbackLabel } = op.asyncEffect
 				const resolvedDelay = type === 'fetch' ? 999999 : (d ?? 0)
 				webAPIs = [
 					...webAPIs,
@@ -149,6 +150,7 @@ export function buildSyncSnapshots(
 								: type === 'setTimeout'
 									? `setTimeout(${resolvedDelay}ms)`
 									: 'fetch()',
+						callbackLabel,
 						delay: resolvedDelay,
 						color: COLOR_MAP[type],
 						remainingDelay: resolvedDelay,
@@ -343,6 +345,7 @@ function tickWebAPIs(state: SimulationState, dt: number): SimulationState {
 				id: api.id,
 				type: api.type,
 				label: api.label,
+				callbackLabel: api.callbackLabel,
 				delay: api.delay,
 				color: api.color,
 			}

@@ -91,15 +91,15 @@ Think of it as a staging station. Callbacks line up, single file, waiting for th
 
 <RunCode scenarioId="task-queue-ordering" />
 
-Even with a delay of 0 milliseconds, those callbacks do not run immediately. Here is the full sequence:
+Even though A's timer is shorter, neither callback runs until all synchronous code finishes. Here is the full sequence:
 
 <StepList scenarioId="task-queue-ordering">
-1. `setTimeout(A)` is called — hands callback A to the browser's timer (0ms means immediately complete)
-2. It returns — popped off. Callback A enters the callback queue
-3. `setTimeout(B)` is called — hands callback B to the browser's timer
-4. It returns — popped off. Callback B enters the queue behind A
+1. `setTimeout(A)` is called — hands callback A to the browser's timer (1000ms)
+2. It returns — popped off. The browser starts counting down
+3. `setTimeout(B)` is called — hands callback B to the browser's timer (3000ms)
+4. It returns — popped off. Both timers are now ticking in the background
 5. `console.log("C")` is pushed onto the stack — runs synchronously, prints `C`
-6. It returns — popped off. All synchronous code is done. `A` and `B` are still waiting in the callback queue
+6. It returns — popped off. All synchronous code is done. `A` and `B` are still waiting for their timers to expire
 </StepList>
 
 <Callout>
@@ -128,7 +128,7 @@ The difference? The event loop **drains all microtasks** before it does anything
 Even though `setTimeout` was called first, the fetch callback wins. Every time. Here is why:
 
 <StepList scenarioId="microtask-priority">
-1. `setTimeout` is called — hands its callback to the browser's timer (0ms). It will enter the **callback queue**
+1. `setTimeout` is called — hands its callback to the browser's timer (2000ms). It will enter the **callback queue**
 2. It returns — popped off
 3. `fetch("/api/starwars")` is called — sends a network request via the browser. Its `.then()` will enter the **microtask queue** when the response arrives
 4. `fetch` returns a Promise immediately — popped off. The request is now in-flight

@@ -51,7 +51,7 @@ console.log("End");`,
 				action: 'push',
 				name: 'setTimeout()',
 				line: 2,
-				asyncEffect: { type: 'setTimeout', delay: 1000 },
+				asyncEffect: { type: 'setTimeout', delay: 1000, callbackLabel: 'console.log("Timer done")' },
 			},
 			{ action: 'pop', line: 4 },
 			{ action: 'push', name: 'console.log("End")', line: 6 },
@@ -62,36 +62,36 @@ console.log("End");`,
 
 	'task-queue-ordering': {
 		id: 'task-queue-ordering',
-		code: `setTimeout(() => console.log("A"), 0);
-setTimeout(() => console.log("B"), 0);
+		code: `setTimeout(() => console.log("A"), 1000);
+setTimeout(() => console.log("B"), 2000);
 console.log("C");`,
 		syncOps: [
 			{
 				action: 'push',
 				name: 'setTimeout(A)',
 				line: 0,
-				asyncEffect: { type: 'setTimeout', delay: 0 },
+				asyncEffect: { type: 'setTimeout', delay: 1000, callbackLabel: 'console.log("A")' },
 			},
 			{ action: 'pop', line: 0 },
 			{
 				action: 'push',
 				name: 'setTimeout(B)',
 				line: 1,
-				asyncEffect: { type: 'setTimeout', delay: 0 },
+				asyncEffect: { type: 'setTimeout', delay: 2000, callbackLabel: 'console.log("B")' },
 			},
 			{ action: 'pop', line: 1 },
 			{ action: 'push', name: 'console.log("C")', line: 2 },
 			{ action: 'pop', line: 2 },
 		],
 		asyncSteps: [
-			{ type: 'setTimeout', delay: 0 },
-			{ type: 'setTimeout', delay: 0 },
+			{ type: 'setTimeout', delay: 1000 },
+			{ type: 'setTimeout', delay: 3000 },
 		],
 	},
 
 	'microtask-priority': {
 		id: 'microtask-priority',
-		code: `setTimeout(() => console.log("Task"), 0);
+		code: `setTimeout(() => console.log("Task"), 2000);
 
 fetch("/api/starwars")
   .then(res => res.json())
@@ -103,20 +103,20 @@ console.log("Sync");`,
 				action: 'push',
 				name: 'setTimeout()',
 				line: 0,
-				asyncEffect: { type: 'setTimeout', delay: 0 },
+				asyncEffect: { type: 'setTimeout', delay: 2000, callbackLabel: 'console.log("Task")' },
 			},
 			{ action: 'pop', line: 0 },
 			{
 				action: 'push',
 				name: 'fetch()',
 				line: 2,
-				asyncEffect: { type: 'fetch' },
+				asyncEffect: { type: 'fetch', callbackLabel: 'console.log(data.name)' },
 			},
 			{ action: 'pop', line: 4 },
 			{ action: 'push', name: 'console.log("Sync")', line: 6 },
 			{ action: 'pop', line: 6 },
 		],
-		asyncSteps: [{ type: 'setTimeout', delay: 0 }, { type: 'fetch' }],
+		asyncSteps: [{ type: 'setTimeout', delay: 2000 }, { type: 'fetch' }],
 	},
 
 	'render-step': {
@@ -125,28 +125,28 @@ console.log("Sync");`,
   document.body.style.background = "blue";
 });
 
-setTimeout(() => console.log("Task"), 0);
+setTimeout(() => console.log("Task"), 1000);
 
 fetch("/api/starwars")
   .then(res => console.log(res.json()));`,
 		syncOps: [
-			{ action: 'push', name: 'rAF()', line: 0, asyncEffect: { type: 'rAF' } },
+			{ action: 'push', name: 'rAF()', line: 0, asyncEffect: { type: 'rAF', callbackLabel: 'style.background = "blue"' } },
 			{ action: 'pop', line: 2 },
 			{
 				action: 'push',
 				name: 'setTimeout()',
 				line: 4,
-				asyncEffect: { type: 'setTimeout', delay: 0 },
+				asyncEffect: { type: 'setTimeout', delay: 1000, callbackLabel: 'console.log("Task")' },
 			},
 			{ action: 'pop', line: 4 },
 			{
 				action: 'push',
 				name: 'fetch()',
 				line: 6,
-				asyncEffect: { type: 'fetch' },
+				asyncEffect: { type: 'fetch', callbackLabel: 'console.log(res.json())' },
 			},
 			{ action: 'pop', line: 7 },
 		],
-		asyncSteps: [{ type: 'setTimeout', delay: 0 }, { type: 'fetch' }],
+		asyncSteps: [{ type: 'setTimeout', delay: 1000 }, { type: 'fetch' }],
 	},
 }

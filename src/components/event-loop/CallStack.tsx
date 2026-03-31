@@ -30,9 +30,13 @@ export function CallStack({
 		cursorState === 'EXECUTING_TASK' ||
 		cursorState === 'EXECUTING_MICROTASK'
 	) {
-		frames = currentTask ? ['global()', currentTask.label] : ['global()']
+		frames = currentTask
+			? ['global()', currentTask.callbackLabel ?? currentTask.label]
+			: ['global()']
 	} else if (cursorState === 'RENDERING') {
-		frames = ['requestAnimationFrame()']
+		frames = currentTask
+			? [currentTask.callbackLabel ?? 'requestAnimationFrame()']
+			: ['requestAnimationFrame()']
 	}
 
 	return (

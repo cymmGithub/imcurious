@@ -785,9 +785,9 @@ describe('render-step end-to-end', () => {
 		// Simulate fetch resolving (like the store does)
 		state = resolveFetch(state, 'fetch → "Luke"')
 
-		// Tick once to resolve pending APIs (rAF and setTimeout have 0ms delay)
-		state = nextState(state, 16)
-		// rAF(0ms) → rAfCallbacks, setTimeout(0ms) → taskQueue, fetch resolved → microtaskQueue
+		// Tick to resolve pending APIs (rAF is instant, setTimeout is 1000ms, fetch is resolved)
+		state = nextState(state, 1100)
+		// rAF(0ms) → rAfCallbacks, setTimeout(1000ms) → taskQueue, fetch resolved → microtaskQueue
 		expect(state.rAfCallbacks).toHaveLength(1)
 		expect(state.taskQueue).toHaveLength(1)
 

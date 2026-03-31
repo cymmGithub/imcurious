@@ -27,11 +27,11 @@ setTimeout(() => {
 
 console.log("End");`,
 
-	'task-queue-ordering': `setTimeout(() => console.log("A"), 0);
-setTimeout(() => console.log("B"), 0);
+	'task-queue-ordering': `setTimeout(() => console.log("A"), 1000);
+setTimeout(() => console.log("B"), 3000);
 console.log("C");`,
 
-	'microtask-priority': `setTimeout(() => console.log("Task"), 0);
+	'microtask-priority': `setTimeout(() => console.log("Task"), 2000);
 
 fetch("/api/starwars")
   .then(res => res.json())
@@ -43,7 +43,7 @@ console.log("Sync");`,
   document.body.style.background = "blue";
 });
 
-setTimeout(() => console.log("Task"), 0);
+setTimeout(() => console.log("Task"), 1000);
 
 fetch("/api/starwars")
   .then(res => console.log(res.json()));`,
