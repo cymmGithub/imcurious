@@ -27,7 +27,10 @@ function useTheme(): 'dark' | 'light' {
 	return theme
 }
 
-const DEMO_CONFIG: Record<string, { running: string; idle: string; caveat: string }> = {
+const DEMO_CONFIG: Record<
+	string,
+	{ running: string; idle: string; caveat: string }
+> = {
 	'blocking-while-loop': {
 		running: 'Frozen',
 		idle: 'Run',
@@ -36,7 +39,8 @@ const DEMO_CONFIG: Record<string, { running: string; idle: string; caveat: strin
 	'infinite-microtasks': {
 		running: 'Starving',
 		idle: 'Run',
-		caveat: 'This would starve the loop forever — we\'re stopping it early so your tab doesn\'t die.',
+		caveat:
+			"This would starve the loop forever — we're stopping it early so your tab doesn't die.",
 	},
 }
 
@@ -55,7 +59,11 @@ export function DemoCode({ id }: DemoCodeProps) {
 	if (!html) return null
 
 	const isActive = activeScenarioId === id
-	const config = DEMO_CONFIG[id] ?? { running: 'Running', idle: 'Run', caveat: '' }
+	const config = DEMO_CONFIG[id] ?? {
+		running: 'Running',
+		idle: 'Run',
+		caveat: '',
+	}
 	const secondsLeft = isActive ? Math.ceil(executionTimer / 1000) : 0
 
 	return (
@@ -99,7 +107,11 @@ export function DemoCode({ id }: DemoCodeProps) {
 						opacity: activeScenarioId !== null && !isActive ? 0.3 : 1,
 						cursor: activeScenarioId !== null ? 'not-allowed' : 'pointer',
 					}}
-					aria-label={isActive ? `${config.running} — ${secondsLeft}s remaining` : `Run ${id} demo`}
+					aria-label={
+						isActive
+							? `${config.running} — ${secondsLeft}s remaining`
+							: `Run ${id} demo`
+					}
 				>
 					{isActive ? (
 						<>
@@ -114,7 +126,9 @@ export function DemoCode({ id }: DemoCodeProps) {
 				{isActive && (
 					<span
 						className="font-body text-[11px] ml-3 italic"
-						style={{ color: 'color-mix(in srgb, #ef4444 70%, var(--color-chalk))' }}
+						style={{
+							color: 'color-mix(in srgb, #ef4444 70%, var(--color-chalk))',
+						}}
 					>
 						{config.caveat}
 					</span>

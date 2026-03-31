@@ -13,8 +13,7 @@ const mdxContent = readFileSync(mdxPath, 'utf-8')
  * the scenario has syncOps.
  */
 function extractStepLists(content: string) {
-	const regex =
-		/<StepList\s+scenarioId="([^"]+)">\s*([\s\S]*?)\s*<\/StepList>/g
+	const regex = /<StepList\s+scenarioId="([^"]+)">\s*([\s\S]*?)\s*<\/StepList>/g
 	const results: { scenarioId: string; itemCount: number }[] = []
 	let match
 
