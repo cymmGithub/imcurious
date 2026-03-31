@@ -11,7 +11,9 @@
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"test": "vitest run",
-		"test:watch": "vitest"
+		"test:watch": "vitest",
+		"quality": "bun run lint && bun run format:check && bun run test",
+		"prepare": "husky"
 	},
 	"dependencies": {
 		"@mdx-js/loader": "^3.1.0",
@@ -38,6 +40,7 @@
 		"eslint": "^9.0.0",
 		"eslint-config-next": "^15.3.0",
 		"eslint-config-prettier": "^10.1.8",
+		"husky": "^9.1.7",
 		"jsdom": "^26.0.0",
 		"postcss": "^8.5.0",
 		"prettier": "^3.8.1",
