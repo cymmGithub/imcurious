@@ -62,9 +62,9 @@ export type SimulationState = {
 export const PIT_STOPS = { queues: 0, render: 1 / 2 } as const
 
 const CURSOR_SPEED = 0.0001
-export const EXECUTION_DURATION = 600
-const STOP_PAUSE = 200
-const SYNC_FRAME_DURATION = 800
+export const EXECUTION_DURATION = 900
+const STOP_PAUSE = 300
+const SYNC_FRAME_DURATION = 1200
 
 const FREEZE_DURATION = 3000
 const STARVE_DURATION = 3000
