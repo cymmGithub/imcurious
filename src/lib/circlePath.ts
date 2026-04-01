@@ -8,7 +8,7 @@ export const CIRCLE = {
 
 export const VIEWBOX = '-60 -5 720 555'
 
-// Station positions at 120° intervals (0°, 120°, 240°)
+// Station positions at 180° intervals (0°, 180°)
 // 0° = top (12 o'clock), clockwise
 function stationAnchor(angleDeg: number) {
 	const rad = (angleDeg * Math.PI) / 180
@@ -19,22 +19,16 @@ function stationAnchor(angleDeg: number) {
 }
 
 export const STATION_POSITIONS = {
-	task: {
+	queues: {
 		pathT: 0,
-		label: 'Task Queue',
+		label: 'Queues',
 		anchor: stationAnchor(0), // (300, 120) — 12 o'clock
 		color: '#ffffff',
 	},
-	microtask: {
-		pathT: 1 / 3,
-		label: 'Microtask Queue',
-		anchor: stationAnchor(120), // (456, 390) — ~5 o'clock
-		color: '#ffffff',
-	},
 	render: {
-		pathT: 2 / 3,
+		pathT: 1 / 2,
 		label: 'Render',
-		anchor: stationAnchor(240), // (144, 390) — ~7 o'clock
+		anchor: stationAnchor(180), // (300, 480) — 6 o'clock
 		color: '#ffffff',
 	},
 } as const
@@ -44,6 +38,6 @@ export const ORBIT_PATH = `M ${CIRCLE.cx} ${CIRCLE.cy - CIRCLE.r} A ${CIRCLE.r} 
 
 // Web APIs box position (top-right, within viewBox bounds)
 export const WEB_API_POSITION = {
-	x: 450,
-	y: 5,
+	x: 470,
+	y: -40,
 }

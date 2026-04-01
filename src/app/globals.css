@@ -14,6 +14,7 @@
 	--color-surface-card: #131210;
 	--color-accent: #c0b8a8;
 	--color-border-section: #ddd9d2;
+	--color-callout-icon: #facc15;
 }
 
 /* Light theme: "ink on warm paper" */
@@ -26,6 +27,7 @@
 	--color-surface-card: #ece7de;
 	--color-accent: #8a7e6e;
 	--color-border-section: #5a554d;
+	--color-callout-icon: #57534e;
 }
 
 body {

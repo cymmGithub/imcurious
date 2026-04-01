@@ -1,8 +1,7 @@
 export type CursorState =
 	| 'ORBITING'
-	| 'STOPPED_AT_TASK_QUEUE'
+	| 'STOPPED_AT_QUEUES'
 	| 'EXECUTING_TASK'
-	| 'STOPPED_AT_MICROTASK_QUEUE'
 	| 'EXECUTING_MICROTASK'
 	| 'STOPPED_AT_RENDER'
 	| 'RENDERING'
@@ -60,7 +59,7 @@ export type SimulationState = {
 	steppingFinalWebAPIs: PendingWebAPI[]
 }
 
-export const PIT_STOPS = { task: 0, microtask: 1 / 3, render: 2 / 3 } as const
+export const PIT_STOPS = { queues: 0, render: 1 / 2 } as const
 
 const CURSOR_SPEED = 0.0001
 export const EXECUTION_DURATION = 600
@@ -210,7 +209,7 @@ export function startStarve(state: SimulationState): SimulationState {
 	return {
 		...state,
 		cursorState: 'STARVED_MICROTASK',
-		cursorPosition: PIT_STOPS.microtask,
+		cursorPosition: PIT_STOPS.queues,
 		executionTimer: STARVE_DURATION,
 		syncFrameIndex: 0,
 		callStackFrames: ['forever()', 'Promise.then(forever)'],
@@ -442,19 +441,7 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 			const prevPos = s.cursorPosition
 			let newPos = prevPos + CURSOR_SPEED * dt
 
-			// Check microtask and render pit stops (at 0.333 and 0.667 — no wrap issues)
-			// Use exact crossing check (no threshold) to avoid visible cursor snapping
-			if (prevPos < PIT_STOPS.microtask && newPos >= PIT_STOPS.microtask) {
-				if (s.microtaskQueue.length > 0) {
-					return {
-						...s,
-						cursorPosition: PIT_STOPS.microtask,
-						cursorState: 'STOPPED_AT_MICROTASK_QUEUE',
-						executionTimer: STOP_PAUSE,
-					}
-				}
-			}
-
+			// Check render pit stop at 0.5
 			if (prevPos < PIT_STOPS.render && newPos >= PIT_STOPS.render) {
 				if (s.rAfCallbacks.length > 0) {
 					return {
@@ -469,12 +456,13 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 			// Wrap position
 			if (newPos >= 1.0) {
 				newPos = newPos - 1.0
-				// Check task queue stop after wrap (position 0)
-				if (s.taskQueue.length > 0) {
+				// Check queues stop after wrap (position 0)
+				// Both queues share one station — microtasks drain first
+				if (s.microtaskQueue.length > 0 || s.taskQueue.length > 0) {
 					return {
 						...s,
 						cursorPosition: 0,
-						cursorState: 'STOPPED_AT_TASK_QUEUE',
+						cursorState: 'STOPPED_AT_QUEUES',
 						executionTimer: STOP_PAUSE,
 					}
 				}
@@ -483,17 +471,33 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 			return { ...s, cursorPosition: newPos }
 		}
 
-		case 'STOPPED_AT_MICROTASK_QUEUE': {
+		case 'STOPPED_AT_QUEUES': {
 			const timer = s.executionTimer - dt
 			if (timer <= 0) {
-				const [first, ...rest] = s.microtaskQueue
-				return {
-					...s,
-					cursorState: 'EXECUTING_MICROTASK',
-					currentTask: first,
-					microtaskQueue: rest,
-					executionTimer: EXECUTION_DURATION,
+				// Microtasks always have priority
+				if (s.microtaskQueue.length > 0) {
+					const [first, ...rest] = s.microtaskQueue
+					return {
+						...s,
+						cursorState: 'EXECUTING_MICROTASK',
+						currentTask: first,
+						microtaskQueue: rest,
+						executionTimer: EXECUTION_DURATION,
+					}
 				}
+				// Then one task
+				if (s.taskQueue.length > 0) {
+					const [first, ...rest] = s.taskQueue
+					return {
+						...s,
+						cursorState: 'EXECUTING_TASK',
+						currentTask: first,
+						taskQueue: rest,
+						executionTimer: EXECUTION_DURATION,
+					}
+				}
+				// Both empty (race condition) — resume orbiting
+				return { ...s, cursorState: 'ORBITING', executionTimer: 0 }
 			}
 			return { ...s, executionTimer: timer }
 		}
@@ -501,6 +505,7 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 		case 'EXECUTING_MICROTASK': {
 			const timer = s.executionTimer - dt
 			if (timer <= 0) {
+				// Continue draining microtasks
 				if (s.microtaskQueue.length > 0) {
 					const [next, ...rest] = s.microtaskQueue
 					return {
@@ -510,6 +515,18 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 						executionTimer: EXECUTION_DURATION,
 					}
 				}
+				// Microtasks drained — check task queue
+				if (s.taskQueue.length > 0) {
+					const [first, ...rest] = s.taskQueue
+					return {
+						...s,
+						cursorState: 'EXECUTING_TASK',
+						currentTask: first,
+						taskQueue: rest,
+						executionTimer: EXECUTION_DURATION,
+					}
+				}
+				// Both empty — leave station
 				return {
 					...s,
 					cursorState: 'ORBITING',
@@ -520,25 +537,21 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 			return { ...s, executionTimer: timer }
 		}
 
-		case 'STOPPED_AT_TASK_QUEUE': {
-			const timer = s.executionTimer - dt
-			if (timer <= 0) {
-				const [first, ...rest] = s.taskQueue
-				return {
-					...s,
-					cursorState: 'EXECUTING_TASK',
-					currentTask: first,
-					taskQueue: rest,
-					executionTimer: EXECUTION_DURATION,
-				}
-			}
-			return { ...s, executionTimer: timer }
-		}
-
 		case 'EXECUTING_TASK': {
 			const timer = s.executionTimer - dt
 			if (timer <= 0) {
-				// Only ONE task per lap
+				// After one task, check if microtasks appeared (web API timing)
+				if (s.microtaskQueue.length > 0) {
+					const [first, ...rest] = s.microtaskQueue
+					return {
+						...s,
+						cursorState: 'EXECUTING_MICROTASK',
+						currentTask: first,
+						microtaskQueue: rest,
+						executionTimer: EXECUTION_DURATION,
+					}
+				}
+				// Only ONE task per visit — leave station
 				return {
 					...s,
 					cursorState: 'ORBITING',

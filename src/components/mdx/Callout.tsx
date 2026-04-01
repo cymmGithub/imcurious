@@ -15,7 +15,8 @@ export function Callout({ children }: CalloutProps) {
 		>
 			<Info
 				size={18}
-				className="absolute left-2.5 top-[18px] text-yellow-400"
+				className="absolute left-2.5 top-[28px]"
+				style={{ color: 'var(--color-callout-icon)' }}
 				aria-hidden="true"
 				strokeWidth={2.5}
 			/>

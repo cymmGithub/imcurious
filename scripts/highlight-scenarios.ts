@@ -31,7 +31,7 @@ console.log("End");`,
 setTimeout(() => console.log("B"), 3000);
 console.log("C");`,
 
-	'microtask-priority': `setTimeout(() => console.log("Task"), 2000);
+	'microtask-priority': `setTimeout(() => console.log("Task"), 0);
 
 fetch("/api/starwars")
   .then(res => res.json())

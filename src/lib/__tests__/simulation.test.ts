@@ -51,7 +51,7 @@ describe('nextState', () => {
 		expect(next.cursorPosition).toBeGreaterThanOrEqual(0)
 	})
 
-	it('stops at task queue (~0) when queue is non-empty', () => {
+	it('stops at queues (~0) when task queue is non-empty', () => {
 		const state: SimulationState = {
 			...createInitialState(),
 			cursorPosition: 0.995,
@@ -65,10 +65,22 @@ describe('nextState', () => {
 			],
 		}
 		const next = nextState(state, 200)
-		expect(next.cursorState).toBe('STOPPED_AT_TASK_QUEUE')
+		expect(next.cursorState).toBe('STOPPED_AT_QUEUES')
 	})
 
-	it('drives through task queue when queue is empty', () => {
+	it('stops at queues (~0) when microtask queue is non-empty', () => {
+		const state: SimulationState = {
+			...createInitialState(),
+			cursorPosition: 0.995,
+			microtaskQueue: [
+				{ id: '1', type: 'fetch', label: 'fetch()', color: '#ffffff' },
+			],
+		}
+		const next = nextState(state, 200)
+		expect(next.cursorState).toBe('STOPPED_AT_QUEUES')
+	})
+
+	it('drives through queues when both queues are empty', () => {
 		const state: SimulationState = {
 			...createInitialState(),
 			cursorPosition: 0.995,
@@ -79,20 +91,7 @@ describe('nextState', () => {
 		expect(next.cursorPosition).toBeLessThan(0.99)
 	})
 
-	it('stops at microtask queue (~0.333) when queue is non-empty', () => {
-		const state: SimulationState = {
-			...createInitialState(),
-			cursorPosition: PIT_STOPS.microtask - 0.005,
-			microtaskQueue: [
-				{ id: '1', type: 'fetch', label: 'fetch()', color: '#ffffff' },
-			],
-		}
-		const next = nextState(state, 100)
-		expect(next.cursorState).toBe('STOPPED_AT_MICROTASK_QUEUE')
-		expect(next.cursorPosition).toBeCloseTo(PIT_STOPS.microtask, 2)
-	})
-
-	it('transitions from STOPPED_AT_MICROTASK_QUEUE to EXECUTING_MICROTASK', () => {
+	it('transitions from STOPPED_AT_QUEUES to EXECUTING_MICROTASK when microtasks present', () => {
 		const task = {
 			id: '1',
 			type: 'fetch' as const,
@@ -101,8 +100,8 @@ describe('nextState', () => {
 		}
 		const state: SimulationState = {
 			...createInitialState(),
-			cursorPosition: PIT_STOPS.microtask,
-			cursorState: 'STOPPED_AT_MICROTASK_QUEUE',
+			cursorPosition: 0,
+			cursorState: 'STOPPED_AT_QUEUES',
 			microtaskQueue: [task],
 			executionTimer: 0,
 		}
@@ -111,6 +110,54 @@ describe('nextState', () => {
 		expect(next.cursorState).toBe('EXECUTING_MICROTASK')
 		expect(next.currentTask).toEqual(task)
 		expect(next.microtaskQueue).toEqual([])
+	})
+
+	it('transitions from STOPPED_AT_QUEUES to EXECUTING_TASK when only tasks present', () => {
+		const task = {
+			id: '1',
+			type: 'setTimeout' as const,
+			label: 'cb()',
+			color: '#888888',
+		}
+		const state: SimulationState = {
+			...createInitialState(),
+			cursorPosition: 0,
+			cursorState: 'STOPPED_AT_QUEUES',
+			taskQueue: [task],
+			executionTimer: 0,
+		}
+		const next = nextState(state, 250)
+		expect(next.cursorState).toBe('EXECUTING_TASK')
+		expect(next.currentTask).toEqual(task)
+		expect(next.taskQueue).toEqual([])
+	})
+
+	it('microtasks have priority: STOPPED_AT_QUEUES with both queues goes to microtask first', () => {
+		const microtask = {
+			id: '1',
+			type: 'fetch' as const,
+			label: 'fetch()',
+			color: '#ffffff',
+		}
+		const task = {
+			id: '2',
+			type: 'setTimeout' as const,
+			label: 'cb()',
+			color: '#888888',
+		}
+		const state: SimulationState = {
+			...createInitialState(),
+			cursorPosition: 0,
+			cursorState: 'STOPPED_AT_QUEUES',
+			microtaskQueue: [microtask],
+			taskQueue: [task],
+			executionTimer: 0,
+		}
+		const next = nextState(state, 250)
+		expect(next.cursorState).toBe('EXECUTING_MICROTASK')
+		expect(next.currentTask).toEqual(microtask)
+		// Task queue untouched
+		expect(next.taskQueue).toEqual([task])
 	})
 
 	it('drains ALL microtasks before leaving (stays if more in queue)', () => {
@@ -128,7 +175,7 @@ describe('nextState', () => {
 		}
 		const state: SimulationState = {
 			...createInitialState(),
-			cursorPosition: PIT_STOPS.microtask,
+			cursorPosition: 0,
 			cursorState: 'EXECUTING_MICROTASK',
 			currentTask: task1,
 			microtaskQueue: [task2],
@@ -141,7 +188,34 @@ describe('nextState', () => {
 		expect(next.microtaskQueue).toEqual([])
 	})
 
-	it('executes only ONE task from task queue per lap', () => {
+	it('after draining microtasks, executes one task if available', () => {
+		const task = {
+			id: '2',
+			type: 'setTimeout' as const,
+			label: 'cb()',
+			color: '#888888',
+		}
+		const state: SimulationState = {
+			...createInitialState(),
+			cursorPosition: 0,
+			cursorState: 'EXECUTING_MICROTASK',
+			currentTask: {
+				id: '1',
+				type: 'fetch',
+				label: 'fetch()',
+				color: '#ffffff',
+			},
+			microtaskQueue: [],
+			taskQueue: [task],
+			executionTimer: 1,
+		}
+		const next = nextState(state, 10)
+		expect(next.cursorState).toBe('EXECUTING_TASK')
+		expect(next.currentTask).toEqual(task)
+		expect(next.taskQueue).toEqual([])
+	})
+
+	it('executes only ONE task from task queue per visit', () => {
 		const task1 = {
 			id: '1',
 			type: 'setTimeout' as const,
@@ -156,7 +230,7 @@ describe('nextState', () => {
 		}
 		const state: SimulationState = {
 			...createInitialState(),
-			cursorPosition: PIT_STOPS.task,
+			cursorPosition: 0,
 			cursorState: 'EXECUTING_TASK',
 			currentTask: task1,
 			taskQueue: [task2],
@@ -167,6 +241,69 @@ describe('nextState', () => {
 		expect(next.cursorState).toBe('ORBITING')
 		expect(next.taskQueue).toEqual([task2])
 		expect(next.currentTask).toBeNull()
+	})
+
+	it('after executing a task, drains microtasks that appeared during execution', () => {
+		const microtask = {
+			id: '2',
+			type: 'fetch' as const,
+			label: 'fetch()',
+			color: '#ffffff',
+		}
+		const state: SimulationState = {
+			...createInitialState(),
+			cursorPosition: 0,
+			cursorState: 'EXECUTING_TASK',
+			currentTask: {
+				id: '1',
+				type: 'setTimeout',
+				label: 'cb()',
+				color: '#888888',
+			},
+			microtaskQueue: [microtask],
+			taskQueue: [],
+			executionTimer: 1,
+		}
+		const next = nextState(state, 10)
+		expect(next.cursorState).toBe('EXECUTING_MICROTASK')
+		expect(next.currentTask).toEqual(microtask)
+	})
+
+	it('full cycle: microtasks → one task → microtasks → ORBITING', () => {
+		const micro1 = {
+			id: '1',
+			type: 'fetch' as const,
+			label: 'micro1',
+			color: '#ffffff',
+		}
+		const task1 = {
+			id: '2',
+			type: 'setTimeout' as const,
+			label: 'task1',
+			color: '#888888',
+		}
+		let state: SimulationState = {
+			...createInitialState(),
+			cursorPosition: 0,
+			cursorState: 'STOPPED_AT_QUEUES',
+			microtaskQueue: [micro1],
+			taskQueue: [task1],
+			executionTimer: 0,
+		}
+		// STOPPED_AT_QUEUES → EXECUTING_MICROTASK (microtask has priority)
+		state = nextState(state, 250)
+		expect(state.cursorState).toBe('EXECUTING_MICROTASK')
+		expect(state.currentTask).toEqual(micro1)
+
+		// EXECUTING_MICROTASK → EXECUTING_TASK (microtask drained, task available)
+		state = nextState(state, EXECUTION_DURATION + 10)
+		expect(state.cursorState).toBe('EXECUTING_TASK')
+		expect(state.currentTask).toEqual(task1)
+
+		// EXECUTING_TASK → ORBITING (no more microtasks, one task per visit)
+		state = nextState(state, EXECUTION_DURATION + 10)
+		expect(state.cursorState).toBe('ORBITING')
+		expect(state.currentTask).toBeNull()
 	})
 
 	it('skips render stop when rAfCallbacks is empty', () => {
@@ -191,36 +328,6 @@ describe('nextState', () => {
 		const next = nextState(state, 100)
 		expect(next.cursorState).toBe('STOPPED_AT_RENDER')
 		expect(next.cursorPosition).toBeCloseTo(PIT_STOPS.render, 2)
-	})
-
-	it('after executing a task, cursor reaches microtask station before render', () => {
-		// Start with cursor at task position (0), just finished executing a task
-		// with microtasks waiting — cursor should reach microtask (1/3) before render (2/3)
-		let state: SimulationState = {
-			...createInitialState(),
-			cursorPosition: PIT_STOPS.task,
-			cursorState: 'EXECUTING_TASK',
-			currentTask: {
-				id: '1',
-				type: 'setTimeout',
-				label: 'cb()',
-				color: '#888888',
-			},
-			taskQueue: [],
-			microtaskQueue: [
-				{ id: '2', type: 'fetch', label: 'fetch()', color: '#ffffff' },
-			],
-			executionTimer: 1, // about to finish
-		}
-		// Finish task execution → ORBITING
-		state = nextState(state, 10)
-		expect(state.cursorState).toBe('ORBITING')
-		// Advance enough to reach microtask pit stop at 1/3
-		for (let i = 0; i < 5000; i++) {
-			state = nextState(state, 1)
-			if (state.cursorState !== 'ORBITING') break
-		}
-		expect(state.cursorState).toBe('STOPPED_AT_MICROTASK_QUEUE')
 	})
 
 	it('moves setTimeout to taskQueue when delay elapses', () => {
@@ -254,11 +361,11 @@ describe('nextState', () => {
 		// setTimeout should be pending with callbackLabel
 		const pending = state.pendingWebAPIs.find((a) => a.type === 'setTimeout')
 		expect(pending).toBeDefined()
-		expect(pending!.label).toBe('setTimeout(2000ms)')
+		expect(pending!.label).toBe('setTimeout(0ms)')
 		expect(pending!.callbackLabel).toBe('console.log("Task")')
 
-		// Advance past the 2000ms delay to move it into the task queue
-		state = nextState(state, 2100)
+		// Advance past the 0ms delay to move it into the task queue
+		state = nextState(state, 16)
 		const task = state.taskQueue.find((t) => t.type === 'setTimeout')
 		expect(task).toBeDefined()
 		expect(task!.callbackLabel).toBe('console.log("Task")')
@@ -300,48 +407,31 @@ describe('addTask', () => {
 })
 
 describe('shouldStopAtPitStop', () => {
-	it('returns true when cursor crosses microtask threshold with non-empty queue', () => {
+	it('returns true when cursor crosses threshold with non-empty queue', () => {
 		const result = shouldStopAtPitStop(
-			PIT_STOPS.microtask - 0.01,
-			PIT_STOPS.microtask,
-			PIT_STOPS.microtask + 0.01,
-			[{ id: '1', type: 'fetch', label: 'fetch()', color: '#06d6a0' }],
+			PIT_STOPS.render - 0.01,
+			PIT_STOPS.render,
+			PIT_STOPS.render + 0.01,
+			[{ id: '1', type: 'rAF', label: 'rAF()', color: '#ffffff' }],
 		)
 		expect(result).toBe(true)
 	})
 
 	it('returns false when queue is empty', () => {
 		const result = shouldStopAtPitStop(
-			PIT_STOPS.microtask - 0.01,
-			PIT_STOPS.microtask,
-			PIT_STOPS.microtask + 0.01,
+			PIT_STOPS.render - 0.01,
+			PIT_STOPS.render,
+			PIT_STOPS.render + 0.01,
 			[],
 		)
 		expect(result).toBe(false)
 	})
 
 	it('returns false when cursor has not crossed threshold', () => {
-		const result = shouldStopAtPitStop(0.2, PIT_STOPS.microtask, 0.22, [
-			{ id: '1', type: 'fetch', label: 'fetch()', color: '#06d6a0' },
+		const result = shouldStopAtPitStop(0.2, PIT_STOPS.render, 0.22, [
+			{ id: '1', type: 'rAF', label: 'rAF()', color: '#ffffff' },
 		])
 		expect(result).toBe(false)
-	})
-
-	it('returns true when cursor crosses render pit stop threshold with non-empty queue', () => {
-		const result = shouldStopAtPitStop(
-			PIT_STOPS.render - 0.01,
-			PIT_STOPS.render,
-			PIT_STOPS.render + 0.01,
-			[
-				{
-					id: '1',
-					type: 'rAF',
-					label: 'rAF()',
-					color: '#ffffff',
-				},
-			],
-		)
-		expect(result).toBe(true)
 	})
 })
 
@@ -851,7 +941,7 @@ describe('rAF routing', () => {
 })
 
 describe('render-step end-to-end', () => {
-	it('cursor visits microtask queue, render station, then task queue in spec order', () => {
+	it('cursor visits render station then queues station in correct order', () => {
 		const scenario = SCENARIOS['render-step']
 		let state = startStepping(
 			createInitialState(),
@@ -877,7 +967,7 @@ describe('render-step end-to-end', () => {
 		expect(state.taskQueue).toHaveLength(1)
 
 		// Advance cursor to visit all stations
-		// Cursor is near 0.11, visits: microtask (0.333), render (0.667), then task (0 on wrap)
+		// With 2 stations: render at 0.5, queues at 0 (wrap)
 		let statesVisited: string[] = []
 		for (let i = 0; i < 800; i++) {
 			state = nextState(state, 20)
@@ -887,18 +977,17 @@ describe('render-step end-to-end', () => {
 			if (statesVisited.length >= 7) break
 		}
 
-		// Should have visited all station states (microtask first, then render, then task on wrap)
-		expect(statesVisited).toContain('STOPPED_AT_MICROTASK_QUEUE')
-		expect(statesVisited).toContain('EXECUTING_MICROTASK')
+		// Should visit render first (at 0.5), then queues (at 0 after wrap)
 		expect(statesVisited).toContain('STOPPED_AT_RENDER')
 		expect(statesVisited).toContain('RENDERING')
-		expect(statesVisited).toContain('STOPPED_AT_TASK_QUEUE')
+		expect(statesVisited).toContain('STOPPED_AT_QUEUES')
+		expect(statesVisited).toContain('EXECUTING_MICROTASK')
 		expect(statesVisited).toContain('EXECUTING_TASK')
 
-		// Verify ordering: microtask visited before task
-		const microtaskIdx = statesVisited.indexOf('STOPPED_AT_MICROTASK_QUEUE')
-		const taskIdx = statesVisited.indexOf('STOPPED_AT_TASK_QUEUE')
-		expect(microtaskIdx).toBeLessThan(taskIdx)
+		// Verify ordering: render visited before queues
+		const renderIdx = statesVisited.indexOf('STOPPED_AT_RENDER')
+		const queuesIdx = statesVisited.indexOf('STOPPED_AT_QUEUES')
+		expect(renderIdx).toBeLessThan(queuesIdx)
 	})
 })
 
@@ -974,4 +1063,50 @@ describe('resolveFetch callbackLabel', () => {
 		const resolvedFetch = state.pendingWebAPIs.find((a) => a.type === 'fetch')
 		expect(resolvedFetch!.callbackLabel).toBe('console.log(data.name)')
 	})
+})
+
+describe('scenario code/config consistency', () => {
+	// Guards against drift between the displayed code string and the
+	// asyncEffect delays that drive the Web API visualization.
+
+	function extractSetTimeoutDelays(code: string): number[] {
+		const delays: number[] = []
+		const re = /setTimeout\([^,]+,\s*(\d+)\)/g
+		let m
+		while ((m = re.exec(code)) !== null) {
+			delays.push(Number(m[1]))
+		}
+		return delays
+	}
+
+	function getAsyncEffectDelays(ops: SyncFrameOp[]): number[] {
+		return ops
+			.filter(
+				(op): op is SyncFrameOp & { action: 'push' } =>
+					op.action === 'push' &&
+					'asyncEffect' in op &&
+					op.asyncEffect?.type === 'setTimeout',
+			)
+			.map((op) => op.asyncEffect!.delay ?? 0)
+	}
+
+	for (const [id, scenario] of Object.entries(SCENARIOS)) {
+		const codeDelays = extractSetTimeoutDelays(scenario.code)
+		if (codeDelays.length === 0 || !scenario.syncOps) continue
+
+		it(`${id}: setTimeout delays in code match asyncEffect delays`, () => {
+			const effectDelays = getAsyncEffectDelays(scenario.syncOps!)
+			expect(effectDelays).toEqual(codeDelays)
+		})
+
+		if (scenario.asyncSteps) {
+			const asyncStepDelays = scenario.asyncSteps
+				.filter((s) => s.type === 'setTimeout')
+				.map((s) => s.delay ?? 0)
+
+			it(`${id}: setTimeout delays in code match asyncSteps delays`, () => {
+				expect(asyncStepDelays).toEqual(codeDelays)
+			})
+		}
+	}
 })
