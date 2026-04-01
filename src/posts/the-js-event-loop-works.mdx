@@ -49,9 +49,9 @@ This is synchronous execution. Predictable. Orderly. One thing at a time, like a
 
 ## Web APIs
 
-Here is where our event loop metaphor gets interesting. The cursor cannot leave its loop, but the **environment** has workers who can do work in the background.
+Here is where our event loop metaphor gets interesting. The cursor cannot leave its loop, but the **environment** has browser services that can do work in the background.
 
-When you call `setTimeout`, `fetch`, or add an event listener, you are not running JavaScript. You are sending a request to the browser's built-in features — the **Web APIs**. These are the background workers. They work off-loop, on their own threads, while the cursor keeps orbiting.
+When you call `setTimeout`, `fetch`, or add an event listener, you are not running JavaScript. You are sending a request to the browser's built-in features — the **Web APIs**. These are the browser services. They work off-loop, on their own threads, while the cursor keeps orbiting.
 
 <RunCode scenarioId="webapi-settimeout" />
 
@@ -66,11 +66,11 @@ Here is what actually happens:
 6. It returns — popped off. All synchronous code is done, but the timer callback is still waiting...
 </StepList>
 
-`setTimeout` is not a JavaScript function in any meaningful sense. It is a label, a facade, for browser functionality that lives entirely outside the JavaScript engine. Same with `fetch` (network requests), `document` (the DOM), and even `console` (dev tools).
+`setTimeout` is not part of the JavaScript language itself — it is provided by the browser. When you call it, the JS engine hands the callback and delay to the browser's timer system and moves on. Same with `fetch`, `document`, and even `console` — they are all browser APIs that JavaScript gets to use, but the heavy lifting happens outside the engine.
 
 <Callout>
 	The JavaScript engine is just the cursor. The browser is the entire runtime
-	organization: the background workers, the timer system, the network layer, the
+	organization: the browser services, the timer system, the network layer, the
 	telemetry. JavaScript gets to use all of it through these facade functions,
 	but the work happens elsewhere.
 </Callout>
@@ -85,7 +85,7 @@ So when the timer finishes, where does the callback go? It cannot just jump onto
 
 ## The Task Queue
 
-When a timer finishes or a click happens, the browser does not slam the callback onto the call stack. That would be chaos — imagine a background worker cutting into the cursor's orbit. Instead, the callback goes into a **waiting area**: the **task queue**.
+When a timer finishes or a click happens, the browser does not slam the callback onto the call stack. That would be chaos — imagine a browser service cutting into the cursor's orbit. Instead, the callback goes into a **waiting area**: the **task queue**.
 
 <Callout>
 	A note on naming: the spec calls this the **task queue**. You will see tutorials
