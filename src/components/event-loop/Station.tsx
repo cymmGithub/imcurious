@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { PaintBucket } from 'lucide-react'
 import type { Task } from '@/lib/simulation'
+import { useEventLoopStore } from '@/stores/eventLoopStore'
 
 interface StationProps {
 	label: string
@@ -33,6 +34,9 @@ export function Station({
 	align = 'left',
 	showQueueOrder = true,
 }: StationProps) {
+	const oppositeTheme = useEventLoopStore((s) => s.oppositeTheme)
+	const resolveLabel = (t: Task) =>
+		(t.callbackLabel ?? t.label).replace('__THEME__', oppositeTheme)
 	const allTasks = currentTask ? [currentTask, ...tasks] : tasks
 
 	return (
@@ -107,11 +111,10 @@ export function Station({
 												gap: '3px',
 											}}
 										>
-											<PaintBucket size={8} />{' '}
-											{task.callbackLabel ?? task.label}
+											<PaintBucket size={8} /> {resolveLabel(task)}
 										</span>
 									) : (
-										(task.callbackLabel ?? task.label)
+										resolveLabel(task)
 									)}
 								</motion.div>
 							))}

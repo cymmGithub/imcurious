@@ -9,6 +9,19 @@ export function useAnimationLoop() {
 	const lastTimeRef = useRef(0)
 
 	useEffect(() => {
+		// Keep oppositeTheme in sync with DOM theme
+		const html = document.documentElement
+		const syncTheme = () => {
+			const isLight = html.dataset.theme === 'light'
+			useEventLoopStore.setState({ oppositeTheme: isLight ? 'dark' : 'light' })
+		}
+		syncTheme()
+		const themeObserver = new MutationObserver(syncTheme)
+		themeObserver.observe(html, {
+			attributes: true,
+			attributeFilter: ['data-theme'],
+		})
+
 		let rafId = 0
 		let visible = !document.hidden
 
@@ -42,6 +55,7 @@ export function useAnimationLoop() {
 
 		return () => {
 			stop()
+			themeObserver.disconnect()
 			document.removeEventListener('visibilitychange', onVisibilityChange)
 		}
 	}, [tick])

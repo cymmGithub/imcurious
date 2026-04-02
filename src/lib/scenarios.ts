@@ -141,7 +141,7 @@ console.log("Sync");`,
 
 	'render-step': {
 		id: 'render-step',
-		code: `requestAnimationFrame(() => document.body.style.background = "red");
+		code: `requestAnimationFrame(() => document.body.dataset.theme = "__THEME__");
 
 setTimeout(() => console.log("Task"), 1000);
 
@@ -155,7 +155,7 @@ fetch("/api/starwars")
 				line: 0,
 				asyncEffect: {
 					type: 'rAF',
-					callbackLabel: 'style.background = "red"',
+					callbackLabel: 'dataset.theme = "__THEME__"',
 				},
 			},
 			{ action: 'pop', line: 0 },

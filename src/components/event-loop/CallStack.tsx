@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { PaintBucket } from 'lucide-react'
 import type { CursorState, Task } from '@/lib/simulation'
 import { CIRCLE } from '@/lib/circlePath'
+import { useEventLoopStore } from '@/stores/eventLoopStore'
 
 interface CallStackProps {
 	cursorState: CursorState
@@ -18,6 +19,7 @@ export function CallStack({
 	callStackFrames,
 	visibility,
 }: CallStackProps) {
+	const oppositeTheme = useEventLoopStore((s) => s.oppositeTheme)
 	let frames: string[] = []
 	if (
 		cursorState === 'EXECUTING_SYNC' ||
@@ -35,7 +37,12 @@ export function CallStack({
 			: ['global()']
 	} else if (cursorState === 'RENDERING') {
 		frames = currentTask
-			? [currentTask.callbackLabel ?? 'requestAnimationFrame()']
+			? [
+					(currentTask.callbackLabel ?? 'requestAnimationFrame()').replace(
+						'__THEME__',
+						oppositeTheme,
+					),
+				]
 			: ['requestAnimationFrame()']
 	}
 

@@ -42,10 +42,14 @@ export function RunCode({ scenarioId }: RunCodeProps) {
 	const stepForward = useEventLoopStore((s) => s.stepForward)
 	const stepBack = useEventLoopStore((s) => s.stepBack)
 	const theme = useTheme()
+	const oppositeTheme = theme === 'dark' ? 'light' : 'dark'
 	const scenario = SCENARIOS[scenarioId]
 	const highlights =
 		theme === 'light' ? SCENARIO_HIGHLIGHTS_LIGHT : SCENARIO_HIGHLIGHTS_DARK
-	const highlightedLines = highlights[scenarioId] ?? []
+	const rawHighlightedLines = highlights[scenarioId] ?? []
+	const highlightedLines = rawHighlightedLines.map((line) =>
+		line.replace('__THEME__', oppositeTheme),
+	)
 
 	if (!scenario) return null
 
@@ -53,7 +57,7 @@ export function RunCode({ scenarioId }: RunCodeProps) {
 	const isStepping = isActive && cursorState === 'STEPPING_SYNC'
 	const isLastStep = isStepping && syncFrameIndex >= syncFrameOps.length - 1
 	const currentActiveLine = isActive ? activeLine : null
-	const lines = scenario.code.split('\n')
+	const lines = scenario.code.replace('__THEME__', oppositeTheme).split('\n')
 
 	return (
 		<div

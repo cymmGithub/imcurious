@@ -24,14 +24,40 @@ type EventLoopActions = {
 	runScenario: (scenarioId: string) => void
 	stepForward: () => void
 	stepBack: () => void
+	rAfEffectApplied: boolean
+	oppositeTheme: string
 }
 
 export type EventLoopStore = SimulationState & EventLoopActions
 
 export const useEventLoopStore = create<EventLoopStore>()((set, get) => ({
 	...createInitialState(),
+	rAfEffectApplied: false,
+	oppositeTheme: 'light',
 
-	tick: (dt) => set((s) => nextState(s, dt)),
+	tick: (dt) => {
+		const prev = get()
+		const next = nextState(prev, dt)
+		// Detect transition into RENDERING for render-step — toggle theme
+		if (
+			prev.cursorState === 'STOPPED_AT_RENDER' &&
+			next.cursorState === 'RENDERING' &&
+			!get().rAfEffectApplied
+		) {
+			const html = document.documentElement
+			const isLight = html.dataset.theme === 'light'
+			const newTheme = isLight ? 'dark' : 'light'
+			html.dataset.theme = isLight ? '' : 'light'
+			localStorage.setItem('theme', newTheme)
+			set({
+				...next,
+				rAfEffectApplied: true,
+				oppositeTheme: isLight ? 'light' : 'dark',
+			})
+			return
+		}
+		set(next)
+	},
 
 	togglePause: () => set((s) => ({ isPaused: !s.isPaused })),
 
@@ -60,7 +86,7 @@ export const useEventLoopStore = create<EventLoopStore>()((set, get) => ({
 				s = startStepping(s, scenario.syncOps, scenarioId)
 			}
 
-			return s
+			return { ...s, rAfEffectApplied: false }
 		})
 	},
 

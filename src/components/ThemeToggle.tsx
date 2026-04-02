@@ -7,22 +7,33 @@ export default function ThemeToggle() {
 	const [theme, setTheme] = useState<'dark' | 'light'>('dark')
 
 	useEffect(() => {
+		const html = document.documentElement
 		// Read initial theme from DOM (set by blocking script in <head>)
-		const current =
-			document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
-		setTheme(current)
+		const read = () =>
+			html.dataset.theme === 'light' ? ('light' as const) : ('dark' as const)
+		setTheme(read())
+
+		// Watch for programmatic theme changes (e.g. rAF demo toggle)
+		const observer = new MutationObserver(() => setTheme(read()))
+		observer.observe(html, {
+			attributes: true,
+			attributeFilter: ['data-theme'],
+		})
 
 		// Listen for system preference changes when no explicit preference
 		const mq = window.matchMedia('(prefers-color-scheme: light)')
 		const handler = (e: MediaQueryListEvent) => {
 			if (!localStorage.getItem('theme')) {
 				const next = e.matches ? 'light' : 'dark'
-				document.documentElement.dataset.theme = next === 'light' ? 'light' : ''
+				html.dataset.theme = next === 'light' ? 'light' : ''
 				setTheme(next)
 			}
 		}
 		mq.addEventListener('change', handler)
-		return () => mq.removeEventListener('change', handler)
+		return () => {
+			observer.disconnect()
+			mq.removeEventListener('change', handler)
+		}
 	}, [])
 
 	function toggle() {
