@@ -11,8 +11,10 @@ import {
 	resolveFetch,
 	PIT_STOPS,
 	EXECUTION_DURATION,
+	STOP_PAUSE,
 	type SimulationState,
 	type SyncFrameOp,
+	type Task,
 } from '../simulation'
 import { SCENARIOS } from '../scenarios'
 
@@ -279,7 +281,12 @@ describe('nextState', () => {
 		state = nextState(state, 16)
 		const microtask = state.microtaskQueue.find((t) => t.type === 'fetch')
 		expect(microtask).toBeDefined()
-		expect(microtask!.callbackLabel).toBe('console.log(data.name)')
+		expect(microtask!.callbackLabel).toBe('res.json()')
+		// Should have a chained microtask for the second .then()
+		expect(microtask!.chainedMicrotask).toBeDefined()
+		expect(microtask!.chainedMicrotask!.callbackLabel).toBe(
+			'console.log(data.name)',
+		)
 	})
 })
 
@@ -720,9 +727,9 @@ describe('scenario step count alignment', () => {
 		expect(snapshots[5].callStackFrames).toEqual([])
 	})
 
-	it('microtask-priority has 6 ops (3 push/pop pairs)', () => {
+	it('microtask-priority has 5 ops (fetch uses autoPop)', () => {
 		const scenario = SCENARIOS['microtask-priority']
-		expect(scenario.syncOps).toHaveLength(6)
+		expect(scenario.syncOps).toHaveLength(5)
 		const { snapshots } = buildSyncSnapshots(scenario.syncOps!, 0)
 
 		// Step 0: push setTimeout → web API (callback queue)
@@ -730,20 +737,18 @@ describe('scenario step count alignment', () => {
 		expect(snapshots[0].pendingWebAPIs).toHaveLength(1)
 		// Step 1: pop
 		expect(snapshots[1].callStackFrames).toEqual([])
-		// Step 2: push fetch → web API (microtask queue)
-		expect(snapshots[2].callStackFrames).toEqual(['fetch()'])
+		// Step 2: push+autoPop fetch → web API registered, stack empty
+		expect(snapshots[2].callStackFrames).toEqual([])
 		expect(snapshots[2].pendingWebAPIs).toHaveLength(2)
-		// Step 3: pop
-		expect(snapshots[3].callStackFrames).toEqual([])
-		// Step 4: push console.log("Sync")
-		expect(snapshots[4].callStackFrames).toEqual(['console.log("Sync")'])
-		// Step 5: pop → empty
-		expect(snapshots[5].callStackFrames).toEqual([])
+		// Step 3: push console.log("Sync")
+		expect(snapshots[3].callStackFrames).toEqual(['console.log("Sync")'])
+		// Step 4: pop → empty
+		expect(snapshots[4].callStackFrames).toEqual([])
 	})
 
-	it('render-step has 6 ops (3 push/pop pairs)', () => {
+	it('render-step has 5 ops (fetch push+pop merged into final step)', () => {
 		const scenario = SCENARIOS['render-step']
-		expect(scenario.syncOps).toHaveLength(6)
+		expect(scenario.syncOps).toHaveLength(5)
 		const { snapshots } = buildSyncSnapshots(scenario.syncOps!, 0)
 
 		// Step 0: push rAF (has asyncEffect) — rAF web API appears
@@ -757,11 +762,9 @@ describe('scenario step count alignment', () => {
 		expect(snapshots[2].pendingWebAPIs).toHaveLength(2)
 		// Step 3: pop
 		expect(snapshots[3].callStackFrames).toEqual([])
-		// Step 4: push fetch → all three web APIs
+		// Step 4: push fetch → all three web APIs (stack cleared on stepping finish)
 		expect(snapshots[4].callStackFrames).toEqual(['fetch()'])
 		expect(snapshots[4].pendingWebAPIs).toHaveLength(3)
-		// Step 5: pop → empty stack
-		expect(snapshots[5].callStackFrames).toEqual([])
 	})
 })
 
@@ -916,21 +919,26 @@ describe('resolveFetch callbackLabel', () => {
 			state = stepForward(state)
 		}
 
-		// Fetch should be pending with static callbackLabel
+		// Fetch should be pending with static callbackLabel (first .then)
 		const pendingFetch = state.pendingWebAPIs.find((a) => a.type === 'fetch')
 		expect(pendingFetch).toBeDefined()
-		expect(pendingFetch!.callbackLabel).toBe('console.log(data.name)')
+		expect(pendingFetch!.callbackLabel).toBe('res.json()')
+		expect(pendingFetch!.chainedCallbackLabel).toBe('console.log(data.name)')
 
 		// Resolve with actual data (like the store does)
 		state = resolveFetch(
 			state,
 			'fetch → "Luke Skywalker"',
+			'res.json()',
 			'console.log("Luke Skywalker")',
 		)
 
-		// callbackLabel should now reflect the real value
+		// callbackLabel should be res.json() (first microtask), chained should have resolved name
 		const resolvedFetch = state.pendingWebAPIs.find((a) => a.type === 'fetch')
-		expect(resolvedFetch!.callbackLabel).toBe('console.log("Luke Skywalker")')
+		expect(resolvedFetch!.callbackLabel).toBe('res.json()')
+		expect(resolvedFetch!.chainedCallbackLabel).toBe(
+			'console.log("Luke Skywalker")',
+		)
 		expect(resolvedFetch!.label).toBe('fetch → "Luke Skywalker"')
 	})
 
@@ -946,14 +954,24 @@ describe('resolveFetch callbackLabel', () => {
 			state = stepForward(state)
 		}
 
-		state = resolveFetch(state, 'fetch → "Yoda"', 'console.log("Yoda")')
+		state = resolveFetch(
+			state,
+			'fetch → "Yoda"',
+			'res.json()',
+			'console.log("Yoda")',
+		)
 
 		// Tick to move resolved fetch from pendingWebAPIs into microtaskQueue
 		state = nextState(state, 16)
 
 		const microtask = state.microtaskQueue.find((t) => t.type === 'fetch')
 		expect(microtask).toBeDefined()
-		expect(microtask!.callbackLabel).toBe('console.log("Yoda")')
+		expect(microtask!.callbackLabel).toBe('res.json()')
+		// Chained microtask should carry the resolved name
+		expect(microtask!.chainedMicrotask).toBeDefined()
+		expect(microtask!.chainedMicrotask!.callbackLabel).toBe(
+			'console.log("Yoda")',
+		)
 	})
 
 	it('preserves existing callbackLabel when resolvedCallbackLabel is not provided', () => {
@@ -968,10 +986,136 @@ describe('resolveFetch callbackLabel', () => {
 			state = stepForward(state)
 		}
 
-		// Resolve without providing callbackLabel
+		// Resolve without providing callbackLabel overrides
 		state = resolveFetch(state, 'fetch → "Han Solo"')
 
 		const resolvedFetch = state.pendingWebAPIs.find((a) => a.type === 'fetch')
-		expect(resolvedFetch!.callbackLabel).toBe('console.log(data.name)')
+		expect(resolvedFetch!.callbackLabel).toBe('res.json()')
+		// chainedCallbackLabel preserved from scenario definition
+		expect(resolvedFetch!.chainedCallbackLabel).toBe('console.log(data.name)')
+	})
+})
+
+describe('chainedMicrotask', () => {
+	it('enqueues chained microtask when the parent microtask finishes executing', () => {
+		let state = createInitialState()
+
+		const chained: Task = {
+			id: '2',
+			type: 'fetch',
+			label: 'chained',
+			callbackLabel: 'console.log("Luke")',
+			color: '#ffffff',
+		}
+
+		// Manually place a microtask with a chain into the queue
+		state = {
+			...state,
+			cursorPosition: PIT_STOPS.microtask,
+			cursorState: 'STOPPED_AT_MICROTASK_QUEUE',
+			microtaskQueue: [
+				{
+					id: '1',
+					type: 'fetch',
+					label: 'res.json()',
+					color: '#ffffff',
+					chainedMicrotask: chained,
+				},
+			],
+			executionTimer: STOP_PAUSE,
+		}
+
+		// Tick past the stop pause to start executing the first microtask
+		state = nextState(state, STOP_PAUSE + 1)
+		expect(state.cursorState).toBe('EXECUTING_MICROTASK')
+		expect(state.currentTask!.label).toBe('res.json()')
+
+		// Tick past execution duration — should enqueue chained and start executing it
+		state = nextState(state, EXECUTION_DURATION + 1)
+		expect(state.cursorState).toBe('EXECUTING_MICROTASK')
+		expect(state.currentTask!.label).toBe('chained')
+		expect(state.currentTask!.callbackLabel).toBe('console.log("Luke")')
+		expect(state.microtaskQueue).toHaveLength(0)
+	})
+
+	it('resumes orbiting after both parent and chained microtasks are drained', () => {
+		let state = createInitialState()
+
+		const chained: Task = {
+			id: '2',
+			type: 'fetch',
+			label: 'chained',
+			color: '#ffffff',
+		}
+
+		state = {
+			...state,
+			cursorPosition: PIT_STOPS.microtask,
+			cursorState: 'STOPPED_AT_MICROTASK_QUEUE',
+			microtaskQueue: [
+				{
+					id: '1',
+					type: 'fetch',
+					label: 'first',
+					color: '#ffffff',
+					chainedMicrotask: chained,
+				},
+			],
+			executionTimer: STOP_PAUSE,
+		}
+
+		// Tick past stop pause → executing first microtask
+		state = nextState(state, STOP_PAUSE + 1)
+		// Tick past execution → executing chained microtask
+		state = nextState(state, EXECUTION_DURATION + 1)
+		expect(state.cursorState).toBe('EXECUTING_MICROTASK')
+		// Tick past execution → no more microtasks, resume orbiting
+		state = nextState(state, EXECUTION_DURATION + 1)
+		expect(state.cursorState).toBe('ORBITING')
+		expect(state.currentTask).toBeNull()
+	})
+
+	it('drains chained microtask before any task in the task queue', () => {
+		let state = createInitialState()
+
+		const chained: Task = {
+			id: '2',
+			type: 'fetch',
+			label: 'chained',
+			color: '#ffffff',
+		}
+
+		state = {
+			...state,
+			cursorPosition: PIT_STOPS.microtask,
+			cursorState: 'STOPPED_AT_MICROTASK_QUEUE',
+			microtaskQueue: [
+				{
+					id: '1',
+					type: 'fetch',
+					label: 'first',
+					color: '#ffffff',
+					chainedMicrotask: chained,
+				},
+			],
+			taskQueue: [
+				{
+					id: '3',
+					type: 'setTimeout',
+					label: 'setTimeout(1000ms)',
+					color: '#888888',
+				},
+			],
+			executionTimer: STOP_PAUSE,
+		}
+
+		// Tick past stop pause → executing first microtask
+		state = nextState(state, STOP_PAUSE + 1)
+		// Tick past execution → executing chained, NOT the setTimeout task
+		state = nextState(state, EXECUTION_DURATION + 1)
+		expect(state.cursorState).toBe('EXECUTING_MICROTASK')
+		expect(state.currentTask!.label).toBe('chained')
+		// Task queue untouched
+		expect(state.taskQueue).toHaveLength(1)
 	})
 })

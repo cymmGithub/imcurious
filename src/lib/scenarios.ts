@@ -126,9 +126,13 @@ console.log("Sync");`,
 				action: 'push',
 				name: 'fetch()',
 				line: 2,
-				asyncEffect: { type: 'fetch', callbackLabel: 'console.log(data.name)' },
+				asyncEffect: {
+					type: 'fetch',
+					callbackLabel: 'res.json()',
+					chainedCallbackLabel: 'console.log(data.name)',
+				},
+				autoPop: true,
 			},
-			{ action: 'pop', line: 4 },
 			{ action: 'push', name: 'console.log("Sync")', line: 6 },
 			{ action: 'pop', line: 6 },
 		],
@@ -137,14 +141,13 @@ console.log("Sync");`,
 
 	'render-step': {
 		id: 'render-step',
-		code: `requestAnimationFrame(() => {
-  document.body.style.background = "red";
-});
+		code: `requestAnimationFrame(() => document.body.style.background = "red");
 
 setTimeout(() => console.log("Task"), 1000);
 
 fetch("/api/starwars")
-  .then(res => console.log(res.json()));`,
+  .then(res => res.json())
+  .then(data => console.log(data.name));`,
 		syncOps: [
 			{
 				action: 'push',
@@ -155,28 +158,28 @@ fetch("/api/starwars")
 					callbackLabel: 'style.background = "red"',
 				},
 			},
-			{ action: 'pop', line: 2 },
+			{ action: 'pop', line: 0 },
 			{
 				action: 'push',
 				name: 'setTimeout()',
-				line: 4,
+				line: 2,
 				asyncEffect: {
 					type: 'setTimeout',
 					delay: 1000,
 					callbackLabel: 'console.log("Task")',
 				},
 			},
-			{ action: 'pop', line: 4 },
+			{ action: 'pop', line: 2 },
 			{
 				action: 'push',
 				name: 'fetch()',
-				line: 6,
+				line: 4,
 				asyncEffect: {
 					type: 'fetch',
-					callbackLabel: 'console.log(res.json())',
+					callbackLabel: 'res.json()',
+					chainedCallbackLabel: 'console.log(data.name)',
 				},
 			},
-			{ action: 'pop', line: 7 },
 		],
 		asyncSteps: [{ type: 'setTimeout', delay: 1000 }, { type: 'fetch' }],
 	},

@@ -39,14 +39,13 @@ fetch("/api/starwars")
 
 console.log("Sync");`,
 
-	'render-step': `requestAnimationFrame(() => {
-  document.body.style.background = "red";
-});
+	'render-step': `requestAnimationFrame(() => document.body.style.background = "red");
 
 setTimeout(() => console.log("Task"), 1000);
 
 fetch("/api/starwars")
-  .then(res => console.log(res.json()));`,
+  .then(res => res.json())
+  .then(data => console.log(data.name));`,
 }
 
 function extractLines(html: string): string[] {

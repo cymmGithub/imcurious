@@ -24,7 +24,13 @@ export type SyncFrameOp =
 			action: 'push'
 			name: string
 			line?: number
-			asyncEffect?: { type: TaskType; delay?: number; callbackLabel?: string }
+			asyncEffect?: {
+				type: TaskType
+				delay?: number
+				callbackLabel?: string
+				chainedCallbackLabel?: string
+			}
+			autoPop?: boolean
 	  }
 	| { action: 'pop'; line?: number }
 
@@ -35,9 +41,13 @@ export type Task = {
 	callbackLabel?: string
 	delay?: number
 	color: string
+	chainedMicrotask?: Task
 }
 
-export type PendingWebAPI = Task & { remainingDelay: number }
+export type PendingWebAPI = Task & {
+	remainingDelay: number
+	chainedCallbackLabel?: string
+}
 
 export type SimulationState = {
 	cursorPosition: number
@@ -64,7 +74,7 @@ export const PIT_STOPS = { task: 0, microtask: 1 / 3, render: 2 / 3 } as const
 
 const CURSOR_SPEED = 0.0001
 export const EXECUTION_DURATION = 900
-const STOP_PAUSE = 300
+export const STOP_PAUSE = 300
 const SYNC_FRAME_DURATION = 1200
 
 const FREEZE_DURATION = 3000
@@ -137,7 +147,12 @@ export function buildSyncSnapshots(
 		if (op.action === 'push') {
 			stack = [...stack, op.name]
 			if (op.asyncEffect) {
-				const { type, delay: d, callbackLabel } = op.asyncEffect
+				const {
+					type,
+					delay: d,
+					callbackLabel,
+					chainedCallbackLabel,
+				} = op.asyncEffect
 				const resolvedDelay = type === 'fetch' ? 999999 : (d ?? 0)
 				webAPIs = [
 					...webAPIs,
@@ -151,11 +166,15 @@ export function buildSyncSnapshots(
 									? `setTimeout(${resolvedDelay}ms)`
 									: 'fetch()',
 						callbackLabel,
+						chainedCallbackLabel,
 						delay: resolvedDelay,
 						color: COLOR_MAP[type],
 						remainingDelay: resolvedDelay,
 					},
 				]
+			}
+			if (op.autoPop) {
+				stack = stack.slice(0, -1)
 			}
 		} else {
 			stack = stack.slice(0, -1)
@@ -290,6 +309,7 @@ export function resolveFetch(
 	state: SimulationState,
 	resultLabel: string,
 	resolvedCallbackLabel?: string,
+	resolvedChainedCallbackLabel?: string,
 ): SimulationState {
 	// Resolve the first pending fetch (remainingDelay > 99000 = real-fetch placeholder)
 	let resolved = false
@@ -298,11 +318,18 @@ export function resolveFetch(
 		pendingWebAPIs: state.pendingWebAPIs.map((api) => {
 			if (!resolved && api.type === 'fetch' && api.remainingDelay > 99000) {
 				resolved = true
+				const chainedLabel =
+					resolvedChainedCallbackLabel ?? api.chainedCallbackLabel
 				return {
 					...api,
 					label: resultLabel,
 					callbackLabel: resolvedCallbackLabel ?? api.callbackLabel,
 					remainingDelay: 0,
+					...(chainedLabel
+						? {
+								chainedCallbackLabel: chainedLabel,
+							}
+						: {}),
 				}
 			}
 			return api
@@ -354,6 +381,17 @@ function tickWebAPIs(state: SimulationState, dt: number): SimulationState {
 				callbackLabel: api.callbackLabel,
 				delay: api.delay,
 				color: api.color,
+				...(api.chainedCallbackLabel
+					? {
+							chainedMicrotask: {
+								id: `${api.id}-chained`,
+								type: api.type,
+								label: api.chainedCallbackLabel,
+								callbackLabel: api.chainedCallbackLabel,
+								color: api.color,
+							},
+						}
+					: {}),
 			}
 			if (api.type === 'setTimeout') {
 				newTasks.push(task)
@@ -501,8 +539,12 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 		case 'EXECUTING_MICROTASK': {
 			const timer = s.executionTimer - dt
 			if (timer <= 0) {
-				if (s.microtaskQueue.length > 0) {
-					const [next, ...rest] = s.microtaskQueue
+				// If the finishing microtask has a chained microtask, enqueue it
+				const queue = s.currentTask?.chainedMicrotask
+					? [...s.microtaskQueue, s.currentTask.chainedMicrotask]
+					: s.microtaskQueue
+				if (queue.length > 0) {
+					const [next, ...rest] = queue
 					return {
 						...s,
 						currentTask: next,

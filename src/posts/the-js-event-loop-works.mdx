@@ -139,13 +139,14 @@ The difference? After each task executes, the event loop **drains all microtasks
 <StepList scenarioId="microtask-priority">
 1. `setTimeout` is called — hands its callback to the browser's timer (2000ms). It will enter the **task queue**
 2. It returns — popped off
-3. `fetch("/api/starwars")` is called — sends a network request via the browser. Its `.then()` will enter the **microtask queue** when the response arrives
-4. `fetch` returns a Promise immediately — popped off. The request is now in-flight
-5. `console.log("Sync")` is pushed onto the stack and runs
-6. It returns — popped off. The initial script task is done. The cursor resumes orbiting — both queues are still empty because the fetch is in-flight and the timer is counting down. When the fetch resolves, its `.then()` enters the microtask queue and gets drained. Later, when the 2000ms timer fires, its callback enters the task queue
+3. `fetch("/api/starwars")` is called — sends a network request via the browser and returns a Promise immediately — popped off. The request is now in-flight
+4. `console.log("Sync")` is pushed onto the stack and runs
+5. It returns — popped off. The initial script task is done. The cursor resumes orbiting — both queues are still empty because the fetch is in-flight and the timer is counting down
 </StepList>
 
-Notice something subtle: the `fetch()` call itself fires **immediately** when the interpreter hits that line. It does not wait for the rest of your synchronous code to finish. The browser's network thread starts the HTTP request right away, in parallel. What _does_ wait is the `.then()` callback — that only runs after the fetch resolves _and_ the call stack is empty. So the request is already in-flight while `console.log("Sync")` executes. The `fetch()` function is synchronous; the _result handling_ is asynchronous.
+Notice something subtle: the `fetch()` call itself fires **immediately** when the interpreter hits that line. It does not wait for the rest of your synchronous code to finish. The browser's network thread starts the HTTP request right away, in parallel. What _does_ wait is the `.then()` callbacks — they only run after the fetch resolves _and_ the call stack is empty. So the request is already in-flight while `console.log("Sync")` executes. The `fetch()` function is synchronous; the _result handling_ is asynchronous.
+
+Also notice that the two `.then()` callbacks don't enter the microtask queue at the same time. Each one only gets enqueued when the previous Promise resolves. The event loop drains the entire microtask queue before moving on — even when microtasks create more microtasks.
 
 <Callout>
 	Microtasks run whenever the JavaScript stack empties. Not just between tasks —
@@ -177,6 +178,14 @@ This is the **rendering step**. The browser may run these sub-steps:
 The key word there is **may**. The browser is smart. If nothing visual has changed, it skips the entire rendering step. No need to repaint a screen that looks the same. This typically runs at 60 times per second (every ~16.6ms), synced to your monitor's refresh rate.
 
 <RunCode scenarioId="render-step" />
+
+<StepList scenarioId="render-step">
+1. `requestAnimationFrame` is called — registers its callback with the browser. It will fire during the next **render step**
+2. It returns — popped off
+3. `setTimeout` is called — hands its callback to the browser's timer (1000ms). It will enter the **task queue**
+4. It returns — popped off
+5. `fetch("/api/starwars")` is called — sends a network request via the browser and returns a Promise immediately — popped off. Now all three async operations are in-flight: the rAF callback is waiting for the next paint, the timer is counting down, and the fetch is on the network
+</StepList>
 
 This is why long-running tasks cause jank. If your JavaScript takes 200ms to run, the browser cannot render for that entire duration. The user sees a frozen screen, unresponsive buttons, choppy animations. The cursor is hogging the loop and the paint crew cannot get in to refresh the visuals.
 

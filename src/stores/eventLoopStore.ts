@@ -83,6 +83,7 @@ export const useEventLoopStore = create<EventLoopStore>()((set, get) => ({
 										resolveFetch(
 											s,
 											`fetch → "${data.name}"`,
+											'res.json()',
 											`console.log("${data.name}")`,
 										),
 									)
