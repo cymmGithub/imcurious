@@ -67,7 +67,7 @@ console.log("End");`,
 	'task-queue-ordering': {
 		id: 'task-queue-ordering',
 		code: `setTimeout(() => console.log("A"), 1000);
-setTimeout(() => console.log("B"), 3000);
+setTimeout(() => console.log("B"), 2000);
 console.log("C");`,
 		syncOps: [
 			{
@@ -87,7 +87,7 @@ console.log("C");`,
 				line: 1,
 				asyncEffect: {
 					type: 'setTimeout',
-					delay: 3000,
+					delay: 2000,
 					callbackLabel: 'console.log("B")',
 				},
 			},
@@ -103,7 +103,7 @@ console.log("C");`,
 
 	'microtask-priority': {
 		id: 'microtask-priority',
-		code: `setTimeout(() => console.log("Task"), 0);
+		code: `setTimeout(() => console.log("Task"), 2000);
 
 fetch("/api/starwars")
   .then(res => res.json())
@@ -117,7 +117,7 @@ console.log("Sync");`,
 				line: 0,
 				asyncEffect: {
 					type: 'setTimeout',
-					delay: 0,
+					delay: 2000,
 					callbackLabel: 'console.log("Task")',
 				},
 			},
@@ -132,7 +132,7 @@ console.log("Sync");`,
 			{ action: 'push', name: 'console.log("Sync")', line: 6 },
 			{ action: 'pop', line: 6 },
 		],
-		asyncSteps: [{ type: 'setTimeout', delay: 0 }, { type: 'fetch' }],
+		asyncSteps: [{ type: 'setTimeout', delay: 2000 }, { type: 'fetch' }],
 	},
 
 	'render-step': {

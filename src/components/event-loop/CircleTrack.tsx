@@ -6,7 +6,7 @@ interface CircleTrackProps {
 	cursorPosition: number
 	isExecuting: boolean
 	hasHiddenWork?: boolean
-	dotVisibilities?: { queues: number; render: number }
+	dotVisibilities?: { microtask: number; task: number; render: number }
 }
 
 export function CircleTrack({

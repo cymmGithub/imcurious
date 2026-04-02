@@ -1,7 +1,6 @@
 'use client'
 
 import { CircleTrack } from './CircleTrack'
-import { QueuesStation } from './QueuesStation'
 import { Station } from './Station'
 import { WebApiBox } from './WebApiBox'
 import { CallStack } from './CallStack'
@@ -15,8 +14,9 @@ interface EventLoopVizProps {
 
 const CURSOR_STATE_LABELS: Record<string, string> = {
 	ORBITING: 'Cursor orbiting the event loop',
-	STOPPED_AT_QUEUES: 'Stopped at queues — checking for work',
+	STOPPED_AT_MICROTASK_QUEUE: 'Stopped at microtask queue',
 	EXECUTING_MICROTASK: 'Executing microtask',
+	STOPPED_AT_TASK_QUEUE: 'Stopped at task queue',
 	EXECUTING_TASK: 'Executing task',
 	STOPPED_AT_RENDER: 'Stopped at render step',
 	RENDERING: 'Rendering in progress',
@@ -47,11 +47,12 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 		})),
 	)
 
-	const isAtQueues =
-		cursorState === 'STOPPED_AT_QUEUES' ||
-		cursorState === 'EXECUTING_TASK' ||
+	const isAtMicrotask =
+		cursorState === 'STOPPED_AT_MICROTASK_QUEUE' ||
 		cursorState === 'EXECUTING_MICROTASK' ||
 		cursorState === 'STARVED_MICROTASK'
+	const isAtTask =
+		cursorState === 'STOPPED_AT_TASK_QUEUE' || cursorState === 'EXECUTING_TASK'
 	const isAtRender =
 		cursorState === 'STOPPED_AT_RENDER' || cursorState === 'RENDERING'
 	const isExecuting =
@@ -64,12 +65,14 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 		cursorState === 'STARVED_MICROTASK'
 
 	// Detect hidden work: cursor stopped/executing at a station that's scrolled out of view
-	const taskVis = getStageVisibility(4)
 	const microtaskVis = getStageVisibility(5)
+	const taskVis = getStageVisibility(4)
 	const renderVis = getStageVisibility(6)
-	const queuesVis = Math.max(taskVis, microtaskVis)
-	const hasHiddenWork =
-		(isAtQueues && queuesVis < 0.1) || (isAtRender && renderVis < 0.1)
+	const isStoppedAtHiddenStation =
+		(isAtMicrotask && microtaskVis < 0.1) ||
+		(isAtTask && taskVis < 0.1) ||
+		(isAtRender && renderVis < 0.1)
+	const hasHiddenWork = isStoppedAtHiddenStation
 
 	const statusLabel = CURSOR_STATE_LABELS[cursorState] ?? 'Simulation running'
 	const taskDetail = currentTask ? `: ${currentTask.label}` : ''
@@ -92,7 +95,8 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 						isExecuting={isExecuting}
 						hasHiddenWork={hasHiddenWork}
 						dotVisibilities={{
-							queues: queuesVis,
+							microtask: microtaskVis,
+							task: taskVis,
 							render: renderVis,
 						}}
 					/>
@@ -105,49 +109,68 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 						visibility={getStageVisibility(2)}
 					/>
 
-					{/* Dashed connector line from anchor dot up through queues station */}
+					{/* Dashed connector lines from anchor dots to stations */}
 					<line
-						x1={STATION_POSITIONS.queues.anchor.x}
-						y1={STATION_POSITIONS.queues.anchor.y}
-						x2={STATION_POSITIONS.queues.anchor.x}
-						y2={25}
+						x1={STATION_POSITIONS.task.anchor.x}
+						y1={STATION_POSITIONS.task.anchor.y}
+						x2={248}
+						y2={48}
 						stroke="var(--color-chalk)"
 						strokeWidth={1}
 						strokeDasharray="4 4"
-						opacity={0.3 * queuesVis}
+						opacity={0.3 * taskVis}
 					/>
-					{/* Dashed connector line from anchor dot to render station */}
+					<line
+						x1={STATION_POSITIONS.microtask.anchor.x}
+						y1={STATION_POSITIONS.microtask.anchor.y}
+						x2={510}
+						y2={402}
+						stroke="var(--color-chalk)"
+						strokeWidth={1}
+						strokeDasharray="4 4"
+						opacity={0.3 * microtaskVis}
+					/>
 					<line
 						x1={STATION_POSITIONS.render.anchor.x}
 						y1={STATION_POSITIONS.render.anchor.y}
-						x2={STATION_POSITIONS.render.anchor.x}
-						y2={500}
+						x2={110}
+						y2={430}
 						stroke="var(--color-chalk)"
 						strokeWidth={1}
 						strokeDasharray="4 4"
 						opacity={0.3 * renderVis}
 					/>
 
-					{/* Queues — 12 o'clock (task + microtask side by side) */}
-					<QueuesStation
-						taskQueue={taskQueue}
-						microtaskQueue={microtaskQueue}
-						currentTask={currentTask}
-						isExecutingTask={cursorState === 'EXECUTING_TASK'}
-						isExecutingMicrotask={
-							cursorState === 'EXECUTING_MICROTASK' ||
-							cursorState === 'STARVED_MICROTASK'
-						}
-						isActive={isAtQueues}
-						taskVisibility={taskVis}
-						microtaskVisibility={microtaskVis}
-						foreignObjectX={110}
-						foreignObjectY={0}
-						foreignObjectWidth={380}
-						foreignObjectHeight={130}
+					{/* Task Queue — 12 o'clock */}
+					<Station
+						label={STATION_POSITIONS.task.label}
+						color={'var(--color-chalk)'}
+						tasks={taskQueue}
+						currentTask={isAtTask ? currentTask : null}
+						isActive={isAtTask}
+						visibility={getStageVisibility(4)}
+						foreignObjectX={60}
+						foreignObjectY={30}
+						foreignObjectWidth={200}
+						foreignObjectHeight={90}
+						align="right"
 					/>
 
-					{/* Render — 6 o'clock */}
+					{/* Microtask Queue — ~5 o'clock */}
+					<Station
+						label={STATION_POSITIONS.microtask.label}
+						color={'var(--color-chalk)'}
+						tasks={microtaskQueue}
+						currentTask={isAtMicrotask ? currentTask : null}
+						isActive={isAtMicrotask}
+						visibility={getStageVisibility(5)}
+						foreignObjectX={500}
+						foreignObjectY={390}
+						foreignObjectWidth={180}
+						foreignObjectHeight={100}
+					/>
+
+					{/* Render — ~7 o'clock */}
 					<Station
 						label={STATION_POSITIONS.render.label}
 						color={'var(--color-chalk)'}
@@ -155,11 +178,11 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 						currentTask={isAtRender ? currentTask : null}
 						isActive={isAtRender}
 						visibility={getStageVisibility(6)}
-						foreignObjectX={210}
-						foreignObjectY={500}
+						foreignObjectX={-40}
+						foreignObjectY={430}
 						foreignObjectWidth={180}
 						foreignObjectHeight={100}
-						align="center"
+						align="right"
 						showQueueOrder={false}
 					/>
 
