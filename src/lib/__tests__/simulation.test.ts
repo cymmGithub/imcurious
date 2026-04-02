@@ -880,9 +880,11 @@ describe('render-step end-to-end', () => {
 		expect(state.taskQueue).toHaveLength(1)
 
 		// Advance cursor to visit all stations
-		// Cursor is near 0.11, visits: microtask (0.333), render (0.667), then task (0 on wrap)
+		// justFinishedStepping=true means render is skipped on first orbit
+		// First orbit: microtask (0.333), skip render (0.667), task (0 on wrap)
+		// Second orbit: render (0.667) — flag cleared after wrap
 		let statesVisited: string[] = []
-		for (let i = 0; i < 800; i++) {
+		for (let i = 0; i < 1600; i++) {
 			state = nextState(state, 20)
 			if (!statesVisited.includes(state.cursorState)) {
 				statesVisited.push(state.cursorState)
@@ -890,7 +892,7 @@ describe('render-step end-to-end', () => {
 			if (statesVisited.length >= 7) break
 		}
 
-		// Should have visited all station states (microtask first, then render, then task on wrap)
+		// Should have visited all station states
 		expect(statesVisited).toContain('STOPPED_AT_MICROTASK_QUEUE')
 		expect(statesVisited).toContain('EXECUTING_MICROTASK')
 		expect(statesVisited).toContain('STOPPED_AT_RENDER')
@@ -898,7 +900,7 @@ describe('render-step end-to-end', () => {
 		expect(statesVisited).toContain('STOPPED_AT_TASK_QUEUE')
 		expect(statesVisited).toContain('EXECUTING_TASK')
 
-		// Verify ordering: microtask visited before task
+		// Verify ordering: microtask visited before task (both on first orbit)
 		const microtaskIdx = statesVisited.indexOf('STOPPED_AT_MICROTASK_QUEUE')
 		const taskIdx = statesVisited.indexOf('STOPPED_AT_TASK_QUEUE')
 		expect(microtaskIdx).toBeLessThan(taskIdx)
@@ -1117,5 +1119,62 @@ describe('chainedMicrotask', () => {
 		expect(state.currentTask!.label).toBe('chained')
 		// Task queue untouched
 		expect(state.taskQueue).toHaveLength(1)
+	})
+})
+
+describe('justFinishedStepping', () => {
+	it('skips render station on first orbit after stepping finishes', () => {
+		const scenario = SCENARIOS['render-step']
+		let state = startStepping(
+			createInitialState(),
+			scenario.syncOps!,
+			'render-step',
+		)
+
+		// Step through all ops
+		for (let i = 0; i < scenario.syncOps!.length; i++) {
+			state = stepForward(state)
+		}
+		expect(state.cursorState).toBe('ORBITING')
+		expect(state.justFinishedStepping).toBe(true)
+
+		// Add an rAF callback to the queue so render station would normally stop
+		state = {
+			...state,
+			rAfCallbacks: [{ id: '99', type: 'rAF', label: 'rAF', color: '#ffffff' }],
+			// Position cursor just before render station
+			cursorPosition: PIT_STOPS.render - 0.01,
+		}
+
+		// Advance past render station — should NOT stop
+		state = nextState(state, 200)
+		expect(state.cursorState).toBe('ORBITING')
+		expect(state.cursorPosition).toBeGreaterThan(PIT_STOPS.render)
+	})
+
+	it('clears flag after cursor wraps past position 0', () => {
+		let state = createInitialState()
+		state = {
+			...state,
+			justFinishedStepping: true,
+			cursorPosition: 0.99,
+		}
+
+		// Advance past wrap point
+		state = nextState(state, 200)
+		expect(state.justFinishedStepping).toBe(false)
+	})
+
+	it('stops at render station normally when flag is false', () => {
+		let state = createInitialState()
+		state = {
+			...state,
+			rAfCallbacks: [{ id: '99', type: 'rAF', label: 'rAF', color: '#ffffff' }],
+			cursorPosition: PIT_STOPS.render - 0.01,
+			justFinishedStepping: false,
+		}
+
+		state = nextState(state, 200)
+		expect(state.cursorState).toBe('STOPPED_AT_RENDER')
 	})
 })

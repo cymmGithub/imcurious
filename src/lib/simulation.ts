@@ -68,6 +68,7 @@ export type SimulationState = {
 	activeScenarioId: string | null
 	syncStepSnapshots: SyncStepSnapshot[]
 	steppingFinalWebAPIs: PendingWebAPI[]
+	justFinishedStepping: boolean
 }
 
 export const PIT_STOPS = { task: 0, microtask: 1 / 3, render: 2 / 3 } as const
@@ -107,6 +108,7 @@ export function createInitialState(): SimulationState {
 		activeScenarioId: null,
 		syncStepSnapshots: [],
 		steppingFinalWebAPIs: [],
+		justFinishedStepping: false,
 	}
 }
 
@@ -266,6 +268,7 @@ export function stepForward(state: SimulationState): SimulationState {
 			pendingWebAPIs: state.steppingFinalWebAPIs,
 			steppingFinalWebAPIs: [],
 			rAfCallbacks: [],
+			justFinishedStepping: true,
 		}
 	}
 
@@ -494,7 +497,7 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 			}
 
 			if (prevPos < PIT_STOPS.render && newPos >= PIT_STOPS.render) {
-				if (s.rAfCallbacks.length > 0) {
+				if (s.rAfCallbacks.length > 0 && !s.justFinishedStepping) {
 					return {
 						...s,
 						cursorPosition: PIT_STOPS.render,
@@ -504,9 +507,10 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 				}
 			}
 
-			// Wrap position
+			// Wrap position — clear justFinishedStepping after a full orbit
 			if (newPos >= 1.0) {
 				newPos = newPos - 1.0
+				s = { ...s, justFinishedStepping: false }
 				// Check task queue stop after wrap (position 0)
 				if (s.taskQueue.length > 0) {
 					return {
