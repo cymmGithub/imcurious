@@ -135,7 +135,6 @@ The difference? After each task executes, the event loop **drains all microtasks
 
 <RunCode scenarioId="microtask-priority" />
 
-In this example, the fetch callback runs before the setTimeout callback. But not _because_ microtasks magically jump the queue — it is because the network response arrives before the 2000ms timer fires. The fetch `.then()` enters the microtask queue first, and gets drained first. Here is the full sequence:
 
 <StepList scenarioId="microtask-priority">
 1. `setTimeout` is called — hands its callback to the browser's timer (2000ms). It will enter the **task queue**
@@ -192,5 +191,14 @@ This is why long-running tasks cause jank. If your JavaScript takes 200ms to run
 The rendering step is the final piece of the cycle. After it completes (or gets skipped), the event loop starts a brand new cycle — or as it is often called, a new **tick**. Each tick is one full pass: run one task, drain the microtask queue, maybe render. Around and around, forever, until you close the tab.
 
 </Section>
+
+The event loop is what lets JavaScript punch above its weight. It is a single-threaded language — it can only do one thing at a time — yet it handles timers, network requests, and user interactions without breaking a sweat. The event loop is the trick behind it: a simple, endless cycle that keeps checking "is there anything to do next?" and makes sure nothing gets forgotten.
+
+<Sources sources={[
+	{ title: "JavaScript: The Hard Parts, v3", url: "https://frontendmasters.com/courses/javascript-hard-parts-v3/", author: "Will Sentance - Frontend Masters", type: "course" },
+	{ title: "Jake Archibald on the web browser event loop, setTimeout, micro tasks, requestAnimationFrame, ...", url: "https://www.youtube.com/watch?v=cCOL7MC4Pl0", author: "Jake Archibald", type: "video" },
+	{ title: "Execution model", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Execution_model", author: "MDN Web Docs", type: "reference" },
+	{ title: "Microtask guide", url: "https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide", author: "MDN Web Docs", type: "reference" },
+]} />
 
 </ScrollStage>
