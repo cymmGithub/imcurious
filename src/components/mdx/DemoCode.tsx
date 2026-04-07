@@ -1,31 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { useEventLoopStore } from '@/stores/eventLoopStore'
 import {
 	STATIC_HIGHLIGHTS_DARK,
 	STATIC_HIGHLIGHTS_LIGHT,
 } from '@/lib/__generated__/staticHighlights'
 import { Play } from 'lucide-react'
-
-function useTheme(): 'dark' | 'light' {
-	const [theme, setTheme] = useState<'dark' | 'light'>('dark')
-
-	useEffect(() => {
-		const html = document.documentElement
-		const read = () => (html.dataset.theme === 'light' ? 'light' : 'dark')
-		setTheme(read())
-
-		const observer = new MutationObserver(() => setTheme(read()))
-		observer.observe(html, {
-			attributes: true,
-			attributeFilter: ['data-theme'],
-		})
-		return () => observer.disconnect()
-	}, [])
-
-	return theme
-}
+import { useTheme } from '@/hooks/useTheme'
 
 const DEMO_CONFIG: Record<
 	string,
