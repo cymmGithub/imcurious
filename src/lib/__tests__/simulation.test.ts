@@ -195,6 +195,43 @@ describe('nextState', () => {
 		expect(next.cursorPosition).toBeCloseTo(PIT_STOPS.render, 2)
 	})
 
+	it('skips render when task queue is non-empty', () => {
+		const state: SimulationState = {
+			...createInitialState(),
+			cursorPosition: PIT_STOPS.render - 0.005,
+			rAfCallbacks: [
+				{ id: '1', type: 'rAF' as const, label: 'rAF', color: '#ffffff' },
+			],
+			taskQueue: [
+				{
+					id: '2',
+					type: 'setTimeout',
+					label: 'setTimeout()',
+					color: '#ffbe0b',
+				},
+			],
+		}
+		const next = nextState(state, 100)
+		expect(next.cursorState).toBe('ORBITING')
+		expect(next.cursorPosition).toBeGreaterThan(PIT_STOPS.render)
+	})
+
+	it('skips render when microtask queue is non-empty', () => {
+		const state: SimulationState = {
+			...createInitialState(),
+			cursorPosition: PIT_STOPS.render - 0.005,
+			rAfCallbacks: [
+				{ id: '1', type: 'rAF' as const, label: 'rAF', color: '#ffffff' },
+			],
+			microtaskQueue: [
+				{ id: '2', type: 'fetch', label: 'fetch()', color: '#ffffff' },
+			],
+		}
+		const next = nextState(state, 100)
+		expect(next.cursorState).toBe('ORBITING')
+		expect(next.cursorPosition).toBeGreaterThan(PIT_STOPS.render)
+	})
+
 	it('after executing a task, cursor reaches microtask station before render', () => {
 		// Start with cursor at task position (0), just finished executing a task
 		// with microtasks waiting — cursor should reach microtask (1/3) before render (2/3)
@@ -1176,5 +1213,47 @@ describe('justFinishedStepping', () => {
 
 		state = nextState(state, 200)
 		expect(state.cursorState).toBe('STOPPED_AT_RENDER')
+	})
+
+	it('skips task queue on first orbit after stepping finishes', () => {
+		let state: SimulationState = {
+			...createInitialState(),
+			justFinishedStepping: true,
+			cursorPosition: 0.99,
+			taskQueue: [
+				{
+					id: '99',
+					type: 'setTimeout',
+					label: 'setTimeout()',
+					color: '#ffbe0b',
+				},
+			],
+		}
+
+		// Advance past wrap point — should NOT stop at task queue
+		state = nextState(state, 200)
+		expect(state.cursorState).toBe('ORBITING')
+		expect(state.justFinishedStepping).toBe(false)
+		expect(state.taskQueue).toHaveLength(1) // task not consumed
+	})
+
+	it('stops at task queue normally when justFinishedStepping is false', () => {
+		let state: SimulationState = {
+			...createInitialState(),
+			justFinishedStepping: false,
+			cursorPosition: 0.99,
+			taskQueue: [
+				{
+					id: '99',
+					type: 'setTimeout',
+					label: 'setTimeout()',
+					color: '#ffbe0b',
+				},
+			],
+		}
+
+		state = nextState(state, 200)
+		expect(state.cursorState).toBe('STOPPED_AT_TASK_QUEUE')
+		expect(state.cursorPosition).toBe(0)
 	})
 })

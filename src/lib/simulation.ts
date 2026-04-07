@@ -499,7 +499,12 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 			}
 
 			if (prevPos < PIT_STOPS.render && newPos >= PIT_STOPS.render) {
-				if (s.rAfCallbacks.length > 0 && !s.justFinishedStepping) {
+				if (
+					s.rAfCallbacks.length > 0 &&
+					!s.justFinishedStepping &&
+					s.taskQueue.length === 0 &&
+					s.microtaskQueue.length === 0
+				) {
 					return {
 						...s,
 						cursorPosition: PIT_STOPS.render,
@@ -512,16 +517,18 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 			// Wrap position — clear justFinishedStepping after a full orbit
 			if (newPos >= 1.0) {
 				newPos = newPos - 1.0
-				s = { ...s, justFinishedStepping: false }
 				// Check task queue stop after wrap (position 0)
-				if (s.taskQueue.length > 0) {
+				// Skip on first orbit after stepping, just like render
+				if (s.taskQueue.length > 0 && !s.justFinishedStepping) {
 					return {
 						...s,
 						cursorPosition: 0,
 						cursorState: 'STOPPED_AT_TASK_QUEUE',
 						executionTimer: STOP_PAUSE,
+						justFinishedStepping: false,
 					}
 				}
+				s = { ...s, justFinishedStepping: false }
 			}
 
 			return { ...s, cursorPosition: newPos }
