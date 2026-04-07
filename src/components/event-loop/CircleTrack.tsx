@@ -1,20 +1,20 @@
 'use client'
 
 import { CIRCLE, STATION_POSITIONS } from '@/lib/circlePath'
+import { useEventLoopStore } from '@/stores/eventLoopStore'
 
 interface CircleTrackProps {
-	cursorPosition: number
 	isExecuting: boolean
 	hasHiddenWork?: boolean
 	dotVisibilities?: { microtask: number; task: number; render: number }
 }
 
 export function CircleTrack({
-	cursorPosition,
 	isExecuting,
 	hasHiddenWork,
 	dotVisibilities,
 }: CircleTrackProps) {
+	const cursorPosition = useEventLoopStore((s) => s.cursorPosition)
 	const angle = cursorPosition * 2 * Math.PI
 	const cx = CIRCLE.cx + CIRCLE.r * Math.sin(angle)
 	const cy = CIRCLE.cy - CIRCLE.r * Math.cos(angle)

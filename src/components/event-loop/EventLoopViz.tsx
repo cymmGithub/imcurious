@@ -27,7 +27,6 @@ const CURSOR_STATE_LABELS: Record<string, string> = {
 }
 
 export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
-	const cursorPosition = useEventLoopStore((s) => s.cursorPosition)
 	const cursorState = useEventLoopStore((s) => s.cursorState)
 	const {
 		currentTask,
@@ -91,7 +90,6 @@ export function EventLoopViz({ getStageVisibility }: EventLoopVizProps) {
 			<div className="relative flex-1 min-h-0 flex items-center justify-center">
 				<svg viewBox={VIEWBOX} className="w-full h-full max-h-full">
 					<CircleTrack
-						cursorPosition={cursorPosition}
 						isExecuting={isExecuting}
 						hasHiddenWork={hasHiddenWork}
 						dotVisibilities={{
