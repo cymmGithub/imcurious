@@ -369,6 +369,8 @@ export function addTask(
 }
 
 function tickWebAPIs(state: SimulationState, dt: number): SimulationState {
+	if (state.pendingWebAPIs.length === 0) return state
+
 	const stillPending: PendingWebAPI[] = []
 	const newTasks: Task[] = []
 	const newMicrotasks: Task[] = []
