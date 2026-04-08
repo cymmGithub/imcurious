@@ -1215,7 +1215,7 @@ describe('justFinishedStepping', () => {
 		expect(state.cursorState).toBe('STOPPED_AT_RENDER')
 	})
 
-	it('skips task queue on first orbit after stepping finishes', () => {
+	it('skips task queue on first orbit after stepping when microtasks are pending', () => {
 		let state: SimulationState = {
 			...createInitialState(),
 			justFinishedStepping: true,
@@ -1228,13 +1228,39 @@ describe('justFinishedStepping', () => {
 					color: '#ffbe0b',
 				},
 			],
+			microtaskQueue: [
+				{ id: '100', type: 'fetch', label: 'res.json()', color: '#ffffff' },
+			],
 		}
 
-		// Advance past wrap point — should NOT stop at task queue
+		// Advance past wrap point — should NOT stop at task queue because microtasks need to drain first
 		state = nextState(state, 200)
 		expect(state.cursorState).toBe('ORBITING')
 		expect(state.justFinishedStepping).toBe(false)
 		expect(state.taskQueue).toHaveLength(1) // task not consumed
+	})
+
+	it('stops at task queue after stepping when no microtasks are pending', () => {
+		let state: SimulationState = {
+			...createInitialState(),
+			justFinishedStepping: true,
+			cursorPosition: 0.99,
+			taskQueue: [
+				{
+					id: '99',
+					type: 'setTimeout',
+					label: 'setTimeout()',
+					color: '#ffbe0b',
+				},
+			],
+			// microtaskQueue is empty — no reason to skip task queue
+		}
+
+		// Advance past wrap point — SHOULD stop at task queue since no microtasks to prioritize
+		state = nextState(state, 200)
+		expect(state.cursorState).toBe('STOPPED_AT_TASK_QUEUE')
+		expect(state.cursorPosition).toBe(0)
+		expect(state.justFinishedStepping).toBe(false)
 	})
 
 	it('stops at task queue normally when justFinishedStepping is false', () => {
@@ -1252,6 +1278,43 @@ describe('justFinishedStepping', () => {
 			],
 		}
 
+		state = nextState(state, 200)
+		expect(state.cursorState).toBe('STOPPED_AT_TASK_QUEUE')
+		expect(state.cursorPosition).toBe(0)
+	})
+
+	it('task-queue-ordering scenario: task queue is not skipped after stepping', () => {
+		const scenario = SCENARIOS['task-queue-ordering']
+		let state = startStepping(
+			createInitialState(),
+			scenario.syncOps!,
+			'task-queue-ordering',
+		)
+
+		// Step through all ops
+		for (let i = 0; i < scenario.syncOps!.length; i++) {
+			state = stepForward(state)
+		}
+		expect(state.cursorState).toBe('ORBITING')
+		expect(state.justFinishedStepping).toBe(true)
+		// This scenario has no microtasks — only setTimeouts
+		expect(state.microtaskQueue).toHaveLength(0)
+
+		// Simulate: place cursor near wrap and add a resolved task to the queue
+		state = {
+			...state,
+			cursorPosition: 0.99,
+			taskQueue: [
+				{
+					id: '50',
+					type: 'setTimeout',
+					label: 'console.log("A")',
+					color: '#888888',
+				},
+			],
+		}
+
+		// Advance past wrap — should STOP at task queue (no microtasks to prioritize)
 		state = nextState(state, 200)
 		expect(state.cursorState).toBe('STOPPED_AT_TASK_QUEUE')
 		expect(state.cursorPosition).toBe(0)

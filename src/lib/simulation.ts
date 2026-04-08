@@ -519,7 +519,10 @@ export function nextState(state: SimulationState, dt: number): SimulationState {
 				newPos = newPos - 1.0
 				// Check task queue stop after wrap (position 0)
 				// Skip on first orbit after stepping, just like render
-				if (s.taskQueue.length > 0 && !s.justFinishedStepping) {
+				if (
+					s.taskQueue.length > 0 &&
+					!(s.justFinishedStepping && s.microtaskQueue.length > 0)
+				) {
 					return {
 						...s,
 						cursorPosition: 0,
