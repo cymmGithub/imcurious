@@ -44,7 +44,7 @@ export function useScrollStage(): ScrollStageResult {
 		const stageWidth = 1.0 / (TOTAL_STAGES - 1)
 		// Reach 100% opacity slightly before the stage boundary so the
 		// viz element is fully visible by the time the section title appears.
-		const earlyOffset = stageWidth * 0.45
+		const earlyOffset = stageWidth * 0.75
 		const stageStart = (stage - 1) / (TOTAL_STAGES - 1) - earlyOffset
 		const transitionWidth = stageWidth - earlyOffset
 
