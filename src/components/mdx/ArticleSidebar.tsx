@@ -1,3 +1,5 @@
+import { AnimatedIdCard } from './AnimatedIcon'
+
 interface ArticleSidebarProps {
 	category: string
 	date: string
@@ -12,7 +14,10 @@ export function ArticleSidebar({
 	return (
 		<>
 			{/* Mobile metadata bar */}
-			<aside className="lg:hidden flex items-center justify-center gap-4 py-3 px-4 text-[var(--color-chalk-dim)] select-none border-t border-[var(--color-chalk-faint)]">
+			<aside className="lg:hidden relative flex items-center justify-center gap-4 py-3 px-4 text-[var(--color-chalk-dim)] select-none border-t border-[var(--color-chalk-faint)]">
+				<div className="absolute left-4 top-1/2 -translate-y-1/2">
+					<AnimatedIdCard anchor="bottom-left" />
+				</div>
 				<span className="font-display text-xs tracking-wider">{category}</span>
 				<span
 					className="w-px h-3 bg-[var(--color-chalk-faint)]"
@@ -23,10 +28,8 @@ export function ArticleSidebar({
 
 			{/* Desktop vertical sidebar */}
 			<aside className="hidden lg:flex flex-col items-center justify-between sticky top-0 h-screen py-8 w-14 select-none">
-				{/* Page number */}
-				<span className="font-display text-2xl font-bold text-[var(--color-chalk-faint)]">
-					{pageNumber}
-				</span>
+				{/* Icon */}
+				<AnimatedIdCard />
 
 				{/* Rotated metadata */}
 				<div
@@ -46,8 +49,10 @@ export function ArticleSidebar({
 					<span className="font-mono text-xs tracking-wider">{date}</span>
 				</div>
 
-				{/* Bottom spacer for visual balance */}
-				<div className="w-6 border-t border-[var(--color-chalk-faint)]" />
+				{/* Page number */}
+				<span className="font-mono text-xs text-[var(--color-chalk-faint)]">
+					{pageNumber}
+				</span>
 			</aside>
 		</>
 	)
