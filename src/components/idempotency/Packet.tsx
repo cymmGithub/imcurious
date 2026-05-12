@@ -12,13 +12,15 @@ const METHOD_COLORS: Record<HttpMethod, string> = {
 	DELETE: '#ef4444',
 }
 
-function statusColor(status: number | undefined): string {
-	if (status === undefined) return '#6b7280'
-	if (status >= 200 && status < 300) return '#10b981'
-	if (status >= 300 && status < 400) return '#06b6d4'
-	if (status >= 400 && status < 500) return '#f59e0b'
-	if (status >= 500) return '#ef4444'
-	return '#6b7280'
+const STATUS_FAMILY_COLOR: Record<number, string> = {
+	2: '#10b981',
+	3: '#06b6d4',
+	4: '#f59e0b',
+	5: '#ef4444',
+}
+
+function statusColor(status: number): string {
+	return STATUS_FAMILY_COLOR[Math.floor(status / 100)] ?? '#6b7280'
 }
 
 interface PacketProps {
@@ -32,14 +34,13 @@ export function Packet({ packet }: PacketProps) {
 	const x = packetXFromPosition(packet.position)
 	const fill =
 		packet.kind === 'request'
-			? METHOD_COLORS[packet.method ?? 'GET']
+			? METHOD_COLORS[packet.method]
 			: statusColor(packet.statusCode)
-
 	const opacity = packet.fate === 'lost' ? 0.35 : 1
-	// Requests sit just above the wire; responses just below — so reader can
-	// see direction at a glance even without watching the motion.
-	const yOffset = packet.kind === 'request' ? -22 : 22
-	const y = WIRE_Y + yOffset
+	// Requests sit above the wire, responses below — so direction reads even
+	// without watching the motion.
+	const y = WIRE_Y + (packet.kind === 'request' ? -22 : 22)
+	const isLost = packet.fate === 'lost'
 
 	return (
 		<motion.g
@@ -55,9 +56,9 @@ export function Packet({ packet }: PacketProps) {
 				height={PACKET_HEIGHT}
 				rx={PACKET_HEIGHT / 2}
 				fill={fill}
-				stroke={packet.fate === 'lost' ? '#ef4444' : 'none'}
-				strokeWidth={packet.fate === 'lost' ? 1.5 : 0}
-				strokeDasharray={packet.fate === 'lost' ? '3 3' : undefined}
+				stroke={isLost ? '#ef4444' : 'none'}
+				strokeWidth={isLost ? 1.5 : 0}
+				strokeDasharray={isLost ? '3 3' : undefined}
 			/>
 			<text
 				x={0}
@@ -71,7 +72,6 @@ export function Packet({ packet }: PacketProps) {
 				{packet.label}
 			</text>
 
-			{/* Tiny direction indicator */}
 			<polygon
 				points={
 					packet.kind === 'request'
@@ -79,7 +79,7 @@ export function Packet({ packet }: PacketProps) {
 						: `${-PACKET_WIDTH / 2 - 4},-4 ${-PACKET_WIDTH / 2 - 12},0 ${-PACKET_WIDTH / 2 - 4},4`
 				}
 				fill={fill}
-				opacity={packet.fate === 'lost' ? 0.4 : 0.8}
+				opacity={isLost ? 0.4 : 0.8}
 			/>
 		</motion.g>
 	)

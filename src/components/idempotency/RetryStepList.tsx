@@ -1,35 +1,36 @@
 'use client'
 
-import { useShallow } from 'zustand/react/shallow'
 import { ChevronLeft, ChevronRight, Play, RotateCcw } from 'lucide-react'
 import { useIdempotencyStore } from '@/stores/idempotencyStore'
-import { SCENARIOS } from './scenarios'
+import { SCENARIOS, type ScenarioId } from './scenarios'
 
 interface RetryStepListProps {
-	scenarioId: string
+	scenarioId: ScenarioId
+}
+
+function stepOpacity(
+	isActive: boolean,
+	stepIsActive: boolean,
+	stepIsPast: boolean,
+): number {
+	if (!isActive) return 1
+	if (stepIsActive) return 1
+	return stepIsPast ? 0.55 : 0.35
 }
 
 export function RetryStepList({ scenarioId }: RetryStepListProps) {
-	const { activeScenarioId, stepIndex, runScenario, stepForward, stepBack } =
-		useIdempotencyStore(
-			useShallow((s) => ({
-				activeScenarioId: s.activeScenarioId,
-				stepIndex: s.stepIndex,
-				runScenario: s.runScenario,
-				stepForward: s.stepForward,
-				stepBack: s.stepBack,
-			})),
-		)
+	const activeScenarioId = useIdempotencyStore((s) => s.activeScenarioId)
+	const stepIndex = useIdempotencyStore((s) => s.stepIndex)
+	const runScenario = useIdempotencyStore((s) => s.runScenario)
+	const stepForward = useIdempotencyStore((s) => s.stepForward)
+	const stepBack = useIdempotencyStore((s) => s.stepBack)
 
 	const scenario = SCENARIOS[scenarioId]
 	if (!scenario) {
 		return (
 			<div
 				className="my-6 p-3 rounded text-[12px] font-mono"
-				style={{
-					color: '#ef4444',
-					border: '1px solid #ef4444',
-				}}
+				style={{ color: '#ef4444', border: '1px solid #ef4444' }}
 			>
 				Unknown scenario: {scenarioId}
 			</div>
@@ -39,13 +40,14 @@ export function RetryStepList({ scenarioId }: RetryStepListProps) {
 	const isActive = activeScenarioId === scenarioId
 	const isLastStep = isActive && stepIndex >= scenario.steps.length - 1
 	const isFirstStep = isActive && stepIndex === 0
+	const prevDisabled = !isActive || isFirstStep
+	const nextDisabled = isActive && isLastStep
 
 	return (
 		<div
 			className="my-8 rounded-lg overflow-hidden"
 			style={{ border: '1px solid var(--color-chalk-faint)' }}
 		>
-			{/* Header */}
 			<div
 				className="flex items-center justify-between px-4 py-2"
 				style={{
@@ -69,7 +71,6 @@ export function RetryStepList({ scenarioId }: RetryStepListProps) {
 				</div>
 			</div>
 
-			{/* Steps */}
 			<ol className="p-4 space-y-2 list-none pl-0 m-0">
 				{scenario.steps.map((step, i) => {
 					const stepIsActive = isActive && i === stepIndex
@@ -79,13 +80,7 @@ export function RetryStepList({ scenarioId }: RetryStepListProps) {
 							key={i}
 							className="flex items-start gap-3 transition-all duration-300 pl-3"
 							style={{
-								opacity: !isActive
-									? 1
-									: stepIsActive
-										? 1
-										: stepIsPast
-											? 0.55
-											: 0.35,
+								opacity: stepOpacity(isActive, stepIsActive, stepIsPast),
 								borderLeft: stepIsActive
 									? '2px solid var(--color-chalk)'
 									: '2px solid transparent',
@@ -106,7 +101,6 @@ export function RetryStepList({ scenarioId }: RetryStepListProps) {
 				})}
 			</ol>
 
-			{/* Action bar */}
 			<div
 				className="flex items-center justify-between px-4 py-2"
 				style={{
@@ -116,22 +110,22 @@ export function RetryStepList({ scenarioId }: RetryStepListProps) {
 			>
 				<div className="flex items-center gap-2">
 					<button
-						onClick={isActive && !isFirstStep ? stepBack : undefined}
-						disabled={!isActive || isFirstStep}
+						onClick={stepBack}
+						disabled={prevDisabled}
 						aria-label="Previous step"
 						className="font-mono text-xs min-w-9 min-h-9 inline-flex items-center justify-center rounded"
 						style={{
 							color: 'var(--color-chalk)',
 							background: 'var(--color-surface-card)',
 							border: '1px solid var(--color-chalk-faint)',
-							opacity: !isActive || isFirstStep ? 0.3 : 1,
-							cursor: !isActive || isFirstStep ? 'not-allowed' : 'pointer',
+							opacity: prevDisabled ? 0.3 : 1,
+							cursor: prevDisabled ? 'not-allowed' : 'pointer',
 						}}
 					>
 						<ChevronLeft size={14} />
 					</button>
 
-					{isActive && isLastStep && (
+					{isLastStep && (
 						<button
 							onClick={() => runScenario(scenarioId)}
 							aria-label="Replay scenario"
@@ -149,14 +143,14 @@ export function RetryStepList({ scenarioId }: RetryStepListProps) {
 
 					<button
 						onClick={() => (isActive ? stepForward() : runScenario(scenarioId))}
-						disabled={isActive && isLastStep}
+						disabled={nextDisabled}
 						className="font-mono text-xs min-w-9 min-h-9 px-3 rounded inline-flex items-center justify-center gap-1"
 						style={{
 							color: 'var(--color-surface)',
 							background: 'var(--color-chalk)',
 							border: 'none',
-							cursor: isActive && isLastStep ? 'not-allowed' : 'pointer',
-							opacity: isActive && isLastStep ? 0.5 : 1,
+							cursor: nextDisabled ? 'not-allowed' : 'pointer',
+							opacity: nextDisabled ? 0.5 : 1,
 						}}
 						aria-label={
 							!isActive
@@ -173,9 +167,7 @@ export function RetryStepList({ scenarioId }: RetryStepListProps) {
 						) : isLastStep ? (
 							<>done</>
 						) : (
-							<>
-								<ChevronRight size={14} />
-							</>
+							<ChevronRight size={14} />
 						)}
 					</button>
 				</div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useInView, useReducedMotion } from 'framer-motion'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const TOTAL_ENTRIES = 8
 const FINAL_COUNT = 147
@@ -10,15 +10,9 @@ const ENTRY_STAGGER = 0.22
 export function UberReceiptsTeaser() {
 	const ref = useRef<HTMLDivElement>(null)
 	const inView = useInView(ref, { once: true, amount: 0.4 })
-	const prefersReducedMotion = useReducedMotion()
-	const shouldAnimate = inView && !prefersReducedMotion
-
-	// Reduced-motion users see the frozen final state immediately.
-	const playState = prefersReducedMotion
-		? 'frozen'
-		: inView
-			? 'animate'
-			: 'idle'
+	const isFrozen = !!useReducedMotion()
+	const isPlaying = inView && !isFrozen
+	const isVisible = inView || isFrozen
 
 	return (
 		<div
@@ -43,40 +37,31 @@ export function UberReceiptsTeaser() {
 			</div>
 
 			<div className="px-4 py-3 space-y-1">
-				{Array.from({ length: TOTAL_ENTRIES }).map((_, i) => {
-					const delay = shouldAnimate ? i * ENTRY_STAGGER : 0
-					const initial =
-						playState === 'frozen'
-							? { opacity: 0.7, y: 0 }
-							: { opacity: 0, y: -4 }
-					const animate =
-						playState === 'idle'
-							? { opacity: 0, y: -4 }
-							: { opacity: 0.7, y: 0 }
-					return (
-						<motion.div
-							key={i}
-							initial={initial}
-							animate={animate}
-							transition={{ delay, duration: 0.3, ease: 'easeOut' }}
-							className="flex items-center justify-between text-[12px]"
-							style={{ color: 'var(--color-chalk)' }}
+				{Array.from({ length: TOTAL_ENTRIES }).map((_, i) => (
+					<motion.div
+						key={i}
+						initial={{ opacity: 0, y: -4 }}
+						animate={isVisible ? { opacity: 0.7, y: 0 } : { opacity: 0, y: -4 }}
+						transition={{
+							delay: isPlaying ? i * ENTRY_STAGGER : 0,
+							duration: 0.3,
+							ease: 'easeOut',
+						}}
+						className="flex items-center justify-between text-[12px]"
+						style={{ color: 'var(--color-chalk)' }}
+					>
+						<span style={{ color: 'var(--color-chalk-dim)' }}>PAY FAILED</span>
+						<span
+							aria-hidden="true"
+							style={{ color: 'var(--color-chalk-faint)' }}
 						>
-							<span style={{ color: 'var(--color-chalk-dim)' }}>
-								PAY FAILED
-							</span>
-							<span
-								aria-hidden="true"
-								style={{ color: 'var(--color-chalk-faint)' }}
-							>
-								──→
-							</span>
-							<span style={{ color: '#f97316', fontWeight: 600 }}>
-								ORDER DELIVERED
-							</span>
-						</motion.div>
-					)
-				})}
+							──→
+						</span>
+						<span style={{ color: '#f97316', fontWeight: 600 }}>
+							ORDER DELIVERED
+						</span>
+					</motion.div>
+				))}
 				<div
 					aria-hidden="true"
 					className="text-[12px] tracking-widest text-center pt-1"
@@ -87,10 +72,10 @@ export function UberReceiptsTeaser() {
 			</div>
 
 			<motion.div
-				initial={playState === 'frozen' ? { opacity: 1 } : { opacity: 0 }}
-				animate={playState === 'idle' ? { opacity: 0 } : { opacity: 1 }}
+				initial={{ opacity: 0 }}
+				animate={isVisible ? { opacity: 1 } : { opacity: 0 }}
 				transition={{
-					delay: shouldAnimate ? TOTAL_ENTRIES * ENTRY_STAGGER + 0.1 : 0,
+					delay: isPlaying ? TOTAL_ENTRIES * ENTRY_STAGGER + 0.1 : 0,
 					duration: 0.4,
 				}}
 				className="px-4 py-3 text-center"
@@ -108,11 +93,10 @@ export function UberReceiptsTeaser() {
 				<div className="flex items-baseline justify-center gap-3 text-[14px]">
 					<span>free meals served:</span>
 					<CounterNumber
-						from={0}
 						to={FINAL_COUNT}
 						durationMs={Math.max(800, TOTAL_ENTRIES * ENTRY_STAGGER * 1000)}
-						play={playState !== 'idle'}
-						instant={playState === 'frozen'}
+						play={isPlaying}
+						instant={isFrozen}
 					/>
 				</div>
 				<div
@@ -127,48 +111,32 @@ export function UberReceiptsTeaser() {
 }
 
 interface CounterNumberProps {
-	from: number
 	to: number
 	durationMs: number
 	play: boolean
 	instant: boolean
 }
 
-function CounterNumber({
-	from,
-	to,
-	durationMs,
-	play,
-	instant,
-}: CounterNumberProps) {
-	const ref = useRef<HTMLSpanElement>(null)
+function CounterNumber({ to, durationMs, play, instant }: CounterNumberProps) {
+	const [value, setValue] = useState(instant ? to : 0)
 	const startedRef = useRef(false)
 
 	useEffect(() => {
 		if (instant || !play || startedRef.current) return
 		startedRef.current = true
 		const start = performance.now()
-		let rafId = 0
-		const tick = (now: number) => {
+		let rafId = requestAnimationFrame(function tick(now) {
 			const t = Math.min(1, (now - start) / durationMs)
 			const eased = 1 - Math.pow(1 - t, 3)
-			const value = Math.round(from + (to - from) * eased)
-			if (ref.current) {
-				ref.current.textContent = t < 1 ? String(value) : `~${to}`
-			}
+			setValue(Math.round(to * eased))
 			if (t < 1) rafId = requestAnimationFrame(tick)
-		}
-		rafId = requestAnimationFrame(tick)
+		})
 		return () => cancelAnimationFrame(rafId)
-	}, [play, instant, from, to, durationMs])
+	}, [play, instant, to, durationMs])
 
 	return (
-		<span
-			ref={ref}
-			className="font-mono"
-			style={{ color: '#f97316', fontWeight: 600 }}
-		>
-			{instant ? `~${to}` : '0'}
+		<span className="font-mono" style={{ color: '#f97316', fontWeight: 600 }}>
+			{value === to ? `~${to}` : value}
 		</span>
 	)
 }

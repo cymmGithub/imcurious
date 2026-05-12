@@ -1,13 +1,20 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { memo } from 'react'
 import type { Account, ResourceState } from './types'
 
 interface ResourcePanelProps {
 	resource: ResourceState
 }
 
-function AccountRow({ account, isNew }: { account: Account; isNew?: boolean }) {
+const AccountRow = memo(function AccountRow({
+	account,
+	isNew,
+}: {
+	account: Account
+	isNew?: boolean
+}) {
 	return (
 		<motion.div
 			layout
@@ -36,7 +43,7 @@ function AccountRow({ account, isNew }: { account: Account; isNew?: boolean }) {
 			</div>
 		</motion.div>
 	)
-}
+})
 
 export function ResourcePanel({ resource }: ResourcePanelProps) {
 	return (

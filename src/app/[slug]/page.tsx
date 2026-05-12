@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { MDXProvider } from '@/components/mdx/MDXProvider'
 import { ArticleSidebar } from '@/components/mdx/ArticleSidebar'
 
 const posts: Record<
@@ -77,9 +76,7 @@ export default async function PostPage({
 				</Link>
 			</nav>
 			<article id="main-content" className="mx-auto">
-				<MDXProvider>
-					<Post />
-				</MDXProvider>
+				<Post />
 			</article>
 			<ArticleSidebar category={post.meta.category} date={post.meta.date} />
 		</main>

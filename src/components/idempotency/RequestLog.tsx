@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { memo } from 'react'
 import type { ClientOutcome, LogEntry } from './types'
 
 interface RequestLogProps {
@@ -21,7 +22,8 @@ const OUTCOME_COLORS: Record<ClientOutcome, string> = {
 	'response-lost': '#ef4444',
 }
 
-function LogRow({ entry }: { entry: LogEntry }) {
+const LogRow = memo(function LogRow({ entry }: { entry: LogEntry }) {
+	const accent = OUTCOME_COLORS[entry.clientOutcome]
 	return (
 		<motion.div
 			layout
@@ -31,7 +33,7 @@ function LogRow({ entry }: { entry: LogEntry }) {
 			className="font-mono text-[11px] py-1.5 px-2"
 			style={{
 				color: 'var(--color-chalk)',
-				borderLeft: `2px solid ${OUTCOME_COLORS[entry.clientOutcome]}`,
+				borderLeft: `2px solid ${accent}`,
 				background: 'transparent',
 			}}
 		>
@@ -46,15 +48,10 @@ function LogRow({ entry }: { entry: LogEntry }) {
 					{entry.request.path}
 				</span>
 				{entry.statusCode !== undefined && (
-					<span style={{ color: OUTCOME_COLORS[entry.clientOutcome] }}>
-						{entry.statusCode}
-					</span>
+					<span style={{ color: accent }}>{entry.statusCode}</span>
 				)}
 			</div>
-			<div
-				className="text-[10px] italic"
-				style={{ color: OUTCOME_COLORS[entry.clientOutcome] }}
-			>
+			<div className="text-[10px] italic" style={{ color: accent }}>
 				{OUTCOME_LABELS[entry.clientOutcome]}
 				{entry.idempotencyKey && (
 					<span
@@ -67,7 +64,7 @@ function LogRow({ entry }: { entry: LogEntry }) {
 			</div>
 		</motion.div>
 	)
-}
+})
 
 export function RequestLog({ log }: RequestLogProps) {
 	return (

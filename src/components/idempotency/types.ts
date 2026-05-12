@@ -13,16 +13,20 @@ export type ResourceState =
 
 export type PacketFate = 'in-flight' | 'arrived' | 'lost'
 
-export type PacketState = {
+type PacketBase = {
 	id: string
-	kind: 'request' | 'response'
-	method?: HttpMethod
-	statusCode?: number
 	position: number
 	fate: PacketFate
 	label: string
-	payloadPreview?: string
 }
+
+export type PacketState =
+	| (PacketBase & {
+			kind: 'request'
+			method: HttpMethod
+			payloadPreview?: string
+	  })
+	| (PacketBase & { kind: 'response'; statusCode: number })
 
 export type WireState = { healthy: true } | { healthy: false; breakAt: number }
 

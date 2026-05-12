@@ -7,16 +7,6 @@ import { patchBalanceSet } from './patchBalanceSet'
 import { patchCreditRunaway } from './patchCreditRunaway'
 import { postWithIdempotencyKey } from './postWithIdempotencyKey'
 
-export const SCENARIOS: Record<string, Scenario> = {
-	[getBaseline.id]: getBaseline,
-	[deleteTwice.id]: deleteTwice,
-	[postDoubleCharge.id]: postDoubleCharge,
-	[putRetrySafe.id]: putRetrySafe,
-	[patchBalanceSet.id]: patchBalanceSet,
-	[patchCreditRunaway.id]: patchCreditRunaway,
-	[postWithIdempotencyKey.id]: postWithIdempotencyKey,
-}
-
 export type ScenarioId =
 	| typeof getBaseline.id
 	| typeof deleteTwice.id
@@ -25,3 +15,13 @@ export type ScenarioId =
 	| typeof patchBalanceSet.id
 	| typeof patchCreditRunaway.id
 	| typeof postWithIdempotencyKey.id
+
+export const SCENARIOS: Record<ScenarioId, Scenario> = {
+	[getBaseline.id]: getBaseline,
+	[deleteTwice.id]: deleteTwice,
+	[postDoubleCharge.id]: postDoubleCharge,
+	[putRetrySafe.id]: putRetrySafe,
+	[patchBalanceSet.id]: patchBalanceSet,
+	[patchCreditRunaway.id]: patchCreditRunaway,
+	[postWithIdempotencyKey.id]: postWithIdempotencyKey,
+}
