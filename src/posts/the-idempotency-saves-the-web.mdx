@@ -2,11 +2,18 @@
 
 <Section stage={1}>
 
-# How Idempotency Saves the Web? <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--color-chalk-faint)', letterSpacing: '0.03em', fontWeight: 'normal'}}>// protocol: http</span>
+# How the Idempotency Saves the <img src="/world-wide-web.png" alt="Web" style={{display: 'inline-block', verticalAlign: '-0.15em', height: '1em', width: 'auto', margin: '0 0.05em'}} />? <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--color-chalk-faint)', letterSpacing: '0.03em', fontWeight: 'normal'}}></span>
 
-Imagine a Sunday afternoon in March 2019. Someone in India tries to order food on Uber Eats with Paytm. Their wallet is empty, the payment errors. They tap order again. The food arrives anyway. Word spreads. Within hours, a college in India has run up $14,000 in free orders — in a single day. Uber only finds out when restaurants start going offline under the order volume.
+<ImagineTrigger>Imagine</ImagineTrigger> a Sunday afternoon in March 2019. Someone in India tries to order food on Uber Eats with Paytm. Their wallet is empty, the payment errors. They tap order again. The food arrives anyway. Word spreads. Within hours, a college in India has run up $14,000 in free orders — in a single day. Uber only finds out when restaurants start going offline under the order volume.
 
-<UberReceiptsTeaser />
+<RedditQuote
+	src="/uber-eats-reddit-glitch.png"
+	alt="Reddit post by u/luciferous22: 'A glitch in uber eats payment method with a partner company allowed users to order food without paying. Students in our city completely exploited this glitch and ordered around 14000 USD of free food.'"
+	author="u/luciferous22"
+	subreddit="r/india"
+	age="2019"
+	width="50%"
+/>
 
 The cause was a tiny change at Paytm: an API endpoint silently went from idempotent to non-idempotent. Uber's integration assumed the old contract still held; the new response Paytm returned wasn't mapped to anything, and the silent default was *treat it as success*.
 
@@ -148,13 +155,7 @@ This is exactly the missing piece in March 2019. Paytm silently changed the beha
 
 The fix — both then, and in any system that takes retries seriously — is a key-based contract between client and provider, where every payment attempt carries an idempotency key, and the provider's response is anchored to that key. Under that contract, the same retried payment is unambiguously the same payment, regardless of what new response the provider introduces next quarter.
 
-<Callout>
-Sources on the incident: the original [Hacker News discussion](https://news.ycombinator.com/item?id=30692406), the [follow-up thread](https://news.ycombinator.com/item?id=30668183), and Gergely Orosz's [Twitter writeup](https://twitter.com/gergelyorosz/status/1502947315279187979).
-</Callout>
-
-You now have the model: idempotency is server-state stability under retry, *safe* and *idempotent* are different properties, PUT and PATCH have wildly different contracts under retry depending on the patch body, and idempotency keys let you bolt the same contract onto methods that don't have it natively.
-
-The next post in this series digs into each HTTP method as its own contract — what each one promises, when each one is the right choice, and the design decisions that hinge on those promises. Same lab, different story.
+HTTP methods are promises you make about your endpoint's behavior, and the infrastructure of the web assumes you keep those promises. Safety and idempotency aren't properties HTTP gives you for free on GET; they're properties you guarantee by how you write the handler. Break the contract and you can certainly do it — but you've made your endpoint un-cacheable, un-retryable, and dangerous in the face of the very behaviors the contract was designed to enable safely.
 
 </Section>
 

@@ -70,7 +70,7 @@ export function RetryLabViz() {
 				{snapshot && activeScenarioId ? snapshot.description : IDLE_DESCRIPTION}
 			</div>
 
-			<div className="relative flex-1 min-h-[200px] flex items-center justify-center px-2 pt-2">
+			<div className="relative flex-1 min-h-[140px] lg:min-h-[200px] flex items-center justify-center px-2 pt-2">
 				<svg
 					viewBox={LAB_VIEWBOX}
 					className="w-full h-full max-h-full"
@@ -85,7 +85,7 @@ export function RetryLabViz() {
 				</svg>
 			</div>
 
-			<div className="grid grid-cols-2 gap-3 p-3 pt-1 h-[45%] min-h-[200px]">
+			<div className="grid grid-cols-2 gap-3 p-3 pt-1 h-[45%] min-h-[140px] lg:min-h-[200px]">
 				<RequestLog log={snapshot?.log ?? []} />
 				<ResourcePanel resource={snapshot?.resource ?? { kind: 'none' }} />
 			</div>

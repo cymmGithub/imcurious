@@ -14,8 +14,8 @@ const posts: Record<
 		loader: () => import('@/posts/the-js-event-loop-works.mdx'),
 		meta: { category: 'JS Fundamentals', date: '30/03/26' },
 	},
-	'how-idempotency-saves-the-web': {
-		loader: () => import('@/posts/how-idempotency-saves-the-web.mdx'),
+	'the-idempotency-saves-the-web': {
+		loader: () => import('@/posts/the-idempotency-saves-the-web.mdx'),
 		meta: { category: 'REST APIs', date: '12/05/26' },
 	},
 }
@@ -37,9 +37,9 @@ export async function generateMetadata({
 				'An interactive guide to the JavaScript event loop. Watch tasks navigate queues, microtasks, and rendering.',
 		}
 	}
-	if (slug === 'how-idempotency-saves-the-web') {
+	if (slug === 'the-idempotency-saves-the-web') {
 		return {
-			title: 'How Idempotency Saves the Web? | imcurious.how',
+			title: 'The Idempotency Saves the Web? | imcurious.how',
 			description:
 				'An interactive guide to REST API idempotency. Watch retries, failures, and the contract that decides whether your API survives them.',
 		}

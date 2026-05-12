@@ -38,12 +38,23 @@ export default function Home() {
 					/>
 				</Link>
 				<Link
-					href="/how-idempotency-saves-the-web"
+					href="/the-idempotency-saves-the-web"
 					className="group text-[var(--color-chalk)] hover:text-[var(--color-chalk)] transition-colors font-body inline-flex items-center gap-1.5 rounded-sm"
-					aria-label="How Idempotency Saves the Web"
+					aria-label="the Idempotency Saves the Web"
 				>
 					<span className="relative">
-						<span className="relative">How Idempotency Saves the Web?</span>
+						<span className="relative">
+							the Idempotency Saves the{' '}
+							{/* eslint-disable-next-line @next/next/no-img-element */}
+							<img
+								src="/world-wide-web.png"
+								alt="Web"
+								width={16}
+								height={16}
+								className="inline h-[1em] w-auto align-[-0.15em]"
+							/>
+							?
+						</span>
 						<span className="absolute left-0 -bottom-0.5 w-0 h-px bg-chalk/60 transition-all duration-300 ease-out group-hover:w-full" />
 					</span>
 					<ArrowRight
