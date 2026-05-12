@@ -36,6 +36,7 @@ export function Packet({ packet }: PacketProps) {
 		packet.kind === 'request'
 			? METHOD_COLORS[packet.method]
 			: statusColor(packet.statusCode)
+	const displayText = packet.kind === 'request' ? packet.method : packet.label
 	const opacity = packet.fate === 'lost' ? 0.35 : 1
 	// Requests sit above the wire, responses below — so direction reads even
 	// without watching the motion.
@@ -69,7 +70,7 @@ export function Packet({ packet }: PacketProps) {
 				fontWeight={600}
 				fill="white"
 			>
-				{packet.label}
+				{displayText}
 			</text>
 
 			<polygon
