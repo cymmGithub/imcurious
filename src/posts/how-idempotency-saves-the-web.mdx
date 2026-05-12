@@ -4,11 +4,11 @@
 
 # How Idempotency Saves the Web? <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--color-chalk-faint)', letterSpacing: '0.03em', fontWeight: 'normal'}}>// protocol: http</span>
 
-Imagine a weekend in March 2022. Students across India order food on Uber Eats. The payment fails. The food arrives anyway. They order again. Same story. Within a few hours the word is out.
+Imagine a Sunday afternoon in March 2019. Someone in India tries to order food on Uber Eats with Paytm. Their wallet is empty, the payment errors. They tap order again. The food arrives anyway. Word spreads. Within hours, a college in India has run up $14,000 in free orders — in a single day. Uber only finds out when restaurants start going offline under the order volume.
 
 <UberReceiptsTeaser />
 
-By the end of the weekend, somewhere around 147 meals had been delivered for free across about 100 cities. The cause? A tiny change at a third-party payment provider — a new status code for retry-charge responses — that Uber Eats interpreted as success.
+The cause was a tiny change at Paytm: an API endpoint silently went from idempotent to non-idempotent. Uber's integration assumed the old contract still held; the new response Paytm returned wasn't mapped to anything, and the silent default was *treat it as success*.
 
 This was not a security breach. It was a missing **contract**: the agreement between client and server that says *if you see this request again, treat it as the same one, not a new one*. That contract has a name: **idempotency**. Without it, the web is a sea of retry-happy clients sending duplicate requests no one can recover from. With it, everything keeps working through failure.
 
@@ -144,9 +144,9 @@ This pattern is what Stripe famously documented and what most well-designed paym
 
 ### Back to Uber Eats
 
-This is exactly the missing piece in March 2022. A payment service provider rolled out a new status type for retry-charge responses. Uber Eats' integration interpreted the new status as a successful payment. Every retry of a failed charge now looked like a fresh success. Food kept getting delivered. Money kept not being charged.
+This is exactly the missing piece in March 2019. Paytm silently changed the behavior of a charge-retry endpoint — what used to be idempotent stopped being so. Uber Eats had no way to recognize that the second hit on a failed payment was a retry of the first; the response shape was new, the silent default mapped it to success, and the food kept getting delivered.
 
-The fix — both then, and in any system that takes retries seriously — is a key-based contract between Uber and the provider, where every payment attempt carries an idempotency key, and the provider's response is anchored to that key. Under that contract, the same retried payment is unambiguously the same payment, regardless of what status code the provider invents next quarter.
+The fix — both then, and in any system that takes retries seriously — is a key-based contract between client and provider, where every payment attempt carries an idempotency key, and the provider's response is anchored to that key. Under that contract, the same retried payment is unambiguously the same payment, regardless of what new response the provider introduces next quarter.
 
 <Callout>
 Sources on the incident: the original [Hacker News discussion](https://news.ycombinator.com/item?id=30692406), the [follow-up thread](https://news.ycombinator.com/item?id=30668183), and Gergely Orosz's [Twitter writeup](https://twitter.com/gergelyorosz/status/1502947315279187979).

@@ -149,12 +149,12 @@ A sandbox is a viable v2 once the post is shipped and we have reader feedback.
 
 > Find the Uber free-food bug and keep Microsoft Azure + Google Cloud REST best-practices in mind.
 
-**Found incident: Uber Eats India glitch, March 2022**
+**Found incident: Uber Eats India glitch, March 2019** _(corrected from initial misread — March 2022 is the date Gergely Orosz tweeted the public retrospective, ~3 years after the bug)_
 
-- A PSP (payment service provider) updated its API with a new status type for retry-charge requests.
-- Uber Eats' integration code mis-interpreted that new status as a successful payment.
-- For one weekend in March 2022, users across ~100 cities (heavily in India) could order food and the retry-charge response made it look paid.
-- Reported figures: ~$14k+ in free food per high-volume user; some users ordered up to $15k/day.
+- Paytm silently changed an API endpoint from idempotent to non-idempotent (per Orosz's thread: "It silently changed an API endpoint from behaving idempotent to non-idempotent.").
+- Uber Eats' integration code had no mapping for the new response shape, and the silent default treated unknown responses as success.
+- Verified specific impact: one college in India ran up roughly **$14,000 in free orders in a single day**. Uber discovered the bug when restaurants started going offline under the order volume.
+- The widely-circulated "~100 cities" and "~147 meals" figures came from secondary writeups and are NOT confirmed in Orosz's original thread.
 - **Root cause:** weak idempotency contract between Uber and the PSP — a third-party API change wasn't safely absorbed because there was no idempotency key disambiguating retries from new requests. Classic distributed-systems idempotency failure.
 
 **Sources confirmed:**
@@ -212,7 +212,7 @@ Section bundling kept as-is:
   - Entries appear every ~250ms; total runtime ~3–4 seconds.
   - Counter increments in sync with entries.
   - Respect `prefers-reduced-motion` → skip animation, show frozen state immediately.
-- Final frozen state: "Free meals served: ~147 / Across ~100 cities / One weekend, March 2022."
+- Final frozen state: "one college, one day: ~$14,000 / in free food, until restaurants went offline" (badge `Uber Eats · India · March 2019`).
 - Styling: muted greyscale background, single accent color on `DELIVERED`, monospace font (foreshadows §2's `RequestLog`).
 - No Uber branding (no logo/color reuse).
 - Component: `src/components/idempotency/UberReceiptsTeaser.tsx`.

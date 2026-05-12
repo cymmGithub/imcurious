@@ -34,9 +34,9 @@ All posts share the same scroll-stage left-viz pattern. Sidebar category: `REST 
 
 ## 3. Real-world hook & references
 
-### Opening hook: Uber Eats India glitch (March 2022)
+### Opening hook: Uber Eats India glitch (March 2019)
 
-For one weekend in March 2022, users across ~100 cities (heavily India) could order food and the retry-charge response made it look paid. Root cause: a PSP (payment service provider) updated its API with a new status type for retry-charge requests, which Uber Eats' integration mis-interpreted as success. Reports vary on totals; "approximately $14k per heavy user" / "$15k/day" are the figures repeated across credible writeups. The fix: a proper idempotency-key contract that disambiguates retries from new requests, regardless of what status code the PSP returns.
+On a Sunday in March 2019, Paytm silently changed an API endpoint from idempotent to non-idempotent. Uber Eats' integration assumed the old contract; the new response shape wasn't mapped to anything, and the silent default treated it as success. Retried payments kept "succeeding" against empty wallets. One college in India ran up roughly $14,000 in free orders in a single day. The bug was caught when restaurants started going offline under the order volume. (Gergely Orosz wrote the public retrospective in March 2022 — _that_ is the source date often misquoted as the incident date.)
 
 The Uber story bookends the post:
 
@@ -62,7 +62,7 @@ The Uber story bookends the post:
 
 | #   | Section title (working)                                              | Thesis-payload                                                                                                                                                                                                          | Central scenario                                |
 | --- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| 1   | **The Weekend Uber Eats Went Free**                                  | Hook with the March 2022 incident. State the survivable thesis.                                                                                                                                                         | `UberReceiptsTeaser` (not a Retry Lab scenario) |
+| 1   | **The Sunday Uber Eats Went Free**                                   | Hook with the March 2019 incident. State the survivable thesis.                                                                                                                                                         | `UberReceiptsTeaser` (not a Retry Lab scenario) |
 | 2   | **A Bank, a Wire, and a Lab**                                        | Introduce the Retry Lab UI. Fire a `GET` — wire animates, response returns, resource panel unchanged. Establishes the visual grammar.                                                                                   | `get-baseline`                                  |
 | 3   | **What "Idempotent" Actually Means**                                 | Demolish (a) idempotency-is-about-state-not-response and (b) safe ≠ idempotent. Show the matrix. Cite Microsoft.                                                                                                        | `delete-twice`                                  |
 | 4   | **The Wire Breaks → POST: The Double-Charge Trap**                   | Introduce failure modes 1 & 2. Show the client can't tell them apart. Run the canonical POST-retry scenario.                                                                                                            | `post-double-charge`                            |
@@ -368,16 +368,16 @@ Each scenario lives in `src/components/idempotency/scenarios/<id>.ts` and export
 
 **Behavior:**
 
-| Aspect         | Detail                                                                                                               |
-| -------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Trigger        | `IntersectionObserver` — plays once when scrolled into view, freezes at final state                                  |
-| Pacing         | Entries fade/slide in every ~250ms; counter increments in sync; ~3–4s total                                          |
-| Final state    | Three-line totals card: `Free meals served: ~147` / `Across ~100 cities` / `One weekend, March 2022`                 |
-| Phrasing       | Literal: `PAY FAILED` and `ORDER DELIVERED` (NOT API-flavored like `402 PAYMENT REQUIRED`)                           |
-| Styling        | Muted greyscale background; single accent color on `DELIVERED`; monospace font (foreshadows §2's `RequestLog` motif) |
-| Reduced motion | `prefers-reduced-motion: reduce` → show frozen final state immediately, skip the animation                           |
-| Accessibility  | `aria-label` summarizing the incident; no flashing                                                                   |
-| Branding       | Words "Uber Eats" appear once in the prose. No logo / Uber color reuse.                                              |
+| Aspect         | Detail                                                                                                                                             |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trigger        | `IntersectionObserver` — plays once when scrolled into view, freezes at final state                                                                |
+| Pacing         | Entries fade/slide in every ~250ms; counter increments in sync; ~3–4s total                                                                        |
+| Final state    | Three-line totals card: `one college, one day: ~$14,000` / `in free food, until restaurants went offline` (badge `Uber Eats · India · March 2019`) |
+| Phrasing       | Literal: `PAY FAILED` and `ORDER DELIVERED` (NOT API-flavored like `402 PAYMENT REQUIRED`)                                                         |
+| Styling        | Muted greyscale background; single accent color on `DELIVERED`; monospace font (foreshadows §2's `RequestLog` motif)                               |
+| Reduced motion | `prefers-reduced-motion: reduce` → show frozen final state immediately, skip the animation                                                         |
+| Accessibility  | `aria-label` summarizing the incident; no flashing                                                                                                 |
+| Branding       | Words "Uber Eats" appear once in the prose. No logo / Uber color reuse.                                                                            |
 
 ---
 
@@ -548,7 +548,7 @@ The post is ready to publish when:
 - [ ] `bun run test`, `bun run lint`, `bun run format:check`, and `bun run build` all pass.
 - [ ] The MDX prose is in the event-loop post's voice (re-read both side-by-side to verify continuity).
 - [ ] The §6 PATCH contrast (`{balance: 200}` vs `{credit: 50}`) makes the PUT-vs-PATCH distinction unmistakable on first read.
-- [ ] The §7 Uber callback explicitly connects the idempotency-key mechanism to the March 2022 PSP-status incident.
+- [ ] The §7 Uber callback explicitly connects the idempotency-key mechanism to the March 2019 Paytm-endpoint incident.
 - [ ] Citations to Microsoft and Google Cloud appear at least once each, in Callouts.
 
 ---

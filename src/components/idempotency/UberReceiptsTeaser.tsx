@@ -4,7 +4,7 @@ import { motion, useInView, useReducedMotion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 
 const TOTAL_ENTRIES = 8
-const FINAL_COUNT = 147
+const FINAL_AMOUNT = 14000
 const ENTRY_STAGGER = 0.22
 
 export function UberReceiptsTeaser() {
@@ -18,7 +18,7 @@ export function UberReceiptsTeaser() {
 		<div
 			ref={ref}
 			role="figure"
-			aria-label="Receipts tape illustrating the March 2022 Uber Eats glitch: repeated failed payments still resulted in delivered orders, totalling roughly 147 free meals across about 100 cities over one weekend."
+			aria-label="Receipts tape illustrating the March 2019 Uber Eats glitch: repeated failed payments still resulted in delivered orders. One college in India ran up roughly $14,000 in free orders in a single day."
 			className="my-8 rounded-md overflow-hidden font-mono"
 			style={{
 				background: 'var(--color-surface-card)',
@@ -33,7 +33,7 @@ export function UberReceiptsTeaser() {
 				}}
 			>
 				<span>Uber Eats · India</span>
-				<span>March 2022</span>
+				<span>March 2019</span>
 			</div>
 
 			<div className="px-4 py-3 space-y-1">
@@ -91,19 +91,20 @@ export function UberReceiptsTeaser() {
 					tally
 				</div>
 				<div className="flex items-baseline justify-center gap-3 text-[14px]">
-					<span>free meals served:</span>
+					<span>one college, one day:</span>
 					<CounterNumber
-						to={FINAL_COUNT}
+						to={FINAL_AMOUNT}
 						durationMs={Math.max(800, TOTAL_ENTRIES * ENTRY_STAGGER * 1000)}
 						play={isPlaying}
 						instant={isFrozen}
+						prefix="~$"
 					/>
 				</div>
 				<div
 					className="text-[11px]"
 					style={{ color: 'var(--color-chalk-dim)' }}
 				>
-					across ~100 cities · one weekend
+					in free food, until restaurants went offline
 				</div>
 			</motion.div>
 		</div>
@@ -115,9 +116,16 @@ interface CounterNumberProps {
 	durationMs: number
 	play: boolean
 	instant: boolean
+	prefix?: string
 }
 
-function CounterNumber({ to, durationMs, play, instant }: CounterNumberProps) {
+function CounterNumber({
+	to,
+	durationMs,
+	play,
+	instant,
+	prefix = '',
+}: CounterNumberProps) {
 	const [value, setValue] = useState(instant ? to : 0)
 	const startedRef = useRef(false)
 
@@ -134,9 +142,11 @@ function CounterNumber({ to, durationMs, play, instant }: CounterNumberProps) {
 		return () => cancelAnimationFrame(rafId)
 	}, [play, instant, to, durationMs])
 
+	const formatted = value.toLocaleString('en-US')
+
 	return (
 		<span className="font-mono" style={{ color: '#f97316', fontWeight: 600 }}>
-			{value === to ? `~${to}` : value}
+			{value === to ? `${prefix}${formatted}` : `${prefix}${formatted}`}
 		</span>
 	)
 }
