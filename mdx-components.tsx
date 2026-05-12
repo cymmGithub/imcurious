@@ -2,23 +2,31 @@ import type { MDXComponents } from 'mdx/types'
 import type { ComponentPropsWithoutRef } from 'react'
 import { ScrollStage } from '@/components/event-loop/ScrollStage'
 import { RunCode } from '@/components/event-loop/RunCode'
+import { RestStage } from '@/components/idempotency/RestStage'
+import { RetryStepList } from '@/components/idempotency/RetryStepList'
 import { Section } from '@/components/mdx/Section'
 import { Callout } from '@/components/mdx/Callout'
 import { StepList } from '@/components/mdx/StepList'
 import { StaticCode } from '@/components/mdx/StaticCode'
 import { DemoCode } from '@/components/mdx/DemoCode'
 import { Sources } from '@/components/mdx/Sources'
+import { RedditQuote } from '@/components/mdx/RedditQuote'
+import { ImagineTrigger } from '@/components/mdx/ImagineTrigger'
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
 	return {
 		ScrollStage,
 		RunCode,
+		RestStage,
+		RetryStepList,
 		Section,
 		Callout,
 		StepList,
 		StaticCode,
 		DemoCode,
 		Sources,
+		RedditQuote,
+		ImagineTrigger,
 		h1: (props: ComponentPropsWithoutRef<'h1'>) => (
 			<h1
 				className="font-sketch text-4xl font-bold tracking-tight text-[var(--color-chalk)] mb-8"

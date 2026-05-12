@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { MDXProvider } from '@/components/mdx/MDXProvider'
 import { ArticleSidebar } from '@/components/mdx/ArticleSidebar'
 
 const posts: Record<
@@ -14,6 +13,10 @@ const posts: Record<
 	'the-js-event-loop-works': {
 		loader: () => import('@/posts/the-js-event-loop-works.mdx'),
 		meta: { category: 'JS Fundamentals', date: '30/03/26' },
+	},
+	'the-idempotency-saves-the-web': {
+		loader: () => import('@/posts/the-idempotency-saves-the-web.mdx'),
+		meta: { category: 'REST APIs', date: '12/05/26' },
 	},
 }
 
@@ -32,6 +35,13 @@ export async function generateMetadata({
 			title: 'How the JS Event Loop Works? | imcurious.how',
 			description:
 				'An interactive guide to the JavaScript event loop. Watch tasks navigate queues, microtasks, and rendering.',
+		}
+	}
+	if (slug === 'the-idempotency-saves-the-web') {
+		return {
+			title: 'The Idempotency Saves the Web? | imcurious.how',
+			description:
+				'An interactive guide to REST API idempotency. Watch retries, failures, and the contract that decides whether your API survives them.',
 		}
 	}
 	return {}
@@ -66,9 +76,7 @@ export default async function PostPage({
 				</Link>
 			</nav>
 			<article id="main-content" className="mx-auto">
-				<MDXProvider>
-					<Post />
-				</MDXProvider>
+				<Post />
 			</article>
 			<ArticleSidebar category={post.meta.category} date={post.meta.date} />
 		</main>
