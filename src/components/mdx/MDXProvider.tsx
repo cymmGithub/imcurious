@@ -4,6 +4,9 @@ import { MDXProvider as BaseMDXProvider } from '@mdx-js/react'
 import type { ComponentPropsWithoutRef } from 'react'
 import { ScrollStage } from '@/components/event-loop/ScrollStage'
 import { RunCode } from '@/components/event-loop/RunCode'
+import { RestStage } from '@/components/idempotency/RestStage'
+import { RetryStepList } from '@/components/idempotency/RetryStepList'
+import { UberReceiptsTeaser } from '@/components/idempotency/UberReceiptsTeaser'
 import { Section } from './Section'
 import { Callout } from './Callout'
 import { StepList } from './StepList'
@@ -11,6 +14,9 @@ import { StepList } from './StepList'
 const components = {
 	ScrollStage,
 	RunCode,
+	RestStage,
+	RetryStepList,
+	UberReceiptsTeaser,
 	Section,
 	Callout,
 	StepList,

@@ -1,0 +1,113 @@
+<RestStage>
+
+<Section stage={1}>
+
+# How Idempotency Saves the Web? <span style={{fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--color-chalk-faint)', letterSpacing: '0.03em', fontWeight: 'normal'}}>// protocol: http</span>
+
+> **TODO (you):** Write the §1 hook. Open with the Uber Eats weekend in March 2022. Set up the "survivable" thesis. Keep it short — the teaser below carries the emotional load.
+
+<UberReceiptsTeaser />
+
+> **TODO (you):** A short paragraph connecting the teaser to the post's thesis. What you'll learn: what idempotency really is, why PUT and PATCH behave so differently under failure, and what idempotency keys are for.
+
+</Section>
+
+<Section stage={2}>
+
+## A Bank, a Wire, and a Lab
+
+> **TODO (you):** Introduce the Retry Lab visible on the left. Explain the three pieces: client, server, wire. Establish the visual grammar before anything dangerous happens. The first scenario is just a successful `GET`.
+
+<RetryStepList scenarioId="get-baseline" />
+
+> **TODO (you):** Take stock: nothing has changed server-side, and the client got back what it asked for. That's the *safe* baseline against which everything else contrasts.
+
+</Section>
+
+<Section stage={3}>
+
+## What "Idempotent" Actually Means
+
+> **TODO (you):** Demolish two misconceptions in one section. First: idempotency is about *server state*, not about *response stability*. Second: "safe" and "idempotent" are different properties. A method can be one without being the other.
+
+<RetryStepList scenarioId="delete-twice" />
+
+<Callout>
+📖 Microsoft's [API design guidance](https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design) defines idempotency in terms of resource state, not response content. Two DELETEs that leave the resource in the same final state are idempotent — even if one returns `204` and the next returns `404`.
+</Callout>
+
+> **TODO (you):** Sketch the matrix: GET (safe + idempotent), POST (neither), PUT (idempotent), PATCH (depends), DELETE (idempotent but not safe). Save the deep PATCH discussion for §6.
+
+</Section>
+
+<Section stage={4}>
+
+## The Wire Breaks → POST: The Double-Charge Trap
+
+> **TODO (you):** Introduce the two ways a request can fail: the request itself can be lost, or the *response* can be lost after the server already did the work. From the client's side these look identical — and that's where idempotency starts to matter.
+
+> **TODO (you):** Then run the canonical POST scenario. The wire breaks on the *return* trip; the client retries; the server, having no way to know, creates a second account.
+
+<RetryStepList scenarioId="post-double-charge" />
+
+> **TODO (you):** Pause here. The reader just watched a duplicate happen because POST has no built-in contract for retries. This is the textbook version of the Uber Eats failure — same shape, smaller scale.
+
+</Section>
+
+<Section stage={5}>
+
+## PUT: Same Failure, Different Outcome
+
+> **TODO (you):** Replay the failure-mode-2 sequence with PUT. Same broken wire. Same retry. Different outcome — because PUT is idempotent, the second hit is a no-op on the server. *That* is what "idempotent" buys you.
+
+<RetryStepList scenarioId="put-retry-safe" />
+
+> **TODO (you):** Hammer the comparison: the network was equally broken in both scenarios; the *method* was the variable. POST gave us a duplicate; PUT gave us safety. The HTTP method is a promise to the client about what survives.
+
+</Section>
+
+<Section stage={6}>
+
+## PATCH: The Trap Inside the Trap
+
+> **TODO (you):** The killer section. PATCH is the question that froze you in the interview, and here is the answer you wished you'd had: PATCH's idempotency depends on what the patch body *does*. A patch that *sets* a value is idempotent. A patch that *applies a delta* isn't.
+
+### Idempotent PATCH — setting a value
+
+<RetryStepList scenarioId="patch-balance-set" />
+
+> **TODO (you):** Note the parallel to PUT — when the body is declarative, PATCH inherits PUT's idempotency.
+
+### Non-idempotent PATCH — applying a delta
+
+<RetryStepList scenarioId="patch-credit-runaway" />
+
+<Callout>
+📖 [Google Cloud's REST best-practices](https://cloud.google.com/discover/what-is-rest-api#rest-api-best-practices) and Microsoft's design guide both stress this: PATCH semantics are determined by the patch document, not the verb. A delta-style patch (`{credit: 50}`) is fundamentally not idempotent — every retry adds another 50.
+</Callout>
+
+> **TODO (you):** This is the interview answer, distilled: "Is PATCH idempotent?" — *"It depends on whether the patch body is declarative or imperative. A `{balance: 200}` is idempotent. A `{credit: 50}` is not."*
+
+</Section>
+
+<Section stage={7}>
+
+## Idempotency Keys: Making POST Survivable
+
+> **TODO (you):** The escape hatch. When you genuinely need a non-idempotent operation (POST a transfer, charge a card), the client generates an idempotency key and sends it as a header. The server caches `key → response` and replays the cached response on retries.
+
+<RetryStepList scenarioId="post-with-idempotency-key" />
+
+### Back to Uber Eats
+
+> **TODO (you):** Close the loop. The PSP changed its status type. Without an idempotency-key contract between Uber and the PSP, every retry of a failed payment looked like a brand-new request — and the new status type was mis-interpreted as a success. With proper keys, the second hit would have been recognized as a duplicate regardless of what status the PSP returned.
+
+<Callout>
+Sources: the original [Hacker News discussion](https://news.ycombinator.com/item?id=30692406), the [follow-up thread](https://news.ycombinator.com/item?id=30668183), and Gergely Orosz's [Twitter writeup](https://twitter.com/gergelyorosz/status/1502947315279187979).
+</Callout>
+
+> **TODO (you):** Outro. What's coming next in the series — HTTP methods as promises, status codes, REST design. The reader has the survivable mental model now; the next posts build on it.
+
+</Section>
+
+</RestStage>
