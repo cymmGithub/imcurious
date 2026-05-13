@@ -19,13 +19,11 @@ The cause was a tiny change at Paytm: an API endpoint silently went from idempot
 
 This was not a security breach. It was a missing **contract**: the agreement between client and server that says *if you see this request again, treat it as the same one, not a new one*. That contract has a name: **idempotency**. Without it, the web is a sea of retry-happy clients sending duplicate requests no one can recover from. With it, everything keeps working through failure.
 
-This post is about idempotency: what it really means (most explanations get it wrong), why PUT and PATCH behave so differently under retry, and how the right contract would have saved Uber a weekend.
-
 </Section>
 
 <Section stage={2}>
 
-## GET: The "Safe" Baseline
+## GET: Reads Don't Break Things
 
 What you see on the left is the **Retry Lab**. A client. A server. A wire between them. Below the wire, two panels: the **request log** is what the client perceives — what requests it sent, what it got back, what it does not know. The **server resource** is what is actually true on the server. The reason we need both panels is the entire point of this post: sometimes they tell different stories.
 
@@ -45,7 +43,7 @@ That is the baseline. GET is <Footnote note={<>Yes, you can technically make GET
 
 <Section stage={3}>
 
-## What "Idempotent" Actually Means
+## Idempotency Is About Server State, Not the Response
 
 Most engineers can recite the textbook definition of idempotency: *an operation is idempotent if running it multiple times has the same effect as running it once*. Fine. The trap is in the word *effect*.
 
@@ -79,7 +77,7 @@ In the real world, requests fail. They fail in two distinct ways, and the second
 
 **Failure mode 2 — the request reaches the server, the server processes it, and the *response* is lost on the way back.** The server has done the work. The client never finds out.
 
-Here is the cruel part: from the client's perspective, both modes look identical. Both feel like *"I sent a request and got nothing back."* But the server's reality is wildly different in each case — and the client has to decide whether to retry without knowing which world it is in.
+Here is the cruel part: from the client's perspective, both modes look identical. Both feel like *"I sent a request and got nothing back."* But the server's reality is wildly different in each case — and you have to decide whether to retry without knowing which world you're in.
 
 Now watch what happens when the retried method is POST.
 
@@ -121,7 +119,7 @@ Now change one word in the body.
 
 <RetryStepList scenarioId="patch-credit-runaway" />
 
-The balance is `200` instead of `150`. The retry doubled the credit. Same client intent — but the body says *add*, not *set*, and the server obediently adds twice. The user wanted a single $50 deposit; they got a single $50 deposit's worth of side effect, applied twice.
+The balance is `200` instead of `150`. The retry doubled the credit. Same client intent — but the body says *add*, not *set*, and the server obediently adds twice. Your user wanted a single $50 deposit; they got a single $50 deposit's worth of side effect, applied twice.
 
 <Callout>
 Both [Microsoft's API design guide](https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design) and [Google Cloud's REST best-practices](https://cloud.google.com/discover/what-is-rest-api#rest-api-best-practices) stress this: PATCH's contract is determined by the patch document, not by the verb. A delta-style patch is fundamentally not idempotent.
@@ -163,7 +161,7 @@ None of these are enforced by HTTP. They're contracts your handler keeps or brea
 
 <Section stage={8}>
 
-## Back to Uber Eats
+## Back to Uber Eats: The Missing Idempotency Key
 
 This is exactly the missing piece in March 2019. Paytm silently changed the behavior of a charge-retry endpoint — what used to be idempotent stopped being so. Uber Eats had no way to recognize that the second hit on a failed payment was a retry of the first; the response shape was new, the silent default mapped it to success, and the food kept getting delivered.
 
