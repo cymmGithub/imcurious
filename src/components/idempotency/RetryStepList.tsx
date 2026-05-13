@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Play, RotateCcw } from 'lucide-react'
+import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { useIdempotencyStore } from '@/stores/idempotencyStore'
 import { SCENARIOS, type ScenarioId } from './scenarios'
 
@@ -41,7 +41,6 @@ export function RetryStepList({ scenarioId }: RetryStepListProps) {
 	const isLastStep = isActive && stepIndex >= scenario.steps.length - 1
 	const isFirstStep = isActive && stepIndex === 0
 	const prevDisabled = !isActive || isFirstStep
-	const nextDisabled = isActive && isLastStep
 
 	return (
 		<div
@@ -141,35 +140,25 @@ export function RetryStepList({ scenarioId }: RetryStepListProps) {
 						</button>
 					)}
 
-					<button
-						onClick={() => (isActive ? stepForward() : runScenario(scenarioId))}
-						disabled={nextDisabled}
-						className="font-mono text-xs min-w-9 min-h-9 px-3 rounded inline-flex items-center justify-center gap-1"
-						style={{
-							color: 'var(--color-surface)',
-							background: 'var(--color-chalk)',
-							border: 'none',
-							cursor: nextDisabled ? 'not-allowed' : 'pointer',
-							opacity: nextDisabled ? 0.5 : 1,
-						}}
-						aria-label={
-							!isActive
-								? `Run ${scenario.title} scenario`
-								: isLastStep
-									? 'Finished'
-									: 'Next step'
-						}
-					>
-						{!isActive ? (
-							<>
-								<Play size={12} fill="currentColor" /> run
-							</>
-						) : isLastStep ? (
-							<>done</>
-						) : (
+					{!isLastStep && (
+						<button
+							onClick={() =>
+								isActive ? stepForward() : runScenario(scenarioId)
+							}
+							className="font-mono text-xs min-w-9 min-h-9 px-3 rounded inline-flex items-center justify-center gap-1"
+							style={{
+								color: 'var(--color-surface)',
+								background: 'var(--color-chalk)',
+								border: 'none',
+								cursor: 'pointer',
+							}}
+							aria-label={
+								!isActive ? `Run ${scenario.title} scenario` : 'Next step'
+							}
+						>
 							<ChevronRight size={14} />
-						)}
-					</button>
+						</button>
+					)}
 				</div>
 			</div>
 		</div>

@@ -8,22 +8,22 @@
 export const LAB_VIEWBOX = '-30 -20 720 380'
 
 export const WIRE_Y = 140
-export const WIRE_X_START = 150
-export const WIRE_X_END = 510
+export const WIRE_X_START = 195
+export const WIRE_X_END = 465
 
 export const CLIENT_BOX = {
 	x: -10,
-	y: 80,
-	width: 150,
-	height: 120,
+	y: 70,
+	width: 185,
+	height: 145,
 	labelY: 56,
 } as const
 
 export const SERVER_BOX = {
-	x: 520,
-	y: 80,
-	width: 150,
-	height: 120,
+	x: 485,
+	y: 70,
+	width: 185,
+	height: 145,
 	labelY: 56,
 } as const
 

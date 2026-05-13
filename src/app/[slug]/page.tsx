@@ -39,7 +39,7 @@ export async function generateMetadata({
 	}
 	if (slug === 'the-idempotency-saves-the-web') {
 		return {
-			title: 'The Idempotency Saves the Web? | imcurious.how',
+			title: 'How the Idempotency Saves the Web? | imcurious.how',
 			description:
 				'An interactive guide to REST API idempotency. Watch retries, failures, and the contract that decides whether your API survives them.',
 		}

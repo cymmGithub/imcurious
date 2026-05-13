@@ -75,18 +75,12 @@ export function RequestLog({ log }: RequestLogProps) {
 				border: '1px solid var(--color-chalk-faint)',
 			}}
 		>
-			<div className="flex items-baseline justify-between mb-2">
+			<div className="mb-2">
 				<div
 					className="font-sketch text-[11px] uppercase tracking-wider"
 					style={{ color: 'var(--color-chalk-dim)' }}
 				>
 					Request log
-				</div>
-				<div
-					className="font-mono text-[10px]"
-					style={{ color: 'var(--color-chalk-faint)' }}
-				>
-					(client view)
 				</div>
 			</div>
 
