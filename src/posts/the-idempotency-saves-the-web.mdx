@@ -145,7 +145,25 @@ Same broken wire as before. Same retry. But this time the second POST is recogni
 
 This pattern is what Stripe famously documented and what most well-designed payment APIs require for retries. Done right, it gives POST the safety of PUT without losing its creation semantics.
 
-### Back to Uber Eats
+<Callout>
+The matrix that emerges:
+
+| Method | Idempotent? | How it's upheld |
+| --- | --- | --- |
+| GET | Yes | The handler must not mutate state |
+| PUT | Yes | Whole-resource replacement — body *is* the final state |
+| DELETE | Yes | Target-state convergence — gone twice is still gone |
+| POST | No (by default) | Bolt it on with an `Idempotency-Key` header |
+| PATCH | Depends on the body | Declarative (`{ balance: 200 }`) yes; delta (`{ credit: 50 }`) no |
+
+None of these are enforced by HTTP. They're contracts your handler keeps or breaks.
+</Callout>
+
+</Section>
+
+<Section stage={8}>
+
+## Back to Uber Eats
 
 This is exactly the missing piece in March 2019. Paytm silently changed the behavior of a charge-retry endpoint — what used to be idempotent stopped being so. Uber Eats had no way to recognize that the second hit on a failed payment was a retry of the first; the response shape was new, the silent default mapped it to success, and the food kept getting delivered.
 
@@ -156,6 +174,7 @@ HTTP methods are promises you make about your endpoint's behavior, and the infra
 </Section>
 
 <Sources sources={[
+	{ title: "RFC 9110: HTTP Semantics", url: "https://datatracker.ietf.org/doc/html/rfc9110", author: "IETF", type: "reference" },
 	{ title: "What is a REST API?", url: "https://cloud.google.com/discover/what-is-rest-api#rest-api-best-practices", author: "Google Cloud", type: "reference" },
 	{ title: "API design best practices", url: "https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design", author: "Microsoft Azure Architecture Center", type: "reference" },
 	{ title: "What caused the Uber Eats glitch that allowed ordering free food for a weekend in India?", url: "https://x.com/GergelyOrosz/status/1502947315279187979", author: "Gergely Orosz", type: "writeup" },
