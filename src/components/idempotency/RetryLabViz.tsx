@@ -8,57 +8,46 @@ import { Wire } from './Wire'
 import { Packet } from './Packet'
 import { ResourcePanel } from './ResourcePanel'
 import { RequestLog } from './RequestLog'
-import { CLIENT_BOX, LAB_VIEWBOX, SERVER_BOX } from './geometry'
+import { CLIENT_ANCHOR, LAB_VIEWBOX, SERVER_ANCHOR } from './geometry'
+import { SCENARIOS } from './scenarios'
 
 const IDLE_DESCRIPTION = 'Retry Lab idle.'
 
-interface LabelledBoxProps {
-	box: typeof CLIENT_BOX | typeof SERVER_BOX
+interface EndpointProps {
+	anchor: typeof CLIENT_ANCHOR | typeof SERVER_ANCHOR
 	title: string
 	subtitle: string
 	kind: 'client' | 'server'
 }
 
-function LabelledBox({ box, title, subtitle, kind }: LabelledBoxProps) {
-	const cx = box.x + box.width / 2
-	const iconCY = box.y + 38
-	const subtitleY = box.y + box.height - 16
-
+function Endpoint({ anchor, title, subtitle, kind }: EndpointProps) {
 	return (
 		<g>
-			<rect
-				x={box.x}
-				y={box.y}
-				width={box.width}
-				height={box.height}
-				rx={6}
-				fill="var(--color-surface-card)"
-				stroke="var(--color-chalk-faint)"
-				strokeWidth={1.5}
-			/>
+			{kind === 'client' ? (
+				<ClientIcon cx={anchor.iconCx} cy={anchor.iconCy} />
+			) : (
+				<ServerIcon cx={anchor.iconCx} cy={anchor.iconCy} />
+			)}
 			<text
-				x={cx}
-				y={box.labelY}
+				x={anchor.iconCx}
+				y={anchor.labelY}
 				textAnchor="middle"
-				fontSize={14}
+				fontSize={20}
 				fontFamily="var(--font-sketch, ui-sans-serif, sans-serif)"
 				fontWeight={600}
 				fill="var(--color-chalk)"
+				letterSpacing="0.04em"
 			>
 				{title}
 			</text>
-			{kind === 'client' ? (
-				<ClientIcon cx={cx} cy={iconCY} />
-			) : (
-				<ServerIcon cx={cx} cy={iconCY} />
-			)}
 			<text
-				x={cx}
-				y={subtitleY}
+				x={anchor.iconCx}
+				y={anchor.subtitleY}
 				textAnchor="middle"
-				fontSize={11}
+				fontSize={9}
 				fontFamily="var(--font-mono, ui-monospace, monospace)"
 				fill="var(--color-chalk-dim)"
+				letterSpacing="0.18em"
 			>
 				{subtitle}
 			</text>
@@ -180,9 +169,63 @@ function ServerIcon({ cx, cy }: { cx: number; cy: number }) {
 	)
 }
 
+interface ScenarioBadgeProps {
+	scenarioId: string | null
+	stepIndex: number
+	totalSteps: number | null
+}
+
+function ScenarioBadge({
+	scenarioId,
+	stepIndex,
+	totalSteps,
+}: ScenarioBadgeProps) {
+	const stepLabel =
+		scenarioId && totalSteps
+			? `${scenarioId} · ${String(stepIndex + 1).padStart(2, '0')} / ${String(totalSteps).padStart(2, '0')}`
+			: 'idle · awaiting input'
+
+	return (
+		<g aria-hidden="true">
+			<text
+				x={-22}
+				y={-5}
+				fontSize={9}
+				fontFamily="var(--font-mono, ui-monospace, monospace)"
+				fill="var(--color-chalk-dim)"
+				letterSpacing="0.28em"
+			>
+				RETRY LAB
+			</text>
+			<line
+				x1={-22}
+				y1={2}
+				x2={48}
+				y2={2}
+				stroke="var(--color-chalk-faint)"
+				strokeWidth={0.75}
+				opacity={0.6}
+			/>
+			<text
+				x={-22}
+				y={14}
+				fontSize={9}
+				fontFamily="var(--font-mono, ui-monospace, monospace)"
+				fontStyle="italic"
+				fill="var(--color-chalk-dim)"
+				letterSpacing="0.03em"
+			>
+				{stepLabel}
+			</text>
+		</g>
+	)
+}
+
 export function RetryLabViz() {
 	const activeScenarioId = useIdempotencyStore((s) => s.activeScenarioId)
+	const stepIndex = useIdempotencyStore((s) => s.stepIndex)
 	const snapshot = useIdempotencyStore(selectCurrentSnapshot)
+	const scenario = activeScenarioId ? SCENARIOS[activeScenarioId] : null
 
 	return (
 		<div
@@ -200,16 +243,21 @@ export function RetryLabViz() {
 					className="w-full h-full max-h-full"
 					preserveAspectRatio="xMidYMid meet"
 				>
-					<LabelledBox
-						box={CLIENT_BOX}
-						title="Client"
-						subtitle="your code"
+					<ScenarioBadge
+						scenarioId={activeScenarioId}
+						stepIndex={stepIndex}
+						totalSteps={scenario?.steps.length ?? null}
+					/>
+					<Endpoint
+						anchor={CLIENT_ANCHOR}
+						title="CLIENT"
+						subtitle="YOUR CODE"
 						kind="client"
 					/>
-					<LabelledBox
-						box={SERVER_BOX}
-						title="Server"
-						subtitle="the API"
+					<Endpoint
+						anchor={SERVER_ANCHOR}
+						title="SERVER"
+						subtitle="THE API"
 						kind="server"
 					/>
 					<Wire wire={snapshot?.wire ?? { healthy: true }} />

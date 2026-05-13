@@ -42,6 +42,8 @@ export function Packet({ packet }: PacketProps) {
 	// without watching the motion.
 	const y = WIRE_Y + (packet.kind === 'request' ? -22 : 22)
 	const isLost = packet.fate === 'lost'
+	const showManifest =
+		packet.kind === 'request' && !!packet.payloadPreview && !isLost
 
 	return (
 		<motion.g
@@ -82,6 +84,31 @@ export function Packet({ packet }: PacketProps) {
 				fill={fill}
 				opacity={isLost ? 0.4 : 0.8}
 			/>
+
+			{showManifest && (
+				<g>
+					<line
+						x1={0}
+						y1={-PACKET_HEIGHT / 2 - 2}
+						x2={0}
+						y2={-PACKET_HEIGHT / 2 - 14}
+						stroke="var(--color-chalk-faint)"
+						strokeWidth={1}
+						opacity={0.5}
+					/>
+					<text
+						x={0}
+						y={-PACKET_HEIGHT / 2 - 18}
+						textAnchor="middle"
+						fontSize={9}
+						fontFamily="var(--font-mono, ui-monospace, monospace)"
+						fontStyle="italic"
+						fill="var(--color-chalk-dim)"
+					>
+						{packet.payloadPreview}
+					</text>
+				</g>
+			)}
 		</motion.g>
 	)
 }
