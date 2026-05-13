@@ -37,27 +37,10 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
 		),
 		h2: ({ children, ...rest }: ComponentPropsWithoutRef<'h2'>) => (
 			<h2
-				className="font-sketch text-2xl font-bold tracking-tight text-[var(--color-chalk)] mt-16 mb-6 relative inline-block"
+				className="font-sketch text-2xl font-bold tracking-tight text-[var(--color-chalk)] mt-16 mb-6"
 				{...rest}
 			>
-				{children}
-				<svg
-					className="absolute left-0 w-full pointer-events-none"
-					style={{ bottom: '-4px', height: '10px' }}
-					viewBox="0 0 200 10"
-					preserveAspectRatio="none"
-					aria-hidden="true"
-				>
-					<path
-						d="M0 5 C20 4, 40 6, 65 4.8 S100 6.2, 130 4.6 S165 6, 185 5.2 Q195 4.8, 200 5"
-						fill="none"
-						stroke="#ef4444"
-						strokeWidth="2.5"
-						strokeLinecap="round"
-						strokeOpacity="1"
-						vectorEffect="non-scaling-stroke"
-					/>
-				</svg>
+				<span className="heading-chalk-underline">{children}</span>
 			</h2>
 		),
 		h3: (props: ComponentPropsWithoutRef<'h3'>) => (
