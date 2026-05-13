@@ -2,7 +2,7 @@ import type { Scenario } from '../types'
 
 export const getBaseline: Scenario = {
 	id: 'get-baseline',
-	title: 'GET: The Safe Baseline',
+	title: 'GET: The "Safe" Baseline',
 	steps: [
 		{
 			description:
@@ -44,7 +44,7 @@ export const getBaseline: Scenario = {
 					id: 'res-1',
 					kind: 'response',
 					statusCode: 200,
-					position: 0.5,
+					position: 0.8,
 					fate: 'in-flight',
 					label: '200 OK',
 				},

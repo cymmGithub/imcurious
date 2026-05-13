@@ -54,18 +54,12 @@ export function ResourcePanel({ resource }: ResourcePanelProps) {
 				border: '1px solid var(--color-chalk-faint)',
 			}}
 		>
-			<div className="flex items-baseline justify-between mb-2">
+			<div className="mb-2">
 				<div
 					className="font-sketch text-[11px] uppercase tracking-wider"
 					style={{ color: 'var(--color-chalk-dim)' }}
 				>
 					Server resource
-				</div>
-				<div
-					className="font-mono text-[10px]"
-					style={{ color: 'var(--color-chalk-faint)' }}
-				>
-					(server truth)
 				</div>
 			</div>
 

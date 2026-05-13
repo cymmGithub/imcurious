@@ -12,6 +12,7 @@ import { DemoCode } from '@/components/mdx/DemoCode'
 import { Sources } from '@/components/mdx/Sources'
 import { RedditQuote } from '@/components/mdx/RedditQuote'
 import { ImagineTrigger } from '@/components/mdx/ImagineTrigger'
+import { Footnote } from '@/components/mdx/Footnote'
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
 	return {
@@ -27,6 +28,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
 		Sources,
 		RedditQuote,
 		ImagineTrigger,
+		Footnote,
 		h1: (props: ComponentPropsWithoutRef<'h1'>) => (
 			<h1
 				className="font-sketch text-4xl font-bold tracking-tight text-[var(--color-chalk)] mb-8"

@@ -16,9 +16,14 @@ interface LabelledBoxProps {
 	box: typeof CLIENT_BOX | typeof SERVER_BOX
 	title: string
 	subtitle: string
+	kind: 'client' | 'server'
 }
 
-function LabelledBox({ box, title, subtitle }: LabelledBoxProps) {
+function LabelledBox({ box, title, subtitle, kind }: LabelledBoxProps) {
+	const cx = box.x + box.width / 2
+	const iconCY = box.y + 38
+	const subtitleY = box.y + box.height - 16
+
 	return (
 		<g>
 			<rect
@@ -32,7 +37,7 @@ function LabelledBox({ box, title, subtitle }: LabelledBoxProps) {
 				strokeWidth={1.5}
 			/>
 			<text
-				x={box.x + box.width / 2}
+				x={cx}
 				y={box.labelY}
 				textAnchor="middle"
 				fontSize={14}
@@ -42,9 +47,14 @@ function LabelledBox({ box, title, subtitle }: LabelledBoxProps) {
 			>
 				{title}
 			</text>
+			{kind === 'client' ? (
+				<ClientIcon cx={cx} cy={iconCY} />
+			) : (
+				<ServerIcon cx={cx} cy={iconCY} />
+			)}
 			<text
-				x={box.x + box.width / 2}
-				y={box.y + box.height / 2 + 4}
+				x={cx}
+				y={subtitleY}
 				textAnchor="middle"
 				fontSize={11}
 				fontFamily="var(--font-mono, ui-monospace, monospace)"
@@ -52,6 +62,120 @@ function LabelledBox({ box, title, subtitle }: LabelledBoxProps) {
 			>
 				{subtitle}
 			</text>
+		</g>
+	)
+}
+
+function ClientIcon({ cx, cy }: { cx: number; cy: number }) {
+	return (
+		<g>
+			{/* monitor outer frame */}
+			<rect
+				x={cx - 22}
+				y={cy - 16}
+				width={44}
+				height={30}
+				rx={3}
+				fill="var(--color-surface)"
+				stroke="var(--color-chalk)"
+				strokeWidth={1.5}
+			/>
+			{/* faint screen content lines */}
+			<line
+				x1={cx - 14}
+				x2={cx + 14}
+				y1={cy - 8}
+				y2={cy - 8}
+				stroke="var(--color-chalk-dim)"
+				strokeWidth={1}
+				opacity={0.55}
+			/>
+			<line
+				x1={cx - 14}
+				x2={cx + 8}
+				y1={cy - 2}
+				y2={cy - 2}
+				stroke="var(--color-chalk-dim)"
+				strokeWidth={1}
+				opacity={0.55}
+			/>
+			<line
+				x1={cx - 14}
+				x2={cx + 12}
+				y1={cy + 4}
+				y2={cy + 4}
+				stroke="var(--color-chalk-dim)"
+				strokeWidth={1}
+				opacity={0.55}
+			/>
+			{/* stand neck */}
+			<line
+				x1={cx}
+				x2={cx}
+				y1={cy + 14}
+				y2={cy + 19}
+				stroke="var(--color-chalk)"
+				strokeWidth={2}
+			/>
+			{/* stand base */}
+			<line
+				x1={cx - 9}
+				x2={cx + 9}
+				y1={cy + 20}
+				y2={cy + 20}
+				stroke="var(--color-chalk)"
+				strokeWidth={2}
+				strokeLinecap="round"
+			/>
+		</g>
+	)
+}
+
+function ServerIcon({ cx, cy }: { cx: number; cy: number }) {
+	return (
+		<g>
+			{/* top server unit */}
+			<rect
+				x={cx - 22}
+				y={cy - 16}
+				width={44}
+				height={14}
+				rx={2}
+				fill="var(--color-surface)"
+				stroke="var(--color-chalk)"
+				strokeWidth={1.5}
+			/>
+			<circle cx={cx - 15} cy={cy - 9} r={1.8} fill="#22c55e" />
+			<line
+				x1={cx - 8}
+				x2={cx + 16}
+				y1={cy - 9}
+				y2={cy - 9}
+				stroke="var(--color-chalk-dim)"
+				strokeWidth={1}
+				opacity={0.45}
+			/>
+			{/* bottom server unit */}
+			<rect
+				x={cx - 22}
+				y={cy}
+				width={44}
+				height={14}
+				rx={2}
+				fill="var(--color-surface)"
+				stroke="var(--color-chalk)"
+				strokeWidth={1.5}
+			/>
+			<circle cx={cx - 15} cy={cy + 7} r={1.8} fill="#f97316" />
+			<line
+				x1={cx - 8}
+				x2={cx + 16}
+				y1={cy + 7}
+				y2={cy + 7}
+				stroke="var(--color-chalk-dim)"
+				strokeWidth={1}
+				opacity={0.45}
+			/>
 		</g>
 	)
 }
@@ -76,8 +200,18 @@ export function RetryLabViz() {
 					className="w-full h-full max-h-full"
 					preserveAspectRatio="xMidYMid meet"
 				>
-					<LabelledBox box={CLIENT_BOX} title="Client" subtitle="your code" />
-					<LabelledBox box={SERVER_BOX} title="Server" subtitle="the API" />
+					<LabelledBox
+						box={CLIENT_BOX}
+						title="Client"
+						subtitle="your code"
+						kind="client"
+					/>
+					<LabelledBox
+						box={SERVER_BOX}
+						title="Server"
+						subtitle="the API"
+						kind="server"
+					/>
 					<Wire wire={snapshot?.wire ?? { healthy: true }} />
 					{snapshot?.packets.map((packet) => (
 						<Packet key={packet.id} packet={packet} />

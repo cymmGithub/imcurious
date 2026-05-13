@@ -25,7 +25,7 @@ This post is about idempotency: what it really means (most explanations get it w
 
 <Section stage={2}>
 
-## A Bank, a Wire, and a Lab
+## GET: The "Safe" Baseline
 
 What you see on the left is the **Retry Lab**. A client. A server. A wire between them. Below the wire, two panels: the **request log** is what the client perceives — what requests it sent, what it got back, what it does not know. The **server resource** is what is actually true on the server. The reason we need both panels is the entire point of this post: sometimes they tell different stories.
 
@@ -39,7 +39,7 @@ We will send requests to read and mutate this account, retry them, break the wir
 
 <RetryStepList scenarioId="get-baseline" />
 
-That is the baseline. GET is **safe** — it cannot change the server. And it is **idempotent** — even if you fire ten GETs back to back, the server is in exactly the state it started in. Most other methods will not be this polite.
+That is the baseline. GET is <Footnote note={<>Yes, you can technically make GET change the server — for example, <code>GET /counter/increment</code> could actually bump the counter on each call. HTTP doesn't enforce safety; the handler is what decides. But changing state on GET breaks every cache, prefetcher, and retry on the web that assumes GET is a safe read. That's why it's considered bad practice.</>}>safe</Footnote> — it cannot change the server. And it is **idempotent** — even if you fire ten GETs back to back, the server is in exactly the state it started in. Most other methods will not be this polite.
 
 </Section>
 
@@ -62,7 +62,7 @@ First DELETE: the account exists, the server deletes it, returns `204 No Content
 That is idempotent.
 
 <Callout>
-📖 Microsoft's [API design guidance](https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design) defines idempotency in terms of resource state, not response content. Two DELETEs that leave the resource in the same final state are idempotent — even if one returns `204` and the next returns `404`.
+Microsoft's [API design guidance](https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design) defines idempotency in terms of resource state, not response content. Two DELETEs that leave the resource in the same final state are idempotent — even if one returns `204` and the next returns `404`.
 </Callout>
 
 This also reveals something else: *safe* and *idempotent* are not the same property. GET is safe (no state change) and idempotent. DELETE is idempotent (gone twice is still gone), but it is absolutely not safe (it destroyed the account). POST is neither safe nor idempotent. Hold onto that distinction — you will need it in about thirty seconds.
@@ -107,9 +107,7 @@ The difference is the **method's contract**. PUT says: *here is the new full sta
 
 ## PATCH: The Trap Inside the Trap
 
-Here is the question that froze you in your last interview. Is PATCH idempotent?
-
-The honest answer is: *it depends on what the patch body does*.
+Is PATCH idempotent? The honest answer is: *it depends on what the patch body does*.
 
 PATCH is a partial update. The verb itself does not specify *how* you describe the partial update. You could say "set this field to 200" — a declarative patch. You could say "add 50 to this field" — an imperative, delta-style patch. Both are valid PATCH bodies. They behave very differently under retry.
 
@@ -126,12 +124,10 @@ Now change one word in the body.
 The balance is `200` instead of `150`. The retry doubled the credit. Same client intent — but the body says *add*, not *set*, and the server obediently adds twice. The user wanted a single $50 deposit; they got a single $50 deposit's worth of side effect, applied twice.
 
 <Callout>
-📖 Both [Microsoft's API design guide](https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design) and [Google Cloud's REST best-practices](https://cloud.google.com/discover/what-is-rest-api#rest-api-best-practices) stress this: PATCH's contract is determined by the patch document, not by the verb. A delta-style patch is fundamentally not idempotent.
+Both [Microsoft's API design guide](https://learn.microsoft.com/en-us/azure/architecture/best-practices/api-design) and [Google Cloud's REST best-practices](https://cloud.google.com/discover/what-is-rest-api#rest-api-best-practices) stress this: PATCH's contract is determined by the patch document, not by the verb. A delta-style patch is fundamentally not idempotent.
 </Callout>
 
 So here is the interview answer, distilled: *"PATCH's idempotency is determined by the patch body, not by the verb. A declarative `{balance: 200}` is idempotent — functionally a small PUT. An imperative `{credit: 50}` is not — deltas accumulate under retry."*
-
-You will not freeze on this one again.
 
 </Section>
 
@@ -155,7 +151,7 @@ This is exactly the missing piece in March 2019. Paytm silently changed the beha
 
 The fix — both then, and in any system that takes retries seriously — is a key-based contract between client and provider, where every payment attempt carries an idempotency key, and the provider's response is anchored to that key. Under that contract, the same retried payment is unambiguously the same payment, regardless of what new response the provider introduces next quarter.
 
-HTTP methods are promises you make about your endpoint's behavior, and the infrastructure of the web assumes you keep those promises. Safety and idempotency aren't properties HTTP gives you for free on GET; they're properties you guarantee by how you write the handler. Break the contract and you can certainly do it — but you've made your endpoint un-cacheable, un-retryable, and dangerous in the face of the very behaviors the contract was designed to enable safely.
+HTTP methods are promises you make about your endpoint's behavior, and the infrastructure of the web assumes you keep those promises. Idempotency isn't something HTTP grants for free to verbs like GET, PUT, or DELETE — it's a property you uphold through how you write the handler and how you design the contract. Break that contract and you can certainly do it — but you've made your endpoint un-cacheable, un-retryable, and dangerous in the face of the very behaviors the contract was designed to enable safely.
 
 </Section>
 
