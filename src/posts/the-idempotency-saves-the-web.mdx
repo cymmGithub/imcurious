@@ -6,15 +6,6 @@
 
 <ImagineTrigger>Imagine</ImagineTrigger> a Sunday afternoon in March 2019. Someone in India tries to order food on Uber Eats with Paytm. Their wallet is empty, the payment errors. They tap order again. The food arrives anyway. Word spreads. Within hours, a college in India has run up $14,000 in free orders — in a single day. Uber only finds out when restaurants start going offline under the order volume.
 
-<RedditQuote
-	src="/uber-eats-reddit-glitch.png"
-	alt="Reddit post by u/luciferous22: 'A glitch in uber eats payment method with a partner company allowed users to order food without paying. Students in our city completely exploited this glitch and ordered around 14000 USD of free food.'"
-	author="u/luciferous22"
-	subreddit="r/india"
-	age="2019"
-	width="50%"
-/>
-
 The cause was a tiny change at Paytm: an API endpoint silently went from idempotent to non-idempotent. Uber's integration assumed the old contract still held; the new response Paytm returned wasn't mapped to anything, and the silent default was *treat it as success*.
 
 This was not a security breach. It was a missing **contract**: the agreement between client and server that says *if you see this request again, treat it as the same one, not a new one*. That contract has a name: **idempotency**. Without it, the web is a sea of retry-happy clients sending duplicate requests no one can recover from. With it, everything keeps working through failure.
@@ -166,6 +157,15 @@ None of these are enforced by HTTP. They're contracts your handler keeps or brea
 This is exactly the missing piece in March 2019. Paytm silently changed the behavior of a charge-retry endpoint — what used to be idempotent stopped being so. Uber Eats had no way to recognize that the second hit on a failed payment was a retry of the first; the response shape was new, the silent default mapped it to success, and the food kept getting delivered.
 
 The fix — both then, and in any system that takes retries seriously — is a key-based contract between client and provider, where every payment attempt carries an idempotency key, and the provider's response is anchored to that key. Under that contract, the same retried payment is unambiguously the same payment, regardless of what new response the provider introduces next quarter.
+
+<RedditQuote
+	src="/uber-eats-reddit-glitch.png"
+	alt="Reddit post by u/luciferous22: 'A glitch in uber eats payment method with a partner company allowed users to order food without paying. Students in our city completely exploited this glitch and ordered around 14000 USD of free food.'"
+	author="u/luciferous22"
+	subreddit="r/india"
+	age="2019"
+	width="50%"
+/>
 
 HTTP methods are promises you make about your endpoint's behavior, and the infrastructure of the web assumes you keep those promises. Idempotency isn't something HTTP grants for free to verbs like GET, PUT, or DELETE — it's a property you uphold through how you write the handler and how you design the contract. Break that contract and you can certainly do it — but you've made your endpoint un-cacheable, un-retryable, and dangerous in the face of the very behaviors the contract was designed to enable safely.
 

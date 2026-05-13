@@ -10,11 +10,8 @@ interface RestStageProps {
 	children: React.ReactNode
 }
 
-// Crossfade in pixel-space of window scrollY. Section 1 visually ends
-// around 600–800px on a 900px viewport; we ramp from there into ~1300px
-// so the transition lands near the Section 1 → 2 boundary.
-const CROSSFADE_START_PX = 500
-const CROSSFADE_END_PX = 1200
+const CROSSFADE_START_PX = 100
+const CROSSFADE_END_PX = 400
 
 export function RestStage({ children }: RestStageProps) {
 	const { scrollY } = useScroll()
