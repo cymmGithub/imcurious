@@ -40,7 +40,7 @@ const nextConfig = {
 
 const withMDX = createMDX({
 	options: {
-		remarkPlugins: [['remark-gfm']],
+		remarkPlugins: ['remark-gfm'],
 	},
 })
 
