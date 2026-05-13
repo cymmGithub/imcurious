@@ -63,6 +63,94 @@ function assertResponseLostFollowsBrokenWire(scenario: Scenario) {
 	}
 }
 
+function assertLogMonotonic(scenario: Scenario) {
+	for (let i = 1; i < scenario.steps.length; i++) {
+		const prev = scenario.steps[i - 1].log.length
+		const curr = scenario.steps[i].log.length
+		expect(
+			curr,
+			`scenario ${scenario.id} step ${i}: log shrank from ${prev} to ${curr} entries — a step should never drop history`,
+		).toBeGreaterThanOrEqual(prev)
+	}
+}
+
+function assertAttemptShapeConsistent(scenario: Scenario) {
+	// For each attempt number, all instances across steps must share method, path, and body.
+	// Catches "I edited attempt N's request in a later step by accident."
+	const seen = new Map<
+		number,
+		{
+			method: string
+			path: string
+			body: string | undefined
+			firstStep: number
+		}
+	>()
+	for (let i = 0; i < scenario.steps.length; i++) {
+		for (const entry of scenario.steps[i].log) {
+			const shape = {
+				method: entry.request.method,
+				path: entry.request.path,
+				body: entry.request.body,
+			}
+			const existing = seen.get(entry.attempt)
+			if (!existing) {
+				seen.set(entry.attempt, { ...shape, firstStep: i })
+				continue
+			}
+			expect(
+				shape,
+				`scenario ${scenario.id} step ${i}: attempt ${entry.attempt} request shape differs from step ${existing.firstStep}`,
+			).toEqual({
+				method: existing.method,
+				path: existing.path,
+				body: existing.body,
+			})
+		}
+	}
+}
+
+function assertLostPacketImpliesBrokenWire(snap: Snapshot, label: string) {
+	const hasLost = snap.packets.some((p) => p.fate === 'lost')
+	if (!hasLost) return
+	expect(
+		snap.wire.healthy,
+		`${label}: snapshot has a lost packet but wire.healthy is true — lost packets can only happen on a broken wire`,
+	).toBe(false)
+}
+
+function assertLostResponseHasLogEntry(snap: Snapshot, label: string) {
+	const hasLostResponse = snap.packets.some(
+		(p) => p.kind === 'response' && p.fate === 'lost',
+	)
+	if (!hasLostResponse) return
+	const hasLogEntry = snap.log.some((e) => e.clientOutcome === 'response-lost')
+	expect(
+		hasLogEntry,
+		`${label}: snapshot has a lost response packet but no log entry reports clientOutcome 'response-lost'`,
+	).toBe(true)
+}
+
+function assertIdempotencyKeyStable(scenario: Scenario) {
+	// Within a scenario, the same attempt number must carry the same idempotency
+	// key whenever the field is present. A retry by definition reuses the key.
+	const keys = new Map<number, { key: string; firstStep: number }>()
+	for (let i = 0; i < scenario.steps.length; i++) {
+		for (const entry of scenario.steps[i].log) {
+			if (!entry.idempotencyKey) continue
+			const existing = keys.get(entry.attempt)
+			if (!existing) {
+				keys.set(entry.attempt, { key: entry.idempotencyKey, firstStep: i })
+				continue
+			}
+			expect(
+				entry.idempotencyKey,
+				`scenario ${scenario.id} step ${i}: attempt ${entry.attempt} key drifted from step ${existing.firstStep} — retries must reuse the same key`,
+			).toBe(existing.key)
+		}
+	}
+}
+
 describe('idempotency scenarios — registry', () => {
 	it('every imported scenario is registered under its declared id', () => {
 		for (const [registryId, scenario] of Object.entries(SCENARIOS)) {
@@ -94,6 +182,40 @@ describe('idempotency scenarios — registry', () => {
 	it('response-lost log entries are preceded by a broken-wire snapshot', () => {
 		for (const scenario of Object.values(SCENARIOS)) {
 			assertResponseLostFollowsBrokenWire(scenario)
+		}
+	})
+
+	it('log history never shrinks across consecutive steps', () => {
+		for (const scenario of Object.values(SCENARIOS)) {
+			assertLogMonotonic(scenario)
+		}
+	})
+
+	it('the same attempt number carries the same request shape across all steps', () => {
+		for (const scenario of Object.values(SCENARIOS)) {
+			assertAttemptShapeConsistent(scenario)
+		}
+	})
+
+	it('lost packets only appear in steps where the wire is broken', () => {
+		for (const scenario of Object.values(SCENARIOS)) {
+			scenario.steps.forEach((snap, i) => {
+				assertLostPacketImpliesBrokenWire(snap, `${scenario.id} step ${i}`)
+			})
+		}
+	})
+
+	it('a lost response packet is reflected in the log within the same step', () => {
+		for (const scenario of Object.values(SCENARIOS)) {
+			scenario.steps.forEach((snap, i) => {
+				assertLostResponseHasLogEntry(snap, `${scenario.id} step ${i}`)
+			})
+		}
+	})
+
+	it('idempotency keys are stable across retries (same attempt → same key)', () => {
+		for (const scenario of Object.values(SCENARIOS)) {
+			assertIdempotencyKeyStable(scenario)
 		}
 	})
 })
