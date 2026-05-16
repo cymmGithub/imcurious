@@ -9,7 +9,6 @@ import { Packet } from './Packet'
 import { ResourcePanel } from './ResourcePanel'
 import { RequestLog } from './RequestLog'
 import { CLIENT_ANCHOR, LAB_VIEWBOX, SERVER_ANCHOR } from './geometry'
-import { SCENARIOS } from './scenarios'
 
 const IDLE_DESCRIPTION = 'Retry Lab idle.'
 
@@ -169,63 +168,9 @@ function ServerIcon({ cx, cy }: { cx: number; cy: number }) {
 	)
 }
 
-interface ScenarioBadgeProps {
-	scenarioId: string | null
-	stepIndex: number
-	totalSteps: number | null
-}
-
-function ScenarioBadge({
-	scenarioId,
-	stepIndex,
-	totalSteps,
-}: ScenarioBadgeProps) {
-	const stepLabel =
-		scenarioId && totalSteps
-			? `${scenarioId} · ${String(stepIndex + 1).padStart(2, '0')} / ${String(totalSteps).padStart(2, '0')}`
-			: 'idle · awaiting input'
-
-	return (
-		<g aria-hidden="true">
-			<text
-				x={-22}
-				y={-5}
-				fontSize={9}
-				fontFamily="var(--font-mono, ui-monospace, monospace)"
-				fill="var(--color-chalk-dim)"
-				letterSpacing="0.28em"
-			>
-				RETRY LAB
-			</text>
-			<line
-				x1={-22}
-				y1={2}
-				x2={48}
-				y2={2}
-				stroke="var(--color-chalk-faint)"
-				strokeWidth={0.75}
-				opacity={0.6}
-			/>
-			<text
-				x={-22}
-				y={14}
-				fontSize={9}
-				fontFamily="var(--font-mono, ui-monospace, monospace)"
-				fontStyle="italic"
-				fill="var(--color-chalk-dim)"
-				letterSpacing="0.03em"
-			>
-				{stepLabel}
-			</text>
-		</g>
-	)
-}
-
 export function RetryLabViz() {
 	const activeScenarioId = useIdempotencyStore((s) => s.activeScenarioId)
-	const stepIndex = useIdempotencyStore((s) => s.stepIndex)
 	const snapshot = useIdempotencyStore(selectCurrentSnapshot)
-	const scenario = activeScenarioId ? SCENARIOS[activeScenarioId] : null
 
 	return (
 		<div
@@ -243,11 +188,6 @@ export function RetryLabViz() {
 					className="w-full h-full max-h-full"
 					preserveAspectRatio="xMidYMid meet"
 				>
-					<ScenarioBadge
-						scenarioId={activeScenarioId}
-						stepIndex={stepIndex}
-						totalSteps={scenario?.steps.length ?? null}
-					/>
 					<Endpoint
 						anchor={CLIENT_ANCHOR}
 						title="CLIENT"
