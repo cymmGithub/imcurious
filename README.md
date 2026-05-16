@@ -1,4 +1,4 @@
-# imcurious
+# [imcurious.how](https://imcurious.how)
 
 <p align="left">
   <img src="public/event-loop.gif" width="49%" alt="How the JavaScript Event Loop Works — interactive visualization" />
