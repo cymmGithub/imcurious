@@ -1,5 +1,9 @@
+set -e
+
 echo "🔍 Running quality check..."
 
-bun run lint && bun run format:check && bun run test
+bun run lint
+bun run format:check
+bun run test
 
 echo "✅ Quality check passed!"
