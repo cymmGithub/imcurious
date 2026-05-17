@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { RetryLabViz } from './RetryLabViz'
 import { UberStoryViz } from './UberStoryViz'
 import { UberStoryProvider } from './UberStoryContext'
+import { StickyVizLayout } from '@/components/StickyVizLayout'
 
 interface RestStageProps {
 	children: React.ReactNode
@@ -45,36 +46,34 @@ export function RestStage({ children }: RestStageProps) {
 
 	return (
 		<UberStoryProvider>
-			<div className="relative">
-				<div className="flex flex-col lg:flex-row">
-					<div className="lg:w-1/2 lg:h-screen lg:sticky lg:top-0 h-[40vh] min-h-[320px] sticky top-0 z-10 bg-surface overflow-hidden">
-						<div className="relative w-full h-full">
-							<motion.div
-								className="absolute inset-0"
-								style={{
-									opacity: uberOpacity,
-									pointerEvents: uberPointerEvents,
-								}}
-							>
-								<UberStoryViz active={uberActive} />
-							</motion.div>
-							<motion.div
-								className="absolute inset-0"
-								style={{
-									opacity: retryOpacity,
-									pointerEvents: retryPointerEvents,
-								}}
-							>
-								<RetryLabViz />
-							</motion.div>
-						</div>
+			<StickyVizLayout
+				vizMinHeight="320px"
+				vizOverflow="hidden"
+				viz={
+					<div className="relative w-full h-full">
+						<motion.div
+							className="absolute inset-0"
+							style={{
+								opacity: uberOpacity,
+								pointerEvents: uberPointerEvents,
+							}}
+						>
+							<UberStoryViz active={uberActive} />
+						</motion.div>
+						<motion.div
+							className="absolute inset-0"
+							style={{
+								opacity: retryOpacity,
+								pointerEvents: retryPointerEvents,
+							}}
+						>
+							<RetryLabViz />
+						</motion.div>
 					</div>
-
-					<div className="lg:w-1/2 px-6 lg:px-12 py-8 lg:py-16 relative z-0">
-						{children}
-					</div>
-				</div>
-			</div>
+				}
+			>
+				{children}
+			</StickyVizLayout>
 		</UberStoryProvider>
 	)
 }

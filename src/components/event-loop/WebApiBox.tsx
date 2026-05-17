@@ -19,8 +19,9 @@ export function WebApiBox({ pendingAPIs, visibility }: WebApiBoxProps) {
 			height={120}
 			overflow="visible"
 			style={{
-				opacity: visibility,
+				opacity: visibility >= 0.98 ? 1 : visibility,
 				transition: 'opacity 0.3s ease',
+				willChange: 'opacity',
 			}}
 		>
 			<div>
@@ -59,6 +60,7 @@ export function WebApiBox({ pendingAPIs, visibility }: WebApiBoxProps) {
 										color: 'var(--color-chalk-dim)',
 										border:
 											'1px solid color-mix(in srgb, var(--color-chalk-dim) 12%, transparent)',
+										willChange: 'transform, opacity',
 									}}
 								>
 									{api.type === 'setTimeout' ? (

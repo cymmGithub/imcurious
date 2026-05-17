@@ -47,8 +47,9 @@ export function Station({
 			height={foreignObjectHeight}
 			overflow="visible"
 			style={{
-				opacity: visibility,
+				opacity: visibility >= 0.98 ? 1 : visibility,
 				transition: 'opacity 0.3s ease',
+				willChange: 'opacity',
 			}}
 		>
 			<div style={{ textAlign: align }}>
@@ -101,6 +102,7 @@ export function Station({
 										background: `${color}12`,
 										color,
 										border: `1px solid ${color}1f`,
+										willChange: 'transform, opacity',
 									}}
 								>
 									{task.type === 'rAF' ? (
