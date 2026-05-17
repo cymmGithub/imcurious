@@ -87,7 +87,7 @@ export function CallStack({
 					}}
 					aria-label="Call stack frames"
 				>
-					<AnimatePresence>
+					<AnimatePresence mode="popLayout">
 						{frames.length === 0 ? (
 							<div
 								style={{ color: 'var(--color-chalk-faint)', fontSize: '8px' }}
@@ -98,6 +98,7 @@ export function CallStack({
 							[...frames].reverse().map((frame, i) => (
 								<motion.div
 									key={`${frame}-${i}`}
+									layout
 									initial={{ opacity: 0, scale: 0.8 }}
 									animate={{ opacity: 1, scale: 1 }}
 									exit={{ opacity: 0, scale: 0.8 }}

@@ -39,13 +39,14 @@ export function WebApiBox({ pendingAPIs, visibility }: WebApiBoxProps) {
 					>
 						Web APIs
 					</div>
-					<AnimatePresence>
+					<AnimatePresence mode="popLayout">
 						{pendingAPIs.length === 0 ? (
 							<div style={{ color: 'var(--color-chalk-faint)' }}>idle</div>
 						) : (
 							pendingAPIs.map((api) => (
 								<motion.div
 									key={api.id}
+									layout
 									initial={{ opacity: 0, scale: 0.8 }}
 									animate={{ opacity: 1, scale: 1 }}
 									exit={{ opacity: 0, scale: 0.8 }}
