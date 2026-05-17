@@ -86,11 +86,10 @@ export function Station({
 							...(align === 'center' ? { margin: '0 auto' } : {}),
 						}}
 					>
-						<AnimatePresence mode="popLayout">
+						<AnimatePresence>
 							{allTasks.map((task) => (
 								<motion.div
 									key={task.id}
-									layout
 									initial={{ opacity: 0, scale: 0.8 }}
 									animate={{ opacity: 1, scale: 1 }}
 									exit={{ opacity: 0, scale: 0.8 }}
