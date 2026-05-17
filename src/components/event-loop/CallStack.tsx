@@ -54,9 +54,8 @@ export function CallStack({
 			height={180}
 			overflow="visible"
 			style={{
-				opacity: visibility >= 0.98 ? 1 : visibility,
+				opacity: visibility,
 				transition: 'opacity 0.3s ease',
-				willChange: 'opacity',
 			}}
 		>
 			<div style={{ textAlign: 'center' }}>
@@ -96,43 +95,39 @@ export function CallStack({
 								(empty)
 							</div>
 						) : (
-							frames
-								.map((frame, originalIndex) => ({ frame, originalIndex }))
-								.reverse()
-								.map(({ frame, originalIndex }, i) => (
-									<motion.div
-										key={`${frame}-${originalIndex}`}
-										layout
-										initial={{ opacity: 0, scale: 0.8 }}
-										animate={{ opacity: 1, scale: 1 }}
-										exit={{ opacity: 0, scale: 0.8 }}
-										style={{
-											padding: '2px 6px',
-											marginTop: i > 0 ? '3px' : 0,
-											borderRadius: '3px',
-											background:
-												'color-mix(in srgb, var(--color-chalk) 7%, transparent)',
-											color: 'var(--color-chalk)',
-											border:
-												'1px solid color-mix(in srgb, var(--color-chalk) 12%, transparent)',
-											willChange: 'transform, opacity',
-										}}
-									>
-										{frame.startsWith('rAF') ? (
-											<span
-												style={{
-													display: 'inline-flex',
-													alignItems: 'center',
-													gap: '3px',
-												}}
-											>
-												<PaintBucket size={8} /> {frame}
-											</span>
-										) : (
-											frame
-										)}
-									</motion.div>
-								))
+							[...frames].reverse().map((frame, i) => (
+								<motion.div
+									key={`${frame}-${i}`}
+									layout
+									initial={{ opacity: 0, scale: 0.8 }}
+									animate={{ opacity: 1, scale: 1 }}
+									exit={{ opacity: 0, scale: 0.8 }}
+									style={{
+										padding: '2px 6px',
+										marginTop: i > 0 ? '3px' : 0,
+										borderRadius: '3px',
+										background:
+											'color-mix(in srgb, var(--color-chalk) 7%, transparent)',
+										color: 'var(--color-chalk)',
+										border:
+											'1px solid color-mix(in srgb, var(--color-chalk) 12%, transparent)',
+									}}
+								>
+									{frame.startsWith('rAF') ? (
+										<span
+											style={{
+												display: 'inline-flex',
+												alignItems: 'center',
+												gap: '3px',
+											}}
+										>
+											<PaintBucket size={8} /> {frame}
+										</span>
+									) : (
+										frame
+									)}
+								</motion.div>
+							))
 						)}
 					</AnimatePresence>
 				</div>
