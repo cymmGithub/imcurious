@@ -4,5 +4,6 @@ node_modules
 .worktrees
 public
 src/data/highlighted
+src/lib/__generated__
 next-env.d.ts
 *.mdx

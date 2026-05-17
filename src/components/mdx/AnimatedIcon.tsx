@@ -96,16 +96,12 @@ export function AnimatedIdCard({
 							</div>
 
 							{/* Name */}
-							<h2
-								className="mt-3 sm:mt-5 font-display font-normal text-[1.05rem] sm:text-[1.25rem]"
-							>
+							<h2 className="mt-3 sm:mt-5 font-display font-normal text-[1.05rem] sm:text-[1.25rem]">
 								Przemysław Świercz
 							</h2>
 
 							{/* Subtitle */}
-							<p
-								className="mt-1 font-sketch text-[var(--color-chalk-dim)] text-[0.78rem] sm:text-[0.85rem]"
-							>
+							<p className="mt-1 font-sketch text-[var(--color-chalk-dim)] text-[0.78rem] sm:text-[0.85rem]">
 								Full-Stack Developer
 							</p>
 
