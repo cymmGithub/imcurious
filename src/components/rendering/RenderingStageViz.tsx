@@ -166,9 +166,8 @@ export function RenderingStageViz({ activeStage }: RenderingStageVizProps) {
 
 			{hudVisible && (
 				<div
-					className="absolute bottom-3 right-3 rounded-md px-3 py-2"
+					className="absolute bottom-3 right-3 rounded-md px-3 py-2 w-40 lg:w-[200px]"
 					style={{
-						width: 200,
 						background: 'var(--color-surface)',
 						border: '1px solid var(--color-chalk-faint)',
 					}}
@@ -183,7 +182,7 @@ export function RenderingStageViz({ activeStage }: RenderingStageVizProps) {
 
 			{visibleOrigins.length > 0 && !isRaceStage && (
 				<div
-					className="absolute bottom-3 lg:bottom-16 left-3 rounded-md px-3 py-2 flex flex-col gap-1"
+					className="absolute bottom-3 lg:bottom-16 left-3 rounded-md px-3 py-1.5 flex flex-row gap-3"
 					style={{
 						background: 'var(--color-surface)',
 						border: '1px solid var(--color-chalk-faint)',
@@ -191,7 +190,7 @@ export function RenderingStageViz({ activeStage }: RenderingStageVizProps) {
 					aria-label="Block origin legend"
 				>
 					{visibleOrigins.map((origin) => (
-						<div key={origin} className="flex items-center gap-2">
+						<div key={origin} className="flex items-center gap-1.5">
 							<span
 								aria-hidden="true"
 								style={{

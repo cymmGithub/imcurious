@@ -94,6 +94,21 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
 		strong: (props: ComponentPropsWithoutRef<'strong'>) => (
 			<strong className="text-[var(--color-chalk)] font-bold" {...props} />
 		),
+		// Same underline treatment as the Footnote trigger, in blue: prose
+		// links stay chalk-colored but are visibly links.
+		a: (props: ComponentPropsWithoutRef<'a'>) => (
+			<a
+				style={{
+					color: 'inherit',
+					textDecoration: 'underline',
+					textDecorationStyle: 'dashed',
+					textDecorationColor: '#60a5fa',
+					textDecorationThickness: '1.5px',
+					textUnderlineOffset: '4px',
+				}}
+				{...props}
+			/>
+		),
 		ul: (props: ComponentPropsWithoutRef<'ul'>) => (
 			<ul className="space-y-3 my-6 list-none pl-0" {...props} />
 		),
