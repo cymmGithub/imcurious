@@ -18,6 +18,10 @@ const posts: Record<
 		loader: () => import('@/posts/the-idempotency-saves-the-web.mdx'),
 		meta: { category: 'REST APIs', date: '12/05/26' },
 	},
+	'the-browser-paints-a-web-page': {
+		loader: () => import('@/posts/the-browser-paints-a-web-page.mdx'),
+		meta: { category: 'Rendering', date: '09/06/26' },
+	},
 }
 
 export function generateStaticParams() {
@@ -42,6 +46,13 @@ export async function generateMetadata({
 			title: 'How the Idempotency Saves the Web? | imcurious.how',
 			description:
 				'An interactive guide to REST API idempotency. Watch retries, failures, and the contract that decides whether your API survives them.',
+		}
+	}
+	if (slug === 'the-browser-paints-a-web-page') {
+		return {
+			title: 'How the Browser Paints a Web Page? | imcurious.how',
+			description:
+				'An interactive guide to rendering strategies. Watch CSR, SSR, SSG, ISR, streaming, RSC, and PPR choreograph the same browser, CDN, and server.',
 		}
 	}
 	return {}

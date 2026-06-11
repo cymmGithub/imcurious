@@ -3,8 +3,6 @@
 import { useRef, useCallback, useState } from 'react'
 import { useScroll, useMotionValueEvent, type MotionValue } from 'framer-motion'
 
-const TOTAL_STAGES = 6
-
 export interface ScrollStageResult {
 	contentRef: React.RefObject<HTMLDivElement | null>
 	activeStage: number
@@ -13,7 +11,7 @@ export interface ScrollStageResult {
 	scrollYProgress: MotionValue<number>
 }
 
-export function useScrollStage(): ScrollStageResult {
+export function useScrollStage(totalStages = 6): ScrollStageResult {
 	const contentRef = useRef<HTMLDivElement>(null)
 	const scrollProgressRef = useRef(0)
 	const [stageInfo, setStageInfo] = useState({
@@ -29,8 +27,8 @@ export function useScrollStage(): ScrollStageResult {
 	useMotionValueEvent(scrollYProgress, 'change', (latest) => {
 		scrollProgressRef.current = latest
 
-		const stageFloat = latest * (TOTAL_STAGES - 1) + 1
-		const currentStage = Math.min(Math.floor(stageFloat), TOTAL_STAGES)
+		const stageFloat = latest * (totalStages - 1) + 1
+		const currentStage = Math.min(Math.floor(stageFloat), totalStages)
 		const progress = stageFloat - Math.floor(stageFloat)
 
 		setStageInfo({
@@ -39,21 +37,26 @@ export function useScrollStage(): ScrollStageResult {
 		})
 	})
 
-	const getStageVisibility = useCallback((stage: number): number => {
-		const scrollProgress = scrollProgressRef.current
-		const stageWidth = 1.0 / (TOTAL_STAGES - 1)
-		// Reach 100% opacity slightly before the stage boundary so the
-		// viz element is fully visible by the time the section title appears.
-		const earlyOffset = stageWidth * 0.75
-		const stageStart = (stage - 1) / (TOTAL_STAGES - 1) - earlyOffset
-		const transitionWidth = stageWidth - earlyOffset
+	const getStageVisibility = useCallback(
+		(stage: number): number => {
+			const scrollProgress = scrollProgressRef.current
+			const stageWidth = 1.0 / (totalStages - 1)
+			// Reach 100% opacity slightly before the stage boundary so the
+			// viz element is fully visible by the time the section title appears.
+			const earlyOffset = stageWidth * 0.75
+			const stageStart = (stage - 1) / (totalStages - 1) - earlyOffset
+			const transitionWidth = stageWidth - earlyOffset
 
-		if (scrollProgress >= stageStart) return 1
-		if (scrollProgress >= stageStart - transitionWidth) {
-			return (scrollProgress - (stageStart - transitionWidth)) / transitionWidth
-		}
-		return 0
-	}, [])
+			if (scrollProgress >= stageStart) return 1
+			if (scrollProgress >= stageStart - transitionWidth) {
+				return (
+					(scrollProgress - (stageStart - transitionWidth)) / transitionWidth
+				)
+			}
+			return 0
+		},
+		[totalStages],
+	)
 
 	return {
 		contentRef,

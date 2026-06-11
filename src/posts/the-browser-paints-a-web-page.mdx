@@ -1,0 +1,207 @@
+<RenderingScrollStage>
+
+<Section stage={1}>
+
+# How the Browser &#8239; <img src="/varnish.png" alt="Paints" style={{display: 'inline-block', verticalAlign: '-0.15em', height: '1em', width: 'auto', margin: '0 -0.12em 0 0.05em'}} /> a Web Page?
+
+<ImagineTrigger>Imagine</ImagineTrigger> it's 1995. Every web page is built the same way: a server somewhere runs a script, glues data into HTML, and ships the finished page down the wire. PHP, then Rails and Django, lived entirely on the server — because [servers were the powerful part of the network](https://deno.com/blog/the-future-and-past-is-server-side-rendering), and the thing in your pocket didn't exist yet.
+
+Then the pendulum swung. In 2005 Jesse James Garrett gave a name to a trick Google Maps was already pulling off — [AJAX](https://designftw.mit.edu/lectures/apis/ajax_adaptive_path.pdf) — and pages learned to update without reloading. Backbone and Angular arrived in 2010, React in 2013, and the industry moved the *entire application* into the browser. The cost showed up on the scale: over the SPA decade, [median page weight grew 388% on desktop and nearly 1,300% on mobile](https://deno.com/blog/the-future-and-past-is-server-side-rendering). By 2020 even SPA practitioners were [second-guessing the modern web](https://macwright.com/2020/05/10/spa-fatigue.html), and frameworks like Next.js had begun institutionalizing the swing back toward the server. The industry, as one retrospective put it, [overshot past the equilibrium point](https://hugotunius.se/2023/07/09/the-great-pendulum.html) — in both directions.
+
+Here's the thing this post wants to convince you of: **every rendering strategy you've ever heard of — CSR, SSR, SSG, ISR, streaming, RSC, PPR — is an answer to one question: *where and when is the HTML built?***
+
+On the left you can see the whole cast: a **browser** with an empty page skeleton, a **CDN** (asleep for now), and a **server**. Every acronym in this post is just a different choreography of these three actors. Watch what travels the wires — that's where the differences live.
+
+</Section>
+
+<Section stage={2}>
+
+## CSR: Ship the Factory, Not the Furniture
+
+Client-side rendering is the SPA-era answer: build the HTML *in the browser, at request time*. The server's response is [an almost empty HTML document](https://www.patterns.dev/react/client-side-rendering) — a `<div id="root">` and a script tag. Every byte of UI, data, and behavior travels over the wire as JavaScript.
+
+That creates a strict waterfall: download the shell → download the JS → parse and execute it → mount the app → fetch the data → finally render. Each stage blocks the next. Step through it:
+
+<RenderStepList scenarioId="csr-blank-then-pop" />
+
+Notice the shape of that load: the first byte arrives almost instantly — serving an empty shell is cheap — and then *nothing happens* for the longest stretch of the timeline. Then everything appears at once, already interactive. Blank, blank, blank, pop.
+
+The blank stretch is paid in JavaScript. On a mid-range phone, [every 100 KB of compressed JS adds a noticeable delay before paint](https://www.patterns.dev/react/client-side-rendering), and the bundle only grows as the app does — which is why CSR's real cost shows up not just at first paint but in input responsiveness too ([web.dev](https://web.dev/articles/rendering-on-the-web)).
+
+So when is CSR right? Apps behind a login, long sessions, dense interactivity — editors, dashboards, drawing tools. Nobody Googles their way into your Figma file. <Footnote note={<>The old claim that single-page apps are invisible to search engines is outdated — per <a href="https://web.dev/articles/rendering-on-the-web">web.dev</a>, crawlers can run JavaScript, but "there are often limitations to how they render". For content you want reliably indexed, shipping real HTML is still the safe bet.</>}>And the SEO story is more nuanced than the folklore says.</Footnote>
+
+</Section>
+
+<Section stage={3}>
+
+## SSR: The Server Does the Work — Every Time
+
+Server-side rendering swings the pendulum back: build the HTML *on the server, at request time*. The browser asks, the server fetches data, renders the full document, and answers with real markup — which means the response can depend on the request itself: the logged-in user, a cookie, an A/B cohort, [a visitor's location](https://www.patterns.dev/react/server-side-rendering).
+
+<RenderStepList scenarioId="ssr-painted-then-frozen" />
+
+Compare the wire with CSR's. The HTML packet is *full* — and the first paint comes much earlier. But two costs appeared. First, the user waits on a blank tab while the server renders: SSR buys its fast paint by paying **TTFB**. Second — look closely at the end of that walkthrough — the page was *visible* long before it was *interactive*. The JS bundle still shipped, nearly as fat as CSR's, because the browser needs the whole app again to make the page come alive. The [web.dev article](https://web.dev/articles/rendering-on-the-web) calls this buying "one app for the price of two": the server sends the rendered UI, *and* the data, *and* a complete copy of the implementation.
+
+That frozen gap between painted and interactive has a name, and it's the single most misunderstood idea in this topic. Let's zoom in.
+
+</Section>
+
+<Section stage={4}>
+
+## Hydration: Adoption, Not Rendering
+
+The server sent finished HTML. The browser painted it. Now React boots up on the client and faces a question: how do I take over this page I didn't render?
+
+The answer is **hydration** — and the critical thing is what hydration is *not*. As Josh Comeau puts it in [The Perils of Rehydration](https://www.joshwcomeau.com/react/the-perils-of-rehydration/): "hydration is not the same thing as a render… In a hydration, React assumes that the DOM won't change. It's just trying to adopt the existing DOM." React walks the markup the server produced, matches it against the component tree, and attaches event handlers to nodes it did not create.
+
+<RenderStepList scenarioId="hydration-inert-gap" />
+
+Until that walk completes, the page sits in what the original 2019 web.dev article memorably called the **uncanny valley**: [pages that "can appear to be loaded and interactive, but can't actually respond to input until the client-side scripts are executed and event handlers have been attached"](https://web.dev/articles/rendering-on-the-web). Visible is not interactive. Painted is not hydrated.
+
+And because hydration *adopts* rather than re-renders, it has a contract: the client's first render must produce exactly what the server sent. Break it — a `typeof window` check, a timestamp, locale formatting — and you get a **hydration mismatch**. [React's docs](https://react.dev/reference/react-dom/client/hydrateRoot) are blunt about the consequences: at best a slowdown, at worst "event handlers can get attached to the wrong elements". The hydration process [is optimized to be fast, not to catch and fix mismatches](https://www.joshwcomeau.com/react/the-perils-of-rehydration/).
+
+<Callout>
+The standard escape hatch is Comeau's **two-pass rendering**: the first client render deliberately matches the server (a placeholder), then `useEffect` flips a flag and a second render fills in the client-only bits. You trade a tiny delay for a guaranteed match — and it's the pattern behind every `mounted` state variable you've ever seen in an SSR codebase.
+</Callout>
+
+</Section>
+
+<Section stage={5}>
+
+## SSG: Render Once, at Build Time
+
+So far both strategies rendered *per request* — in the browser or on the server. Static site generation moves the work to a third moment in time: *the build*. Render every route once, when you deploy, and the answer to every future request already exists as a finished file.
+
+<RenderStepList scenarioId="ssg-build-once" />
+
+Notice who's missing from the request path: your server. The CDN — finally awake on the left — serves the prebuilt page from a node near the visitor [in tens of milliseconds](https://www.patterns.dev/react/static-rendering); you pay "a CDN bill instead of a serverless function bill". TTFB and first paint are the fastest of any strategy in this post. <Footnote note={<>Terminology trap: web.dev reserves <em>prerendering</em> for "running a client-side application at build time to capture its initial state as static HTML" — but the same word is also used for Chrome's speculative page-prerendering and for Next.js PPR. Three eras, three meanings, one word. Say which one you mean before you use it.</>}>This build-time rendering is what older docs call "prerendering"</Footnote> — and it still ships JS and still hydrates, exactly like SSR.
+
+The price is written into the definition: the HTML was built before anyone asked for it, so it's the **same HTML for every visitor**. No personalization, no request-time data. And it ages: the page is frozen at the moment of the last build. Two failure modes follow directly — content goes stale between builds, and builds don't scale forever: patterns.dev's back-of-envelope for [a 200,000-product catalog is around three hours of rendering](https://www.patterns.dev/react/static-rendering) per deploy.
+
+Stale-or-rebuild sounds like a hard trade. The next strategy's entire reason to exist is refusing to accept it.
+
+</Section>
+
+<Section stage={6}>
+
+## ISR: Static Pages That Heal Themselves
+
+Incremental static regeneration keeps SSG's serving model — finished pages on a CDN — and adds a freshness window. Mark a page with `revalidate: 60` and it may be regenerated, *in the background*, at most once a minute.
+
+The mechanics are precise, and the precision is exactly where the misconceptions hide. Walk it:
+
+<RenderStepList scenarioId="isr-stale-while-revalidate" />
+
+Three details matter, and all three are commonly gotten wrong:
+
+- **The first request after expiry gets the stale page.** Per the [Next.js docs](https://nextjs.org/docs/app/guides/incremental-static-regeneration), after the window passes "the next request will still return the cached (now stale) page" — regeneration happens behind it. Nobody waits on a rebuild. This is the classic *stale-while-revalidate* pattern.
+- **Revalidation is request-triggered, not a timer.** `revalidate: 60` doesn't mean "regenerate every minute"; it means "at most once every 60 seconds, *if requests arrive*". A page nobody visits is never regenerated.
+- **Failure serves the last good page.** If regeneration throws, [the last successfully generated page keeps being served](https://nextjs.org/docs/app/guides/incremental-static-regeneration). ISR fails open to stale content — never to a 500.
+
+<Callout>
+The picture above is the framework-level contract. Managed platforms add their own layer: on [Vercel](https://vercel.com/docs/incremental-static-regeneration), on-demand revalidation purges globally within 300ms, the cache persists for 31 days, and concurrent requests for an expired page collapse into a single regeneration per region. Same semantics, tighter numbers — and ISR there isn't Next-only: SvelteKit, Nuxt, and Astro get it too.
+</Callout>
+
+</Section>
+
+<Section stage={7}>
+
+## The Race: Four Strategies, One Page
+
+You've now met the four classic, *per-page* strategies. Time to stop discussing them one at a time. On the left: the same page requested under CSR, SSR, SSG, and ISR. Press **race**.
+
+Watch the *shape* of each lane, because each one tells the strategy's whole story. CSR: instant first byte, then the long blank, then paint and interactivity landing together at the very end. SSR: a late first byte — the server is working — but paint soon after, and a frozen gap until hydration finishes. SSG and ISR: everything early, because the work happened before you showed up.
+
+The three bars are the vocabulary of every rendering argument ([web.dev's definitions](https://web.dev/articles/rendering-on-the-web)): **TTFB**, the time to the first byte of the response; **FCP**, when requested content actually becomes visible; and **Interactive**, when the page responds to input.
+
+<Callout>
+A currency note: the 2019 vintage of this discussion used **TTI** and **FID**. Core Web Vitals replaced FID with **INP** in March 2024 — a metric that asks whether the page responds quickly to input *throughout its life*, not just once at load — with **TBT** as its lab-test proxy. The third bar says "Interactive" because that's the honest visual idea; in a modern conversation, the metric that matters is INP.
+</Callout>
+
+One thing the race can't show: these four are not the end of the story. They decide *per page*. The rest of this post is about techniques that stopped accepting the page as the unit of decision — and each one attacks a specific bar in this chart. Keep an eye on the small copy of it that follows you from here.
+
+</Section>
+
+<Section stage={8}>
+
+## Streaming SSR: Stop Waiting for the Slowest Part
+
+Classic SSR has a dirty secret: it's all-or-nothing. Dan Abramov's [React 18 working-group post](https://github.com/reactwg/react-18/discussions/37) names the three walls, verbatim: "You have to fetch everything before you can show anything. You have to load everything before you can hydrate anything. You have to hydrate everything before you can interact with anything." One slow comments query holds the entire page hostage.
+
+Streaming SSR knocks the walls down with `<Suspense>`. Everything outside a Suspense boundary is the **shell**, and it flushes immediately; each boundary streams in later, *in the same response*, whenever its data is ready.
+
+<RenderStepList scenarioId="streaming-out-of-order" />
+
+Two details from that walkthrough are worth holding onto. The out-of-order fill: late chunks arrive with [a minimal inline script that puts the HTML in the right place](https://github.com/reactwg/react-18/discussions/37) — plain DOM surgery that works *before React has even loaded*. And **selective hydration**: when you clicked the comments, React hydrated that boundary first and replayed your click. Urgency, decided by the user, automatically.
+
+Now the trap. Streaming **reorders work; it does not reduce it**. The same data is fetched, the same JS ships, the same hydration runs — the user just never stares at a blank page while it happens. Latency perception improves; payload doesn't. (That's the next section's job — [don't confuse SSR with Server Components](https://github.com/reactwg/react-18/discussions/37).) Corollary: under streaming, [TTFB becomes a vanity metric](https://www.patterns.dev/react/streaming-ssr) — the first byte might be just the `<head>`. The HUD highlights FCP because that's the bar streaming genuinely attacks: paint, despite slow data.
+
+</Section>
+
+<Section stage={9}>
+
+## RSC: Components That Never Ship
+
+Every strategy so far had one constant: whatever rendered on the server *also* shipped to the browser as JavaScript. React Server Components break that constant. Per [Josh Comeau](https://www.joshwcomeau.com/react/server-components/): "Server Components never re-render. They run *once* on the server to generate the UI. The rendered value is sent to the client and locked in place." No state, no effects, no code in the bundle.
+
+<RenderStepList scenarioId="rsc-shrinking-bundle" />
+
+Look at the bundle packet — visibly smaller than SSR's. Your markdown renderer, your syntax highlighter, your database query: they run on the server and contribute [zero kilobytes to the bundle](https://www.joshwcomeau.com/react/server-components/). Only the interactive islands — the client components — ship code and hydrate. And what travels on a soft navigation isn't HTML at all: it's the **RSC payload**, [a compact description of the rendered tree, with placeholders and JS references where client components go](https://nextjs.org/docs/app/getting-started/server-and-client-components), which React merges into the page without losing client state.
+
+Now the distinctions that most people get wrong:
+
+- **RSC is not SSR.** They answer different questions: RSC decides *which components ship JavaScript*; SSR/SSG decide *when the HTML is generated*. They compose — Comeau calls them ["two separate puzzle pieces that snap together perfectly"](https://www.joshwcomeau.com/react/server-components/). RSC even works in a fully static build, where "the server" is just the build step.
+- **Client components render on the server too.** The name lies. A client component still SSRs its initial HTML; `'use client'` means "this ships and hydrates", not "this renders only in the browser".
+- **`'use client'` poisons the import graph, not the render tree.** Everything a client component *imports* becomes client code — but a server component passed *through* it as `children` stays server-only. That children-as-props pattern is the load-bearing trick of every RSC codebase.
+
+</Section>
+
+<Section stage={10}>
+
+## PPR: One Response, Two Speeds
+
+One trade-off survived everything so far: a page was either static (fast, cached, same for everyone) or dynamic (personalized, but the server renders per request). As the [Next.js team puts it](https://nextjs.org/blog/next-16), Next.js "had to choose whether to render each URL statically or dynamically; there was no middle ground". Partial prerendering is the middle ground: split *one page* into a static **shell** and dynamic **holes**.
+
+<RenderStepList scenarioId="ppr-static-frame-streamed-holes" />
+
+The choreography is the point. The static frame — everything that doesn't depend on the request, including the holes' fallback skeletons — was prerendered and [serves from the CDN like an SSG page](https://vercel.com/blog/partial-prerendering-with-next-js-creating-a-new-default-rendering-model). The dynamic holes render on the server and stream into **the same HTTP response**. Not a second request, not a client-side refetch: the response simply hasn't ended yet. SSG's TTFB and first paint, SSR's freshness, one wire.
+
+What makes a hole a hole? Not `<Suspense>` by itself — a boundary alone doesn't make content dynamic. Touching *runtime data* does: [`cookies`, `headers`, `searchParams`, uncached fetches](https://nextjs.org/docs/app/getting-started/caching). The Suspense boundary just marks where the static world ends and the streamed one begins. <Footnote note={<>Status, pinned to Next.js 16 (October 2025): the old <code>experimental.ppr</code> flag is gone. PPR is the default behavior under <strong>Cache Components</strong> (<code>cacheComponents: true</code> — stable config, still opt-in), where rendering is request-time by default and caching is opt-in via <code>'use cache'</code>, with <code>cacheLife</code> and <code>cacheTag</code> stable as of 16.2. Pre-16 articles describe the inverted default ("static until you touch request data") — cite era-appropriately.</>}>As of 2026, this model ships in Next.js 16 under Cache Components.</Footnote>
+
+</Section>
+
+<Section stage={11}>
+
+## Where the Pendulum Stops
+
+Trace the arc of this post and a pattern falls out. The classic strategies decided **per site** (your PHP app was *all* server; your SPA was *all* client). The next generation decided **per page** (this route static, that route SSR). The modern stack decides **per component**: a static frame from the CDN, server components for content, client islands for interactivity, holes streaming where the data is personal. That per-site → per-page → per-component progression *is* the history of web rendering, and it's the single most useful frame to carry out of this post.
+
+The pendulum has stopped swinging — not in the middle, but everywhere at once. The question stopped being "server or browser?" and became "for *this component*, where should the HTML come from, and does it need to ship any JavaScript at all?"
+
+The decision framework, compressed:
+
+- **Indexable content, cold visitors?** Start static. SSG if it changes on deploys; ISR if it changes on a schedule of minutes-to-hours.
+- **Personalized or request-dependent?** SSR — streamed, so slow data costs a skeleton instead of a blank tab. PPR if most of the page *isn't* personal.
+- **Dense interactivity behind a login?** CSR remains a fine answer. Nobody ever bounced off a slow first paint in an app they're paid to use.
+- **Bundle bloated?** That's not a "when is HTML made" problem. That's RSC's question: which components actually need to ship?
+
+And if you want the whole landscape in one sentence, the [web.dev article](https://web.dev/articles/rendering-on-the-web) that started this post closes with it: "It's fine to mostly ship HTML with minimal JavaScript to get an experience interactive." The web spent twenty years rediscovering that — block by block.
+
+</Section>
+
+<Sources sources={[
+	{ title: "Rendering on the Web", url: "https://web.dev/articles/rendering-on-the-web", author: "Jason Miller & Addy Osmani, web.dev", type: "reference" },
+	{ title: "Rendering Patterns (CSR, SSR, Static, Streaming)", url: "https://www.patterns.dev/react/client-side-rendering", author: "patterns.dev", type: "reference" },
+	{ title: "Incremental Static Regeneration", url: "https://nextjs.org/docs/app/guides/incremental-static-regeneration", author: "Next.js docs", type: "reference" },
+	{ title: "Incremental Static Regeneration on Vercel", url: "https://vercel.com/docs/incremental-static-regeneration", author: "Vercel docs", type: "reference" },
+	{ title: "The Perils of Rehydration", url: "https://www.joshwcomeau.com/react/the-perils-of-rehydration/", author: "Josh Comeau", type: "writeup" },
+	{ title: "Making Sense of React Server Components", url: "https://www.joshwcomeau.com/react/server-components/", author: "Josh Comeau", type: "writeup" },
+	{ title: "New Suspense SSR Architecture in React 18", url: "https://github.com/reactwg/react-18/discussions/37", author: "Dan Abramov", type: "writeup" },
+	{ title: "Partial Prerendering: A New Default Rendering Model", url: "https://vercel.com/blog/partial-prerendering-with-next-js-creating-a-new-default-rendering-model", author: "Vercel", type: "writeup" },
+	{ title: "Next.js 16", url: "https://nextjs.org/blog/next-16", author: "Next.js", type: "writeup" },
+	{ title: "The Future (and the Past) of the Web is Server Side Rendering", url: "https://deno.com/blog/the-future-and-past-is-server-side-rendering", author: "Deno", type: "writeup" },
+]} />
+
+<PostEndNav links={['/the-js-event-loop-works', '/the-idempotency-saves-the-web', '/']} />
+
+</RenderingScrollStage>
