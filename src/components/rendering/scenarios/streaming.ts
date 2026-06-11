@@ -9,7 +9,7 @@ export const streaming: RenderScenario = {
 	steps: [
 		{
 			description:
-				'The browser asks for the page. The server doesn’t wait for the slow data — it immediately flushes the shell: everything outside the Suspense boundaries.',
+				'The server doesn’t wait for slow data — it immediately flushes the shell.',
 			packets: [
 				{
 					id: 'shell-1',
@@ -36,7 +36,7 @@ export const streaming: RenderScenario = {
 		},
 		{
 			description:
-				'The shell paints: header and nav are real content, and each Suspense hole shows its fallback skeleton. First paint happened while the server is still working.',
+				'The shell paints, fallback skeletons in the holes — the server is still working.',
 			packets: [],
 			browser: {
 				blocks: {
@@ -54,7 +54,7 @@ export const streaming: RenderScenario = {
 		},
 		{
 			description:
-				'The comments data resolves first — so its HTML chunk arrives first, even though comments sit at the bottom of the layout. A tiny inline script slots it into place; React hasn’t even loaded yet.',
+				'Comments data resolves first, so its chunk lands first — out of layout order.',
 			packets: [
 				{
 					id: 'chunk-comments',
@@ -82,7 +82,7 @@ export const streaming: RenderScenario = {
 		},
 		{
 			description:
-				'The content chunk lands next, then the sidebar. Same open response the whole time. Meanwhile the JS bundle has started downloading in parallel.',
+				'Content, then sidebar — same open response. The JS downloads in parallel.',
 			packets: [
 				{
 					id: 'chunk-sidebar',
@@ -118,7 +118,7 @@ export const streaming: RenderScenario = {
 		},
 		{
 			description:
-				'The bundle arrives and hydration begins in tree order: header first, then nav. The lower boundaries are still inert.',
+				'Hydration begins in tree order; the lower boundaries are still inert.',
 			packets: [],
 			browser: {
 				blocks: {
@@ -136,7 +136,7 @@ export const streaming: RenderScenario = {
 		},
 		{
 			description:
-				'The user clicks inside the comments. React notices, hydrates that boundary first — jumping the queue — and replays the click. Selective hydration: urgency decided by the user, automatically.',
+				'A click in the comments — that boundary hydrates first and replays the click.',
 			packets: [],
 			browser: {
 				blocks: {
@@ -154,7 +154,7 @@ export const streaming: RenderScenario = {
 		},
 		{
 			description:
-				'The remaining boundaries hydrate and the page is fully alive. Note what streaming did NOT do: the same data was fetched, the same JS shipped, the same hydration ran. It reordered the work so the user never stared at a blank page.',
+				'Fully alive. Same data, same JS, same hydration — streaming only reordered the work.',
 			packets: [],
 			browser: {
 				blocks: {

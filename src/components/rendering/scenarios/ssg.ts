@@ -10,7 +10,7 @@ export const ssg: RenderScenario = {
 	steps: [
 		{
 			description:
-				'No visitor in sight. At build time — deploy, CI, whenever you ship — the server renders every route to plain HTML files. The clock on the server is the build running.',
+				'No visitor yet. At build time the server renders every route to plain HTML files.',
 			packets: [],
 			browser: { blocks: ALL_EMPTY, note: 'nobody here yet' },
 			cdn: { entry: 'none' },
@@ -19,7 +19,7 @@ export const ssg: RenderScenario = {
 		},
 		{
 			description:
-				'The build output is pushed to the CDN. From this moment the page exists as finished bytes on machines all over the world, close to every visitor.',
+				'The build output is pushed to the CDN — finished bytes, close to every visitor.',
 			packets: [
 				{
 					id: 'deploy-1',
@@ -38,7 +38,7 @@ export const ssg: RenderScenario = {
 		},
 		{
 			description:
-				'A visitor arrives. The request doesn’t even reach your server — the CDN node nearest to them answers.',
+				'A visitor arrives. The request never reaches your server — the nearest CDN node answers.',
 			packets: [
 				{
 					id: 'req-1',
@@ -57,7 +57,7 @@ export const ssg: RenderScenario = {
 		},
 		{
 			description:
-				'The CDN returns the prebuilt HTML in tens of milliseconds. First byte and first paint land almost immediately — no rendering happened anywhere.',
+				'Prebuilt HTML in tens of milliseconds — instant paint, no rendering anywhere.',
 			packets: [
 				{
 					id: 'html-1',
@@ -76,7 +76,7 @@ export const ssg: RenderScenario = {
 		},
 		{
 			description:
-				'SSG still ships JavaScript and still hydrates — the page becomes interactive the same way SSR does, just starting from a much earlier paint.',
+				'SSG still ships JS and still hydrates — just starting from a much earlier paint.',
 			packets: [],
 			browser: { blocks: ALL_HYDRATED },
 			cdn: { entry: 'fresh' },
@@ -85,7 +85,7 @@ export const ssg: RenderScenario = {
 		},
 		{
 			description:
-				'A second visitor, a different country, a different account — same bytes. Everyone gets the page exactly as it looked at build time. No personalization, no request-time data, and stale until you rebuild. That is the trade.',
+				'Different visitor, same bytes: frozen at build time, stale until you rebuild.',
 			packets: [
 				{
 					id: 'req-2',

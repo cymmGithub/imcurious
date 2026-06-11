@@ -11,7 +11,7 @@ export const rsc: RenderScenario = {
 	steps: [
 		{
 			description:
-				'Same request, but now the components are split: header, nav, and content are Server Components; the sidebar widget and comments form are Client Components. The colors show where each block’s code lives.',
+				'The components are split into server and client — colors show where each block’s code lives.',
 			packets: [
 				{
 					id: 'req-1',
@@ -38,7 +38,7 @@ export const rsc: RenderScenario = {
 		},
 		{
 			description:
-				'The server components run once, on the server — heavy dependencies, database queries, markdown renderers — and only their *output* travels. The full HTML paints everything, exactly like SSR.',
+				'Server components run once, on the server; only their output travels. Paints like SSR.',
 			packets: [
 				{
 					id: 'html-1',
@@ -65,7 +65,7 @@ export const rsc: RenderScenario = {
 		},
 		{
 			description:
-				'Here is the payoff: the JS bundle contains only the client components’ code. The server blocks shipped zero kilobytes of JavaScript — compare this packet with SSR’s.',
+				'The payoff: the bundle holds client code only — compare this packet with SSR’s.',
 			packets: [
 				{
 					id: 'bundle-1',
@@ -93,7 +93,7 @@ export const rsc: RenderScenario = {
 		},
 		{
 			description:
-				'Only the client blocks hydrate — the server blocks have nothing to attach; they are finished output and will never re-render. Less code, less adoption work, interactive sooner.',
+				'Only client blocks hydrate; server blocks are finished output and never re-render.',
 			packets: [],
 			browser: {
 				blocks: {
@@ -111,7 +111,7 @@ export const rsc: RenderScenario = {
 		},
 		{
 			description:
-				'The user clicks a link. On a soft navigation no HTML document travels at all — the server sends an RSC payload, a compact description of the new server-rendered tree, and React merges it into the page without losing any client state.',
+				'Soft navigation: no HTML travels — an RSC payload merges in, client state intact.',
 			packets: [
 				{
 					id: 'rsc-1',

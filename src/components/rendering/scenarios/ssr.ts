@@ -14,7 +14,7 @@ export const ssr: RenderScenario = {
 	steps: [
 		{
 			description:
-				'The browser asks for the page. This time the server does real work per request: it fetches data and renders the full HTML before answering.',
+				'The browser asks; this time the server fetches data and renders full HTML per request.',
 			packets: [
 				{
 					id: 'req-1',
@@ -33,7 +33,7 @@ export const ssr: RenderScenario = {
 		},
 		{
 			description:
-				'The user stares at a blank tab while the server renders. The work happens up front — that is the TTFB cost of SSR.',
+				'A blank tab while the server renders — SSR’s TTFB cost, paid up front.',
 			packets: [],
 			browser: { blocks: ALL_EMPTY, note: 'blank tab — server is busy' },
 			cdn: { entry: 'none' },
@@ -42,7 +42,7 @@ export const ssr: RenderScenario = {
 		},
 		{
 			description:
-				'The response is a complete HTML document — every block has real markup in it. Compare this packet with the near-empty CSR shell.',
+				'The response is a complete HTML document — compare it with CSR’s near-empty shell.',
 			packets: [
 				{
 					id: 'html-1',
@@ -61,7 +61,7 @@ export const ssr: RenderScenario = {
 		},
 		{
 			description:
-				'The HTML lands and the browser paints everything. The page looks done. It is not: nothing has event listeners yet. Click anything — silence.',
+				'The HTML paints. The page looks done — but click anything: silence.',
 			packets: [
 				{
 					id: 'bundle-1',
@@ -80,7 +80,7 @@ export const ssr: RenderScenario = {
 		},
 		{
 			description:
-				'The JS bundle arrives — nearly as fat as CSR’s, because the whole app ships again as code — and hydration attaches the event handlers. Only now is the page actually interactive.',
+				'The bundle (nearly CSR-fat) arrives and hydration finally makes the page interactive.',
 			packets: [],
 			browser: { blocks: ALL_HYDRATED, note: 'hydrated — alive' },
 			cdn: { entry: 'none' },

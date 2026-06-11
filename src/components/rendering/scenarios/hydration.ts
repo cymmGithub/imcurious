@@ -9,7 +9,7 @@ export const hydration: RenderScenario = {
 	steps: [
 		{
 			description:
-				'Where SSR left us: every block painted, zero blocks alive. The HTML came from the server; React hasn’t even loaded yet. This is the uncanny valley.',
+				'Where SSR left us: everything painted, nothing alive — the uncanny valley.',
 			packets: [
 				{
 					id: 'bundle-1',
@@ -37,7 +37,7 @@ export const hydration: RenderScenario = {
 		},
 		{
 			description:
-				'The bundle lands and React starts hydrating: it walks the existing DOM and adopts it node by node, attaching event handlers as it goes. It does not re-create the markup — it trusts what the server sent.',
+				'React adopts the existing DOM node by node, attaching handlers — it re-creates nothing.',
 			packets: [],
 			browser: {
 				blocks: {
@@ -55,7 +55,7 @@ export const hydration: RenderScenario = {
 		},
 		{
 			description:
-				'Adoption continues down the tree. Each adopted block flips from inert to alive — same pixels, new behavior.',
+				'Adoption continues down the tree: same pixels, new behavior.',
 			packets: [],
 			browser: {
 				blocks: {
@@ -73,7 +73,7 @@ export const hydration: RenderScenario = {
 		},
 		{
 			description:
-				'The mismatch beat: the sidebar renders a “last seen” timestamp. The server computed one value; the client, seconds later, computes another. React notices the markup doesn’t match what it expected — hydration is optimized to be fast, not to fix mismatches.',
+				'The sidebar’s timestamp differs between server and client — a hydration mismatch.',
 			packets: [],
 			browser: {
 				blocks: {
@@ -91,7 +91,7 @@ export const hydration: RenderScenario = {
 		},
 		{
 			description:
-				'React falls back to a client render for the mismatched subtree — throwing away the server’s work for that block — then finishes adoption everywhere else. The page is finally, fully alive.',
+				'React client-renders the mismatched subtree, finishes adopting the rest — fully alive.',
 			packets: [],
 			browser: {
 				blocks: {

@@ -13,7 +13,7 @@ export const csr: RenderScenario = {
 	steps: [
 		{
 			description:
-				'The browser asks for the page. The server has almost nothing to say — the HTML is an empty shell with a <div id="root"> and a script tag.',
+				'The browser asks; the server answers with an empty shell — a <div id="root"> and a script tag.',
 			packets: [
 				{
 					id: 'req-1',
@@ -32,7 +32,7 @@ export const csr: RenderScenario = {
 		},
 		{
 			description:
-				'The shell arrives fast — first byte lands almost immediately. But there is nothing to paint: no content lives in this HTML.',
+				'First byte lands almost instantly — but there is nothing to paint.',
 			packets: [
 				{
 					id: 'shell-1',
@@ -51,7 +51,7 @@ export const csr: RenderScenario = {
 		},
 		{
 			description:
-				'Now the real payload starts: the JavaScript bundle. UI, data fetching, behavior — all of it travels as JS. This is the fattest packet in this post.',
+				'The real payload: the JS bundle — UI, data, behavior. The fattest packet in this post.',
 			packets: [
 				{
 					id: 'bundle-1',
@@ -70,7 +70,7 @@ export const csr: RenderScenario = {
 		},
 		{
 			description:
-				'The bundle lands and the browser parses and executes it. The user is still staring at a blank page — the app is only now figuring out what to render.',
+				'The browser parses and executes the bundle. The page is still blank.',
 			packets: [],
 			browser: { blocks: ALL_EMPTY, note: 'parsing + executing JS…' },
 			cdn: { entry: 'none' },
@@ -79,7 +79,7 @@ export const csr: RenderScenario = {
 		},
 		{
 			description:
-				'The app mounts and discovers it needs data. One more round trip before anything can appear.',
+				'The app mounts, then discovers it needs data — one more round trip.',
 			packets: [
 				{
 					id: 'data-req-1',
@@ -107,7 +107,7 @@ export const csr: RenderScenario = {
 		},
 		{
 			description:
-				'Data arrives, the app renders, and the whole page pops into existence at once — already interactive, because the JS that painted it is the JS that powers it. First paint and interactivity land together, at the very end.',
+				'Data arrives and the whole page pops in at once — already interactive, at the very end.',
 			packets: [],
 			browser: { blocks: ALL_HYDRATED, note: 'pop — everything at once' },
 			cdn: { entry: 'none' },

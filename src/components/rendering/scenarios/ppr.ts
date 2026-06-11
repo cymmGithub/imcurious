@@ -9,7 +9,7 @@ export const ppr: RenderScenario = {
 	steps: [
 		{
 			description:
-				'At build time the page was split: header, nav, and sidebar don’t depend on the request, so they were prerendered into a static shell — including the fallback skeletons for the dynamic holes. That shell lives on the CDN.',
+				'At build time the request-independent parts became a static shell, cached on the CDN.',
 			packets: [],
 			browser: {
 				blocks: {
@@ -26,7 +26,7 @@ export const ppr: RenderScenario = {
 		},
 		{
 			description:
-				'A visitor requests the page. The CDN answers instantly with the static frame — SSG speed — while the same request continues on to the server for the dynamic parts.',
+				'The CDN answers instantly with the frame while the server renders the holes.',
 			packets: [
 				{
 					id: 'shell-1',
@@ -53,7 +53,7 @@ export const ppr: RenderScenario = {
 		},
 		{
 			description:
-				'The frame paints immediately: real header, nav, and sidebar; skeleton fallbacks where the personalized content will go. The visitor sees a page, not a spinner.',
+				'The frame paints immediately — real chrome, skeletons where personal content goes.',
 			packets: [],
 			browser: {
 				blocks: {
@@ -71,7 +71,7 @@ export const ppr: RenderScenario = {
 		},
 		{
 			description:
-				'The dynamic holes stream in from the server — inside the same HTTP response that delivered the shell. No second request, no client-side refetch: the response simply hasn’t ended yet.',
+				'The holes stream in — inside the same response. No second request.',
 			packets: [
 				{
 					id: 'chunk-content',
@@ -98,7 +98,7 @@ export const ppr: RenderScenario = {
 		},
 		{
 			description:
-				'The last hole fills, the JS arrives, and the page hydrates. Static speed for the frame, request-time freshness for the holes — the middle ground that used to require choosing per page, now chosen per component.',
+				'The last hole fills and the page hydrates: static speed, live freshness, one wire.',
 			packets: [
 				{
 					id: 'chunk-comments',

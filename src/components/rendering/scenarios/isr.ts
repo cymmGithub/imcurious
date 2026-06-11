@@ -12,7 +12,7 @@ export const isr: RenderScenario = {
 	steps: [
 		{
 			description:
-				'The page was generated with revalidate: 60. The CDN entry is fresh, and requests are served straight from the edge — pure SSG behavior so far.',
+				'Generated with revalidate: 60. The entry is fresh — pure SSG behavior so far.',
 			packets: [
 				{
 					id: 'html-1',
@@ -31,7 +31,7 @@ export const isr: RenderScenario = {
 		},
 		{
 			description:
-				'Sixty seconds pass. The freshness window expires. Nothing happens — revalidation is triggered by requests, not by a timer. No visitors, no regeneration.',
+				'The window expires. Nothing happens — revalidation is request-triggered, not a timer.',
 			packets: [],
 			browser: { blocks: ALL_HYDRATED },
 			cdn: { entry: 'stale', note: 'window expired — entry kept' },
@@ -40,7 +40,7 @@ export const isr: RenderScenario = {
 		},
 		{
 			description:
-				'The next visitor arrives — and gets the STALE page, immediately. Not the fresh one. The CDN answers with what it has, and only then kicks the server to regenerate in the background.',
+				'The next visitor gets the STALE page, instantly; regeneration starts behind it.',
 			packets: [
 				{
 					id: 'html-stale',
@@ -68,7 +68,7 @@ export const isr: RenderScenario = {
 		},
 		{
 			description:
-				'Regeneration succeeds and the new HTML replaces the cached entry. The visitor who triggered it never saw it — they already have the stale page.',
+				'Fresh HTML replaces the entry. The visitor who triggered it never saw it.',
 			packets: [
 				{
 					id: 'html-new',
@@ -87,7 +87,7 @@ export const isr: RenderScenario = {
 		},
 		{
 			description:
-				'The request after that one gets the fresh page — from the edge, instantly. One visitor paid nothing and got stale; everyone after gets fresh.',
+				'The request after that gets the fresh page — instantly, from the edge.',
 			packets: [
 				{
 					id: 'html-2',
@@ -106,7 +106,7 @@ export const isr: RenderScenario = {
 		},
 		{
 			description:
-				'Later, the window expires again and this time regeneration throws — the CMS is down, a fetch fails. ISR fails open: the error is swallowed and the last successfully generated page keeps being served.',
+				'This time regeneration throws. ISR fails open: the last good page keeps serving.',
 			packets: [],
 			browser: { blocks: ALL_HYDRATED },
 			cdn: { entry: 'stale', note: 'regen failed — keeping last good' },
@@ -115,7 +115,7 @@ export const isr: RenderScenario = {
 		},
 		{
 			description:
-				'Visitors keep getting the last good page, never a 500 and never a blank. Stale beats broken — that is ISR’s whole bet.',
+				'Never a 500, never a blank. Stale beats broken — ISR’s whole bet.',
 			packets: [
 				{
 					id: 'html-3',
