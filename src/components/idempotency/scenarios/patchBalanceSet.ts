@@ -6,7 +6,7 @@ export const patchBalanceSet: Scenario = {
 	steps: [
 		{
 			description:
-				'Client sends PATCH /accounts/acc_42 with {balance: 200}. A declarative patch — "set the balance to 200."',
+				'PATCH with {balance: 200} — a declarative patch: "set the balance to 200."',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 100 },
@@ -142,7 +142,7 @@ export const patchBalanceSet: Scenario = {
 		},
 		{
 			description:
-				'Server applies the patch again — sets balance to 200. It was already 200. Nothing changes on the server.',
+				'The patch runs again — balance set to 200, which it already was. Nothing changes.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 200 },
@@ -184,7 +184,7 @@ export const patchBalanceSet: Scenario = {
 		},
 		{
 			description:
-				'Response arrives. Balance is 200. Whether the patch ran once or twice, the answer is the same. A declarative patch is idempotent.',
+				'Once or twice, the answer is the same: balance 200. A declarative patch is idempotent.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 200 },

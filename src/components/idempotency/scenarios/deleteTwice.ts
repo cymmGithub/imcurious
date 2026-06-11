@@ -104,7 +104,7 @@ export const deleteTwice: Scenario = {
 		},
 		{
 			description:
-				'Server looks up the account. It is already gone. Sends back 404 Not Found. The resource stays gone.',
+				'The account is already gone — 404 Not Found. The resource stays gone.',
 			resource: { kind: 'none' },
 			wire: { healthy: true },
 			packets: [
@@ -136,7 +136,7 @@ export const deleteTwice: Scenario = {
 		},
 		{
 			description:
-				'Response arrives. 204 the first time, 404 the second — but the server state is the same after both: gone. That is what idempotent really means.',
+				'204 first, 404 second — but the server state is the same after both: gone.',
 			resource: { kind: 'none' },
 			wire: { healthy: true },
 			packets: [],

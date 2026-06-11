@@ -6,7 +6,7 @@ export const getBaseline: Scenario = {
 	steps: [
 		{
 			description:
-				'Client sends GET /accounts/acc_42. The request packet leaves the client and starts its trip across the wire.',
+				'Client sends GET /accounts/acc_42 — the request starts its trip across the wire.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 100 },
@@ -33,7 +33,7 @@ export const getBaseline: Scenario = {
 		},
 		{
 			description:
-				'Server receives the GET, reads the account, sends 200 back with the account body. Nothing on the server changes — GET is safe.',
+				'The server reads the account and answers 200. Nothing changes — GET is safe.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 100 },
@@ -61,7 +61,7 @@ export const getBaseline: Scenario = {
 		},
 		{
 			description:
-				'Response arrives. Client got the data; server is exactly as it was. That is the safe, idempotent baseline.',
+				'Client got the data; the server is exactly as it was. The safe, idempotent baseline.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 100 },

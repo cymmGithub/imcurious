@@ -67,7 +67,7 @@ export const postDoubleCharge: Scenario = {
 		},
 		{
 			description:
-				"The wire breaks. The 201 response never reaches the client. From the client's side: silence. From the server's side: the account exists, and the server thinks the job is done.",
+				'The wire breaks; the 201 is lost. Client: silence. Server: account created, job done.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 100 },
@@ -98,7 +98,7 @@ export const postDoubleCharge: Scenario = {
 		},
 		{
 			description:
-				"Client gives up waiting and retries. From the client's perspective, maybe the request never landed. From the server's perspective, this looks like a brand-new request.",
+				'Client gives up and retries. To the server this looks like a brand-new request.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 100 },
@@ -140,7 +140,7 @@ export const postDoubleCharge: Scenario = {
 		},
 		{
 			description:
-				'The server has no way to know this is a retry. It does what POST does: creates a new account. There are now two Alices.',
+				'The server can’t know it’s a retry. POST does what POST does — now there are two Alices.',
 			resource: {
 				kind: 'collection',
 				items: [
@@ -185,7 +185,7 @@ export const postDoubleCharge: Scenario = {
 		},
 		{
 			description:
-				"Client gets a clean 201. From its point of view: success. From the server's reality: it processed Alice's signup twice. The duplicate is invisible to the side that thinks it's done.",
+				'A clean 201 — but the signup ran twice. The duplicate is invisible to the client.',
 			resource: {
 				kind: 'collection',
 				items: [

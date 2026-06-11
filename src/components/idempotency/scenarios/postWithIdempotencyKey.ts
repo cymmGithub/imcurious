@@ -8,7 +8,7 @@ export const postWithIdempotencyKey: Scenario = {
 	steps: [
 		{
 			description:
-				'Client generates a UUID and sends POST /accounts with header Idempotency-Key: 9b3f… and body {owner: "Alice", balance: 100}.',
+				'Client sends the POST with a fresh UUID header: Idempotency-Key: 9b3f….',
 			resource: { kind: 'none' },
 			wire: { healthy: true },
 			packets: [
@@ -38,7 +38,7 @@ export const postWithIdempotencyKey: Scenario = {
 		},
 		{
 			description:
-				'Server looks up the key 9b3f… in its dedupe table. Not found. Processes the POST, creates acc_42, stores key → response in the table, sends 201 Created.',
+				'Key 9b3f… not in the dedupe table: create acc_42, store key → response, send 201.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 100 },
@@ -71,7 +71,7 @@ export const postWithIdempotencyKey: Scenario = {
 		},
 		{
 			description:
-				'Wire breaks on the return trip. The 201 never reaches the client. Server has acc_42; key 9b3f… is in the dedupe table.',
+				'Wire breaks; the 201 is lost. Server has acc_42 — and the key in its table.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 100 },
@@ -103,7 +103,7 @@ export const postWithIdempotencyKey: Scenario = {
 		},
 		{
 			description:
-				'Client retries — same POST, same Idempotency-Key: 9b3f…. The key is what tells the server "this is a retry, not a new request."',
+				'Client retries with the same key — the key says "retry, not a new request."',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 100 },
@@ -147,7 +147,7 @@ export const postWithIdempotencyKey: Scenario = {
 		},
 		{
 			description:
-				'Server looks up 9b3f… in the dedupe table — finds it. Skips the create entirely. Replays the cached 201 from the first request. No second account.',
+				'Key found in the table: skip the create, replay the cached 201. No second account.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 100 },
@@ -191,7 +191,7 @@ export const postWithIdempotencyKey: Scenario = {
 		},
 		{
 			description:
-				'Response arrives. Client got a clean 201, exactly what it expected. One account on the server. The key absorbed the failure. POST is now survivable.',
+				'A clean 201, one account. The key absorbed the failure — POST is now survivable.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 100 },

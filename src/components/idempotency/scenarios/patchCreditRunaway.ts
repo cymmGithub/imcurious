@@ -6,7 +6,7 @@ export const patchCreditRunaway: Scenario = {
 	steps: [
 		{
 			description:
-				'Client sends PATCH /accounts/acc_42 with {credit: 50}. An imperative patch — "add 50 to the balance."',
+				'PATCH with {credit: 50} — an imperative patch: "add 50 to the balance."',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 100 },
@@ -70,7 +70,7 @@ export const patchCreditRunaway: Scenario = {
 		},
 		{
 			description:
-				'Wire breaks on the return trip. Response is lost. Balance on the server is now 150 — but the client does not know that.',
+				'Wire breaks; the response is lost. The server balance is 150 — the client doesn’t know.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 150 },
@@ -101,7 +101,7 @@ export const patchCreditRunaway: Scenario = {
 		},
 		{
 			description:
-				'Client retries with the same body: {credit: 50}. Same intent. Same payload. The body says "add 50" — and the server is about to do that again.',
+				'Client retries the same body. "Add 50" — and the server is about to do it again.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 150 },
@@ -143,7 +143,7 @@ export const patchCreditRunaway: Scenario = {
 		},
 		{
 			description:
-				'Server credits another 50. Balance is now 200. Alice has been credited twice for one user intent.',
+				'Another 50 credited; balance is 200. Alice was credited twice for one intent.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 200 },
@@ -185,7 +185,7 @@ export const patchCreditRunaway: Scenario = {
 		},
 		{
 			description:
-				'Response arrives. Client got a clean 200. Balance is 200, not 150. The runaway is real. PATCH is not idempotent when the body is a delta.',
+				'A clean 200 — but balance is 200, not 150. A delta body is not idempotent.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 200 },

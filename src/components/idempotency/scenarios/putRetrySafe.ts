@@ -70,7 +70,7 @@ export const putRetrySafe: Scenario = {
 		},
 		{
 			description:
-				'The wire breaks on the return trip. The 200 never reaches the client. Server: done. Client: silent.',
+				'Wire breaks; the 200 never arrives. Server: done. Client: silence.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 200 },
@@ -101,7 +101,7 @@ export const putRetrySafe: Scenario = {
 		},
 		{
 			description:
-				'Client retries with the same body. From its view: maybe the first never landed. From the server: another PUT — same as the previous one.',
+				'Client retries the same body. To the server it’s just another identical PUT.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 200 },
@@ -143,7 +143,7 @@ export const putRetrySafe: Scenario = {
 		},
 		{
 			description:
-				'Server applies the PUT again. Same body, same result — balance stays 200. The retry is a no-op on the server.',
+				'The PUT runs again — same body, same result. The retry is a no-op on the server.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 200 },
@@ -185,7 +185,7 @@ export const putRetrySafe: Scenario = {
 		},
 		{
 			description:
-				'Response arrives. Client got a clean 200. Server has one account, balance 200 — exactly what would have happened with one PUT. That is what idempotent buys you.',
+				'A clean 200, one account, balance 200 — as if the PUT ran once. That’s what idempotent buys.',
 			resource: {
 				kind: 'single',
 				account: { id: 'acc_42', owner: 'Alice', balance: 200 },
