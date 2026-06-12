@@ -166,7 +166,7 @@ export function RenderingStageViz({ activeStage }: RenderingStageVizProps) {
 
 			{hudVisible && (
 				<div
-					className="absolute bottom-3 right-3 rounded-md px-3 py-2 w-40 lg:w-[200px]"
+					className="absolute top-3 lg:top-auto lg:bottom-3 right-3 rounded-md px-3 py-2 w-40 lg:w-[200px]"
 					style={{
 						background: 'var(--color-surface)',
 						border: '1px solid var(--color-chalk-faint)',
